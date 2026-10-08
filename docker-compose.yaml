@@ -29,6 +29,11 @@ services:
       # setup entirely.
       # KITE_ADMIN_USER: admin
       # KITE_ADMIN_PASSWORD: change me, please
+
+      # A fine-grained token for the site's repository on GitHub, with
+      # Contents, Workflows and Pages: read and write. Connect on the Deploy
+      # page to push there; without it the token is given on that page.
+      # KITE_GITHUB_TOKEN: github_pat_...
     volumes:
       # A named volume, because the container runs as an unprivileged user
       # and a bind mount would inherit whatever the host directory allows.

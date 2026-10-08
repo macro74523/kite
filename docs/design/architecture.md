@@ -774,7 +774,7 @@ V1 在 hook 拒绝了一次发布、作者看过理由后选择「跳过 hooks �
 
 另外：当 `git diff --name-only --cached -- <paths>` 非空时**要警告而不是静默覆盖**，因为用户对你即将提交的路径有不同的暂存内容。
 
-### 16.4 凭据：根本不要碰
+### 16.4 凭据：作者自己的不碰，连接 GitHub 时只用他给的那一个
 
 用用户的环境运行 `git`，让他的 credential helper 和 SSH agent 正常工作。同时：
 
@@ -784,6 +784,8 @@ GIT_ASKPASS=<指向一个空操作>
 ```
 
 **这样缺凭据时会立刻报一个可捕获的错误，而不是让一个 HTTP handler 永远挂在 TTY 提示上。** 这一个细节就避免了服务端进程最糟糕的一类 bug。
+
+只有作者连接 GitHub 之后（[github.md](github.md)，2026-10-08 用户定），Kite 才保管一个凭据：他给的、只限一个仓库的细粒度 token，存在 `.kite/secrets/github.json`（0600），或者由环境变量 `KITE_GITHUB_TOKEN` 给出。它经 `GIT_CONFIG_*` 环境变量作为 `https://github.com/` 的认证头交给 git，排在作者自己设过的配置之后，不写进任何配置文件，也不出现在命令参数里；SSH 的 remote 照旧走 SSH。原因是容器：里面没有 SSH key 也没有 credential helper，不这样做，第一次发布就会失败。
 
 ### 16.5 Front matter 保真（被低估的头号口碑杀手）
 
@@ -842,7 +844,7 @@ Admin Publish → GitPublisher → push → GitHub
 
 **仓库只存 Source，`public/` 永不入库。** CI 产出物作为 Deployment Artifact。
 
-**V1 只做 GitHub Pages**，部署只靠生成的 GitHub Actions workflow 文件（推送时部署的 `deploy.yml`，发布定时文章的 `scheduled.yml`），不做任何需要凭据的 API 集成。唯一的 API 调用是匿名、只读地查询 `github-pages` 环境的部署状态，用来回填 DeliveryState.Deployed。
+**V1 只做 GitHub Pages**，部署只靠生成的 GitHub Actions workflow 文件（推送时部署的 `deploy.yml`，发布定时文章的 `scheduled.yml`）。没有连接 GitHub 时，唯一的 API 调用是匿名、只读地查询 `github-pages` 环境的部署状态，用来回填 DeliveryState.Deployed；作者用 token 连接之后（§16.4），开启 Pages 和查询部署都用他的 token。仍然不做 GitHub 以外的平台的 API 集成，也不替作者建仓库。
 
 Cloudflare Pages 放到 M6 和 `kitew` 一起做——因为 CF Pages 的构建容器没法预装 Kite，正是 wrapper 的用武之地。
 

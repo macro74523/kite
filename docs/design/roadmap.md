@@ -1,6 +1,6 @@
 # Kite 路线图与实现现状
 
-> 状态：持续更新 · 最近核对：2026-10-01
+> 状态：持续更新 · 最近核对：2026-10-08
 > 里程碑的原始定义见 [architecture.md §28 Roadmap](architecture.md#28-roadmap)，验收标准见 [§29](architecture.md#29-每阶段验收标准)。
 > 本文记录的是**对照代码和测试逐项核实后**的进度，不是对计划的复述；有疑问的项都实际运行确认过。
 
@@ -27,7 +27,7 @@
 | **M1** serve | 完成 | 按请求从文件渲染；fsnotify 文件监听；热重载 |
 | **M2** 只读后台 | 完成 | REST API，并从代码生成 OpenAPI；前端请求一律用生成的客户端；React 后台嵌入二进制；列表的筛选、排序、游标分页和搜索；索引一致性的三层机制：文件监听、stat 全树扫描、Git HEAD 哨兵（切分支时只重新索引变化的路径） |
 | **M3** 可写后台 | 完成 | `PUT` + `If-Match` 走 `Apply(ChangeSet)`；在旧版本上保存时返回 409，并给出三方对比；由 schema 驱动的表单，内容字段、主题设置、站点设置共用；可视化编辑器（Tiptap）加 Markdown 源码模式（CodeMirror）；服务端渲染的预览；拖图进 page bundle；站点设置和主题设置页（改 `kite.yaml` 时保留注释和顺序）；`kite doctor --fix-ids` |
-| **M4** Git 发布 | 完成 | 发布前检查：不是仓库、子模块、游离 HEAD、有进行中的 merge/rebase/cherry-pick、缺 git-lfs、文件超出托管平台限制；`git commit --only` 只提交指定路径；`GIT_TERMINAL_PROMPT=0` 加空的 `GIT_ASKPASS`，缺凭据时立刻报错；`.kite/publish.lock` 加 `index.lock` 退避重试；从不强推；DeliveryState 和发布面板；`kite publish` 命令行；`kite init` 生成 GitHub Pages 部署 workflow 和发布定时文章的 `scheduled.yml`；远端有新提交且没有改到同样的文件时一键接到后面推送；hook 拒绝后可跳过 hooks 发布；「已部署」对接 GitHub Pages 的部署状态 |
+| **M4** Git 发布 | 完成 | 发布前检查：不是仓库、子模块、游离 HEAD、有进行中的 merge/rebase/cherry-pick、缺 git-lfs、文件超出托管平台限制；`git commit --only` 只提交指定路径；`GIT_TERMINAL_PROMPT=0` 加空的 `GIT_ASKPASS`，缺凭据时立刻报错；`.kite/publish.lock` 加 `index.lock` 退避重试；从不强推；DeliveryState 和发布面板；`kite publish` 命令行；`kite init` 生成 GitHub Pages 部署 workflow 和发布定时文章的 `scheduled.yml`；远端有新提交且没有改到同样的文件时一键接到后面推送；hook 拒绝后可跳过 hooks 发布；「已部署」对接 GitHub Pages 的部署状态；连接 GitHub（[github.md](github.md)，#15）：给一个只限一个仓库的细粒度 token，后台或 `kite github connect` 就会建仓库、设 `origin`、写部署工作流、推送并开启 Pages，部署检查也带上它 |
 | **M5** 主题契约 | 完成 | 第二、三套主题按契约写成，各在自己的仓库：文档站主题风标（`theme-vane`）和个人站主题年鉴（`theme-almanac`），写的时候发现的缺口都已补上（列表页的 `Params` 和字数、图片处理、`T` 和语言包、按列表分页、短代码、render hook、声明内容类型）；站点菜单写进契约（`kite.yaml` 的 `menus`、`theme.yaml` 声明、`.Site.Menus`、后台「设置 → 菜单」）；`kite theme list/add/remove/use/new/verify`；契约 `kite/v1` 于 2026-10-01 冻结：模板能调用的每一项连同签名记录在 `internal/render/theme/testdata/kite-v1.txt`，`TestTheContractOnlyGrows` 保证只增不改，[theme-system.md](theme-system.md) §6、§7 按实现逐项写明，§12 定下多语言 URL 策略（路径前缀、默认语言不加），§14 的开放问题都有了结论。风标 1.0 已在本地备好，发布等确认 |
 | **M6** | 未开始 | 构建时已经按 OutputTarget 记录依赖和缓存键，只是跳过判断还没启用 |
 | **M7** | 未开始 | 读模型已按双 Store 设计；单账号认证和 Docker 已提前完成 |

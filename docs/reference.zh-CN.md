@@ -794,7 +794,8 @@ GitHub Actions** 打开 Pages，之后推送到 `main` 即部署。部署上线�
 检查项。同一个提交既部署到 Pages 又部署到别处时，以 Pages 为准。只有托管平台能说
 部署失败了。GitHub 给不登录的调用每小时 60 次，同一个网络里的程序共用，所以后台最
 多每分钟问一次：部署进行中时每分钟一次，过了 10 分钟改为每 5 分钟一次；这一小时的
-次数快用完时，会写明几点再查，除非站点那边已经有了答案。
+次数快用完时，会写明几点再查，除非站点那边已经有了答案。用 token 连接过的仓库改用
+这个 token 去问，私有仓库也查得到，每小时的额度也变成 5,000 次，见[连接 GitHub](#连接-github)。
 
 两处都说不出来时，后台会直接说明托管平台不回报，而不是一直等待。
 
@@ -819,6 +820,24 @@ kite publish content/posts/hello --push
 
 仓库里的提交 hook 会像任何一次提交那样运行。hook 拒绝时，后台会显示它给出的理由，
 并提供「跳过 hooks 发布」；在终端里用 `kite publish --no-verify` 效果相同。
+
+### 连接 GitHub
+
+剩下的设置也可以交给后台，不用终端。在 GitHub 上新建一个空仓库，再建一个只限这个
+仓库的细粒度 token，权限是 Contents、Workflows、Pages 的读写；「部署」页有链接，打开
+就是填好这些权限的 GitHub 表单。把两者填进「连接 GitHub」，或者运行
+`kite github connect owner/name`。Kite 会在没有 git 仓库和 `origin` 时建好它们，没有
+部署工作流时写入一个，提交站点自己的文件，开启 Pages 并把来源设为 GitHub Actions，然后
+推送。仓库由别的平台构建时，不要勾选「用 GitHub Pages 发布网站」，或者加 `--no-pages`。
+
+token 存在 `.kite/secrets/github.json`，只有属主能读；`KITE_GITHUB_TOKEN` 给了 token
+时以它为准。它只在通过 https 推送到 `github.com`、以及后台查询部署时发出去，不去
+别处；git 通过环境变量拿到它，不写进文件，也不出现在命令参数里。走 SSH 的 remote
+照旧用 SSH。git 没有自己的提交身份时（容器里就是这样），提交用连接的账号的 noreply
+地址。`kite github` 显示当前状态，`kite github disconnect` 删掉保存的 token。
+
+连接时，凡是要改动不该改的东西，都会在改动任何东西之前停下：GitHub 不接受的 token、
+token 看不到的仓库、站点还没有提交而远端仓库已经有提交、`origin` 指向别处。
 
 ### 站点用哪个版本的 Kite 构建
 
@@ -936,6 +955,10 @@ docker compose run --rm kite auth set-password
 
 值得提前给好的只有 `KITE_SITE_BASEURL`：它是会进入订阅源和站点地图的那个地址，
 而那不是容器自己的地址。
+
+没有仓库时，容器本身就是部署：网站由它直接提供。还要发到 GitHub 的话，在后台「部署」
+页连接；或者在 `docker-compose.yaml` 里设 `KITE_GITHUB_TOKEN`，再用它连接，见
+[连接 GitHub](#连接-github)。这样容器里不需要 SSH key，也不需要配置 git。
 
 ### 不用 Docker，直接跑在服务器上
 

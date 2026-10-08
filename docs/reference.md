@@ -958,7 +958,9 @@ caller sixty requests an hour, shared with everything else on the same
 network, so the studio asks at most once a minute, every minute while a
 deployment is under way and every five once it has taken ten; when the
 hour's allowance is nearly spent, it says when it will ask again, unless the
-site has answered meanwhile.
+site has answered meanwhile. A repository connected with a token is asked
+with that token instead, which reaches a private one and lifts the allowance
+to 5,000 requests an hour; see [Connecting GitHub](#connecting-github).
 
 When neither can tell, the studio says the host does not report deployments
 instead of waiting.
@@ -989,6 +991,33 @@ whatever is already committed, for a push that failed the first time.
 The repository's commit hooks run as they would for any commit. When one
 refuses, the studio shows what it said and offers to publish without the
 hooks; `kite publish --no-verify` does the same from a terminal.
+
+### Connecting GitHub
+
+The studio can do the rest of the setup instead of a terminal. Create an
+empty repository on GitHub and a fine-grained token for that repository
+alone, with Contents, Workflows and Pages: read and write; the Deploy page
+links to GitHub's form with them filled in. Give both under **Connect
+GitHub**, or run `kite github connect owner/name`. Kite then starts a git
+repository and adds `origin` where there are none, writes the deploy
+workflow where there is none, commits the site's own files, turns Pages on
+with GitHub Actions as its source and pushes. Leave **Deploy the site with
+GitHub Pages** off, or pass `--no-pages`, for a repository another host
+builds.
+
+The token is kept in `.kite/secrets/github.json`, readable by its owner alone,
+unless `KITE_GITHUB_TOKEN` gives one, which wins. It goes to `github.com` with
+pushes over https and with the studio's questions about deployments, and
+nowhere else; git gets it through its environment, never in a file or among
+a command's arguments. A remote over ssh keeps using ssh. Where git has no
+identity of its own, as in a container, commits are made by the connected
+account at its noreply address. `kite github` says where things stand, and
+`kite github disconnect` forgets the kept token.
+
+A connect that would have to change something it should not stops before
+changing anything: a token GitHub does not take, a repository it cannot see,
+one with commits of its own while the site has none, or an `origin` that
+points elsewhere.
 
 ### The Kite a site builds with
 
@@ -1123,6 +1152,12 @@ docker compose run --rm kite auth set-password
 
 `KITE_SITE_BASEURL` is the one setting worth giving it up front, because it is
 the address that ends up in feeds and sitemaps and it is not the container's.
+
+Without a repository, the container is the deployment: it serves the site
+itself. To publish to GitHub as well, connect it on the Deploy page, or set
+`KITE_GITHUB_TOKEN` in `docker-compose.yaml` and connect with that; see
+[Connecting GitHub](#connecting-github). The container then needs no ssh key
+and no git configuration.
 
 ### On a server, without Docker
 
