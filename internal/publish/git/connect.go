@@ -195,19 +195,16 @@ func (p *Publisher) ConnectGitHub(ctx context.Context, req publish.GitHubRequest
 		}
 	}
 
-	var commit []string
-	message := "Start the site"
-	if !hasCommits {
-		for _, name := range siteFiles {
-			if _, err := os.Stat(filepath.Join(p.opts.Root, name)); err == nil {
-				commit = append(commit, name)
-			}
-		}
-	} else {
+	paths, message := siteFiles, "Start the site"
+	if hasCommits {
+		paths, message = nil, "Deploy with GitHub Pages"
 		for _, w := range workflows {
-			commit = append(commit, filepath.ToSlash(w))
+			paths = append(paths, filepath.ToSlash(w))
 		}
-		message = "Deploy with GitHub Pages"
+	}
+	commit, err := p.committable(ctx, paths)
+	if err != nil {
+		return nil, err
 	}
 	if len(commit) > 0 {
 		committer := p.git.literal().with(p.committer(ctx)...)
@@ -246,6 +243,27 @@ func (p *Publisher) ConnectGitHub(ctx context.Context, req publish.GitHubRequest
 		}
 	}
 	return state, nil
+}
+
+// committable lists the files under paths a commit would carry: those git
+// tracks or would add, and none it ignores. An empty folder, such as the
+// layouts kite init makes, holds none, and naming it would fail the commit.
+func (p *Publisher) committable(ctx context.Context, paths []string) ([]string, error) {
+	if len(paths) == 0 {
+		return nil, nil
+	}
+	args := append([]string{"ls-files", "-z", "--cached", "--others", "--exclude-standard", "--"}, paths...)
+	out, err := p.git.literal().readRaw(ctx, args...)
+	if err != nil {
+		return nil, err
+	}
+	var files []string
+	for _, name := range strings.Split(out, "\x00") {
+		if name != "" {
+			files = append(files, name)
+		}
+	}
+	return files, nil
 }
 
 // ownRepository reports whether the project is a repository of its own. A

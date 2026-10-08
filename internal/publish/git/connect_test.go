@@ -125,6 +125,13 @@ func newConnection(t *testing.T) *connection {
 	write(t, root, ".gitignore", "/.kite/\n/public/\n")
 	write(t, root, ".ssh/id_ed25519", "a key that must never be committed\n")
 	write(t, root, "notes.txt", "the author's own file\n")
+	// kite init makes these folders empty, and git has nothing to commit in
+	// an empty folder.
+	for _, empty := range []string{"layouts", "themes"} {
+		if err := os.MkdirAll(filepath.Join(root, empty), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	c := &connection{root: root, api: api, host: "file://" + remotes, bare: bare, getenv: map[string]string{}}
 	c.pub = gitpub.New(gitpub.Options{
