@@ -634,7 +634,7 @@ func describe(t Target, page render.Page, body *markdown.Document) hook.PageInfo
 		URL:        t.URL,
 		OutputPath: t.Path,
 		Kind:       hookKind(t.Kind),
-		Indexable:  t.Kind != render.KindNotFound && t.Kind != render.KindAlias,
+		Indexable:  t.Kind != render.KindNotFound && t.Kind != render.KindAlias && !t.Empty,
 	}
 	if page != nil {
 		info.Title = page.Title()

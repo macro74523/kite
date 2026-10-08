@@ -4,8 +4,8 @@
   <header class="heading">
     <h1>{{ partial "title.html" .Page }}</h1>
     {{ with .Paginator }}<span class="count">{{ T "total" .TotalItems }}</span>{{ end }}
-    {{- /* A taxonomy with no terms has no page of its own, so one is linked
-           only once an entry listed here is seen to use it. */ -}}
+    {{- /* A taxonomy is linked only once an entry listed here is seen to
+           use it, so nobody is sent to an empty one. */ -}}
     <span class="browse">
       {{- range .Site.Taxonomies }}
         {{- $taxonomy := . }}

@@ -693,6 +693,32 @@ func TestATermIsCalledWhatMostOfItsPostsWrite(t *testing.T) {
 	}
 }
 
+// A listing is published before it has anything to list, a kind's before
+// its first item and a taxonomy's before its first term: a theme links to
+// them from its menu, and a new site answered those links with a 404. They
+// stay out of the sitemap until they list something.
+func TestAListingIsPublishedBeforeItListsAnything(t *testing.T) {
+	f := newFixture(t, 0)
+	_, files := f.run(t, f.out, nil)
+
+	for _, want := range []string{"posts/index.html", "pages/index.html", "tags/index.html", "categories/index.html"} {
+		if !slices.Contains(files, want) {
+			t.Errorf("missing %s\ngot: %v", want, files)
+		}
+	}
+	for _, listing := range []string{"posts/index.html", "tags/index.html"} {
+		if page := readFile(t, f.out, listing); !strings.Contains(page, `class="empty"`) {
+			t.Errorf("%s should say there is nothing yet:\n%s", listing, excerptOf(page, "<main"))
+		}
+	}
+	sitemap := readFile(t, f.out, "sitemap.xml")
+	for _, listing := range []string{"/posts/", "/pages/", "/tags/", "/categories/"} {
+		if strings.Contains(sitemap, listing) {
+			t.Errorf("the sitemap names the empty listing %s:\n%s", listing, sitemap)
+		}
+	}
+}
+
 // A term of nothing but dashes, slashes or spaces has nothing to write in
 // its address, which would then be the taxonomy's own listing.
 func TestATermWithAnEmptySlugHasNoPage(t *testing.T) {

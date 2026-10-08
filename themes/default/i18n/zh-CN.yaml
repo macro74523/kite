@@ -93,6 +93,7 @@ filed:
   after: 」
 clear: 清除
 empty: 这里还没有文章。
+empty_terms: 这里还没有内容。
 notfound: 页面不存在
 notfound_body: 这个地址下没有内容。
 powered:

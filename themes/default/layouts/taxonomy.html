@@ -2,9 +2,13 @@
   <header class="heading">
     <h1>{{ partial "title.html" .Page }}</h1>
   </header>
+  {{- with .Terms }}
   <ul class="terms">
-    {{- range .Terms }}
+    {{- range . }}
     <li><a href="{{ .RelPermalink }}">{{ .Name }}</a><span class="count">{{ .Count }}</span></li>
     {{- end }}
   </ul>
+  {{- else }}
+  <p class="empty">{{ T "empty_terms" }}</p>
+  {{- end }}
 {{ end }}

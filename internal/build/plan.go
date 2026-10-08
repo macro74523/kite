@@ -50,6 +50,10 @@ type Target struct {
 	// TotalItems is the size of the full listing this target paginates.
 	TotalItems int
 
+	// Empty says a listing has nothing to list yet. It is published so that
+	// links to it hold, and left out of what describes the site.
+	Empty bool
+
 	// Layout overrides the template base name.
 	Layout string
 

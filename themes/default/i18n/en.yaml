@@ -29,6 +29,7 @@ filed:
   after: "”"
 clear: Clear
 empty: Nothing here yet.
+empty_terms: Nothing filed here yet.
 notfound: Not found
 notfound_body: That page does not exist.
 powered:

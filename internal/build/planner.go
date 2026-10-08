@@ -202,13 +202,12 @@ func (b *Builder) planHome(p *Plan, all []content.Summary) {
 	b.paginate(p, render.KindHome, b.opts.Resolver.ForHome(b.opts.Site.Language), "post", "", "", posts)
 }
 
+// planLists adds the listing of every kind, before its first item too: a
+// theme's menu links to it whatever it holds.
 func (b *Builder) planLists(p *Plan, all []content.Summary) {
 	home := b.opts.Resolver.ForHome(b.opts.Site.Language)
 	for _, t := range b.opts.Types.Types() {
 		items := filterKind(all, t.Kind)
-		if len(items) == 0 {
-			continue
-		}
 		if b.readsByWeight(t.Kind) {
 			slices.SortStableFunc(items, byWeight)
 		}
@@ -220,7 +219,8 @@ func (b *Builder) planLists(p *Plan, all []content.Summary) {
 	}
 }
 
-// planTaxonomies adds one listing per taxonomy and one per term.
+// planTaxonomies adds one listing per taxonomy, before its first term too,
+// and one per term.
 //
 // Every item the build includes is already loaded, newest first and with its
 // terms, which is exactly what a query per term would return. Grouping them
@@ -257,10 +257,6 @@ func (b *Builder) planTaxonomies(p *Plan, all []content.Summary) {
 				t.items = append(t.items, s)
 			}
 		}
-		if len(bySlug) == 0 {
-			continue
-		}
-
 		link := b.opts.Resolver.ForTaxonomy(taxonomy, b.opts.Site.Language)
 		p.Targets = append(p.Targets, Target{
 			Kind:  render.KindTaxonomy,
@@ -268,6 +264,7 @@ func (b *Builder) planTaxonomies(p *Plan, all []content.Summary) {
 			Path:  b.opts.Resolver.OutputPath(link),
 			Type:  taxonomy,
 			Title: displayName(taxonomy),
+			Empty: len(bySlug) == 0,
 		})
 
 		for _, slug := range slices.Sorted(maps.Keys(bySlug)) {
@@ -320,6 +317,8 @@ func (b *Builder) paginate(p *Plan, kind render.Kind, base, typ, term, title str
 			Page:       n,
 			Items:      items[lo:hi],
 			TotalItems: len(items),
+			// The home page is the site's front, whatever it lists.
+			Empty: len(items) == 0 && kind != render.KindHome,
 		})
 	}
 }

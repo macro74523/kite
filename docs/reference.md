@@ -729,7 +729,9 @@ that kind of listing in `theme.yaml`. `build.pagination` says it for the site,
 over the theme: `home` for the home page, `list` for the list of a kind of
 item, such as `/posts/`, and `term` for the page of a tag or a category. A
 size of 0 puts every item on one page, which is how an archive lists every
-post without making every tag's page as long.
+post without making every tag's page as long. The list of a kind and the page
+of a taxonomy are published before they list anything, so a menu can link to
+`/posts/` or `/tags/` from the start; until then the sitemap leaves them out.
 
 `build.feed` writes `rss.xml`, an RSS 2.0 feed of the `feedLimit` newest
 posts, newest first; items of a kind declared with `feed: true` count as
