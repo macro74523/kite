@@ -7,6 +7,7 @@ import { useI18n, useProblem } from "@/i18n";
 import { useBundle, useBundleChanged, useRemoveFile, useReplaceFile } from "@/hooks/useBundle";
 import { useKindLabel } from "@/hooks/useKindLabel";
 import { sizeOf } from "@/lib/bytes";
+import { destination } from "@/lib/links";
 import { inFields, mentions } from "@/lib/references";
 import { stored } from "@/lib/uploads";
 import { cn } from "@/lib/utils";
@@ -20,9 +21,6 @@ import { chip, unset } from "@/components/editor/ArticleHead";
 
 /** altOf is a file's name without its folder and extension, which is the best guess there is. */
 const altOf = (name: string) => name.replace(/^.*\//, "").replace(/\.[^.]+$/, "");
-
-/** linkOf is how the markdown names a file, in angle brackets when it holds a space. */
-const linkOf = (link: string) => (/\s/.test(link) ? `<${link}>` : link);
 
 /**
  * Attachments are the files an item keeps beside it, which its page is
@@ -78,7 +76,7 @@ export function Attachments({
     );
 
   const copy = async (media: Media) => {
-    const link = linkOf(media.link);
+    const link = destination(media.link);
     const text = media.type?.startsWith("image/") ? `![${altOf(media.name)}](${link})` : `[${media.name}](${link})`;
     try {
       await navigator.clipboard.writeText(text);

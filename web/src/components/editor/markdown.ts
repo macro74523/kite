@@ -15,10 +15,13 @@ const checks: [Loss, RegExp][] = [
 /**
  * losses lists the syntax in a body that the visual editor would turn into
  * plain text. Code spans and fences are taken out first: a tag inside them
- * is text already, and survives.
+ * is text already, and survives. So are addresses in angle brackets, as in
+ * `![shot](<a b.png>)`, which only look like tags.
  */
 export function losses(body: string): Loss[] {
-  const prose = body.replace(/```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`/g, "");
+  const prose = body
+    .replace(/```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`/g, "")
+    .replace(/\]\(\s*<(?:\\.|[^<>\\\n])*>/g, "](");
   return checks.filter(([, pattern]) => pattern.test(prose)).map(([name]) => name);
 }
 

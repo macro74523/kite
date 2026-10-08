@@ -2,6 +2,7 @@ import { mergeAttributes } from "@tiptap/core";
 import { CodeBlockLowlight, type CodeBlockLowlightOptions } from "@tiptap/extension-code-block-lowlight";
 import { FindAndReplace } from "@tiptap/extension-find-and-replace";
 import { Image, type ImageOptions } from "@tiptap/extension-image";
+import { Link } from "@tiptap/extension-link";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { Paragraph } from "@tiptap/extension-paragraph";
 import { TableKit } from "@tiptap/extension-table";
@@ -16,7 +17,7 @@ import { Slash, type SlashItem } from "@/components/editor/SlashMenu";
 import { StableTable } from "@/components/editor/table";
 import { HorizontalRule } from "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
 import { ImageUploadNode, type UploadFunction } from "@/components/tiptap-node/image-upload-node";
-import { resolveLink } from "@/lib/links";
+import { destination, resolveLink } from "@/lib/links";
 
 /**
  * What the extensions ask of the page, read late so the language, the item
@@ -40,6 +41,9 @@ const maxUpload = 32 << 20;
 
 const lowlight = createLowlight(common);
 
+/** titled is what follows an address in markdown: its title in quotes, when there is one. */
+const titled = (title: unknown) => (title ? ` "${String(title).replace(/["\\]/g, "\\$&")}"` : "");
+
 /**
  * An image whose src is kept as written -- a file name beside the page -- and
  * resolved only for the browser, so the markdown stays portable.
@@ -56,6 +60,14 @@ const RelativeImage = Image.extend<ImageOptions & { base: () => string | undefin
       }),
     ];
   },
+  renderMarkdown: (node) =>
+    `![${node.attrs?.alt ?? ""}](${destination(String(node.attrs?.src ?? ""))}${titled(node.attrs?.title)})`,
+});
+
+/** A link written so that markdown reads its address back whole, spaces and all. */
+const WholeLink = Link.extend({
+  renderMarkdown: (node, helpers) =>
+    `[${helpers.renderChildren(node)}](${destination(String(node.attrs?.href ?? ""))}${titled(node.attrs?.title)})`,
 });
 
 /**
@@ -98,18 +110,19 @@ export function extensions(env: Env) {
       paragraph: false,
       horizontalRule: false,
       heading: { levels: [1, 2, 3, 4] },
-      link: {
-        openOnClick: false,
-        // A click puts the caret in a link, so its words can be typed over;
-        // the link's own bubble handles its address.
-        enableClickSelection: false,
-        autolink: true,
-        linkOnPaste: true,
-        markdownLinks: true,
-        defaultProtocol: "https",
-      },
+      link: false,
       // Its color is the template's, set in paragraph-node.scss.
       dropcursor: { width: 2 },
+    }),
+    WholeLink.configure({
+      openOnClick: false,
+      // A click puts the caret in a link, so its words can be typed over;
+      // the link's own bubble handles its address.
+      enableClickSelection: false,
+      autolink: true,
+      linkOnPaste: true,
+      markdownLinks: true,
+      defaultProtocol: "https",
     }),
     PlainParagraph,
     HorizontalRule,

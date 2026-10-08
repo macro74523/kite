@@ -14,7 +14,7 @@ import { useKindLabel } from "@/hooks/useKindLabel";
 import { canPublish, useDelivery, usePublish } from "@/hooks/usePublish";
 import { useUnsavedGuard } from "@/hooks/useUnsavedGuard";
 import { useWordCount } from "@/hooks/useWordCount";
-import { siteHome } from "@/lib/links";
+import { destination, siteHome } from "@/lib/links";
 import { isoDate } from "@/lib/dates";
 import { composing } from "@/lib/ime";
 import { stored } from "@/lib/uploads";
@@ -260,7 +260,7 @@ export function EditorPage({ id, kind }: { id: string | null; kind: string }) {
       if (rich) {
         const at = rich.state.selection.to;
         rich.chain().focus().insertContentAt(at, { type: "image", attrs: { src: link, alt } }).run();
-      } else source.current?.insert(`\n![${alt}](${link})\n`);
+      } else source.current?.insert(`\n![${alt}](${destination(link)})\n`);
     }
   };
   const pick = () => picker.current?.click();

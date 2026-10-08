@@ -149,3 +149,38 @@ test("a file uploaded to a post is kept beside it and published with it", async 
   expect(stored.equals(png)).toBe(true);
   expect((await page.request.get("/posts/coast/harbour.png")).status()).toBe(200);
 });
+
+test("a picture whose name holds spaces is still a picture once saved", async ({ page, site }) => {
+  const post = site.posts.coast;
+  // What macOS and Windows name a screenshot.
+  const name = "Screenshot 2026-10-08 at 12.34.56.png";
+  const alt = "Screenshot 2026-10-08 at 12.34.56";
+  await page.goto(`/admin/content/post/${post.id}`);
+  await bodyOf(page).getByText("A day by the sea.").click();
+  await page.keyboard.press("End");
+  await page.getByRole("button", { name: "Add image" }).click();
+  const chooser = page.waitForEvent("filechooser");
+  await bodyOf(page).getByText("Click to upload").click();
+  await (await chooser).setFiles({ name, mimeType: "image/png", buffer: png });
+  await expect(bodyOf(page).getByRole("img", { name: alt })).toBeVisible();
+  await page.keyboard.press("ControlOrMeta+s");
+  await expect(page.getByText(savedAt)).toBeVisible();
+
+  await page.reload();
+  await expect(bodyOf(page).getByRole("img", { name: alt })).toBeVisible();
+  expect(await site.read(post.file)).toContain(`![${alt}](<${name}>)`);
+  await expect
+    .poll(async () => (await page.request.get("/posts/coast/")).text())
+    .toContain(`src="${encodeURI(name)}"`);
+});
+
+test("a link to a file whose name holds spaces survives an edit beside it", async ({ page, site }) => {
+  const post = site.posts.coast;
+  await site.edit(post, (text) => text.replace("A day by the sea.", "A day by the sea, [tides](<tide table.pdf>) and all."));
+  await page.goto(`/admin/content/post/${post.id}`);
+  await expect(bodyOf(page).getByRole("link", { name: "tides" })).toBeVisible();
+  await appendTo(page, "and all.", " Bring a coat.");
+  await page.keyboard.press("ControlOrMeta+s");
+  await expect(page.getByText(savedAt)).toBeVisible();
+  expect(await site.read(post.file)).toContain("A day by the sea, [tides](<tide table.pdf>) and all. Bring a coat.");
+});
