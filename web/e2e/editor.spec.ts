@@ -150,6 +150,27 @@ test("a file uploaded to a post is kept beside it and published with it", async 
   expect((await page.request.get("/posts/coast/harbour.png")).status()).toBe(200);
 });
 
+test("ctrl or cmd and b make text bold and leave the sidebar alone", async ({ page, site }) => {
+  const post = site.posts["three-paragraphs"];
+  await page.goto(`/admin/content/post/${post.id}`);
+  // The editor folds the sidebar to its icons to make room.
+  const sidebar = page.locator('[data-slot="sidebar"][data-state]');
+  await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+
+  await bodyOf(page).getByText("Bravo paragraph.").click({ clickCount: 3 });
+  await page.keyboard.press("ControlOrMeta+b");
+  await expect(bodyOf(page).locator("strong")).toHaveText("Bravo paragraph.");
+  await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+  await page.getByRole("textbox", { name: "Title" }).click();
+  await page.keyboard.press("ControlOrMeta+b");
+  await expect(sidebar).toHaveAttribute("data-state", "collapsed");
+
+  // Away from any text, the keys still unfold it.
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.keyboard.press("ControlOrMeta+b");
+  await expect(sidebar).toHaveAttribute("data-state", "expanded");
+});
+
 test("a picture whose name holds spaces is still a picture once saved", async ({ page, site }) => {
   const post = site.posts.coast;
   // What macOS and Windows name a screenshot.
