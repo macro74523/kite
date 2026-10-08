@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -202,11 +203,14 @@ func TestConnectingASiteThatIsNotARepositoryPushesIt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if info.Mode().Perm() != 0o600 {
-		t.Errorf("the token file is %v", info.Mode().Perm())
-	}
-	if dir, _ := os.Stat(filepath.Dir(saved)); dir.Mode().Perm() != 0o700 {
-		t.Errorf("its folder is %v", dir.Mode().Perm())
+	// Windows has no permission bits to read back.
+	if runtime.GOOS != "windows" {
+		if info.Mode().Perm() != 0o600 {
+			t.Errorf("the token file is %v", info.Mode().Perm())
+		}
+		if dir, _ := os.Stat(filepath.Dir(saved)); dir.Mode().Perm() != 0o700 {
+			t.Errorf("its folder is %v", dir.Mode().Perm())
+		}
 	}
 	config, err := os.ReadFile(filepath.Join(c.root, ".git", "config"))
 	if err != nil {
