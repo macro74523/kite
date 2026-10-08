@@ -30,6 +30,14 @@ type Options struct {
 	// been deployed. Empty means GitHub's own API.
 	GitHubAPI string
 
+	// GitHubHost is where a connected repository is pushed to over https.
+	// Empty means GitHub itself; a test points it at a directory.
+	GitHubHost string
+
+	// Getenv reads the environment, where a token may be given. Nil reads
+	// the process's own.
+	Getenv func(string) string
+
 	// Site is the site's address, whose build stamp says whether a push has
 	// reached it. An address readers cannot reach, such as localhost, is not
 	// asked.
@@ -56,13 +64,26 @@ func New(opts Options) *Publisher {
 	if opts.Now == nil {
 		opts.Now = time.Now
 	}
-	return &Publisher{
-		opts:    opts,
-		git:     runner{root: opts.Root},
-		lock:    newLock(opts.Root),
-		deploys: newDeployChecker(opts.GitHubAPI, opts.Now),
-		sites:   newSiteChecker(opts.Now),
+	if opts.Getenv == nil {
+		opts.Getenv = os.Getenv
 	}
+	if opts.GitHubHost == "" {
+		opts.GitHubHost = GitHubHost
+	}
+	p := &Publisher{
+		opts:  opts,
+		lock:  newLock(opts.Root),
+		sites: newSiteChecker(opts.Now),
+	}
+	// Read at each command, so a token given or taken away in the studio
+	// counts from the next push.
+	current := func() string {
+		token, _ := p.token()
+		return token
+	}
+	p.git = runner{root: opts.Root, host: opts.GitHubHost, token: current}
+	p.deploys = newDeployChecker(opts.GitHubAPI, opts.Now, current)
+	return p
 }
 
 // Name identifies this publisher in configuration and in a plan.
@@ -162,10 +183,11 @@ func (p *Publisher) commit(ctx context.Context, plan *publish.Plan) error {
 	}
 
 	args := append([]string{"commit", "--only", "-m", plan.Message, "--"}, plan.Paths...)
+	committer := p.git.with(p.committer(ctx)...)
 	var stderr bytes.Buffer
 	err = p.retryIndexLock(ctx, func() error {
 		stderr.Reset()
-		return p.git.run(ctx, timeout, nil, &stderr, args...)
+		return committer.run(ctx, timeout, nil, &stderr, args...)
 	})
 	if err != nil {
 		// A hook can refuse, and then the intent-to-add entries are all that

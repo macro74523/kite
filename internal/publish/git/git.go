@@ -39,6 +39,11 @@ type runner struct {
 	// env is added to every command's environment, for the scratch index
 	// and the literal paths a replay needs.
 	env []string
+
+	// token, when it says one, is sent with every request to host over
+	// https; see credentials.
+	host  string
+	token func() string
 }
 
 // with returns a runner whose commands see more of an environment.
@@ -127,6 +132,11 @@ func (r runner) environ() []string {
 	if os.Getenv("GIT_SSH_COMMAND") == "" {
 		env = append(env, "GIT_SSH_COMMAND=ssh -o BatchMode=yes")
 	}
+	if r.token != nil {
+		if token := r.token(); token != "" {
+			env = append(env, credentials(r.host, token, env)...)
+		}
+	}
 	return append(env, r.env...)
 }
 
@@ -178,12 +188,28 @@ func (r runner) wrap(err error, args []string, stderr *bytes.Buffer) error {
 			Fix:    "check whether the remote is reachable",
 		}
 	}
-	if isCredentialFailure(detail) {
+	tokened := r.token != nil && r.token() != ""
+	switch {
+	case strings.Contains(detail, "refusing to allow") && strings.Contains(detail, "workflow"):
+		return publish.Problem{
+			Code:   publish.CodeNoCredentials,
+			Detail: detail,
+			Fix:    "give the token Workflows: read and write, which a push that changes .github/workflows needs",
+		}
+	case tokened && (isCredentialFailure(detail) || strings.Contains(detail, "returned error: 403")):
+		return publish.Problem{
+			Code:   publish.CodeNoCredentials,
+			Detail: detail,
+			Fix: "GitHub did not let the token push: give it Contents: read and write on this " +
+				"repository, or connect again with a new token if it expired",
+		}
+	case isCredentialFailure(detail):
 		return publish.Problem{
 			Code:   publish.CodeNoCredentials,
 			Detail: detail,
 			Fix: "git could not authenticate without asking. Run the same " +
-				"push once in a terminal so your credential helper stores it.",
+				"push once in a terminal so your credential helper stores it, " +
+				"or connect a repository on GitHub with a token on the Deploy page.",
 		}
 	}
 	return publish.Problem{

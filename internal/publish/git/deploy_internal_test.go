@@ -76,7 +76,7 @@ func newFakeAt(t *testing.T, now func() time.Time) (*fakeGitHub, *deployChecker)
 	}
 	srv := httptest.NewServer(fake)
 	t.Cleanup(srv.Close)
-	return fake, newDeployChecker(srv.URL, now)
+	return fake, newDeployChecker(srv.URL, now, nil)
 }
 
 func (f *fakeGitHub) count() int {

@@ -404,7 +404,7 @@ func (p *Publisher) replay(ctx context.Context, branch, commit, upstream, name s
 	if err != nil {
 		return "", err
 	}
-	replayed, err := p.git.with(
+	replayed, err := p.git.with(p.committer(ctx)...).with(
 		"GIT_AUTHOR_NAME="+author[0], "GIT_AUTHOR_EMAIL="+author[1], "GIT_AUTHOR_DATE="+author[2],
 	).call(ctx, message, "commit-tree", strings.TrimSpace(tree), "-p", upstream, "-F", "-")
 	if err != nil {

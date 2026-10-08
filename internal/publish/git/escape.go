@@ -60,7 +60,7 @@ func (p *Publisher) commitWithoutHooks(ctx context.Context, plan *publish.Plan) 
 	if old != "" {
 		commitArgs = append(commitArgs, "-p", old)
 	}
-	made, err := p.git.call(ctx, plan.Message+"\n", commitArgs...)
+	made, err := p.git.with(p.committer(ctx)...).call(ctx, plan.Message+"\n", commitArgs...)
 	if err != nil {
 		return err
 	}

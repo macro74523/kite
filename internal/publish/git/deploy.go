@@ -92,6 +92,10 @@ type deployChecker struct {
 	client *http.Client
 	now    func() time.Time
 
+	// auth is the token of a connected repository, which lets a private
+	// one be asked and lifts the hour's allowance; "" asks anonymously.
+	auth func() string
+
 	mu      sync.Mutex
 	reports map[string]reportProbe
 	answers map[string]*deployAnswer
@@ -149,14 +153,18 @@ type deployLook struct {
 	pausedUntil time.Time
 }
 
-func newDeployChecker(api string, now func() time.Time) *deployChecker {
+func newDeployChecker(api string, now func() time.Time, auth func() string) *deployChecker {
 	if api == "" {
 		api = GitHubAPI
+	}
+	if auth == nil {
+		auth = func() string { return "" }
 	}
 	return &deployChecker{
 		api:     strings.TrimSuffix(api, "/"),
 		client:  &http.Client{Timeout: 10 * time.Second},
 		now:     now,
+		auth:    auth,
 		reports: make(map[string]reportProbe),
 		answers: make(map[string]*deployAnswer),
 		hosts:   make(map[string]string),
@@ -473,6 +481,9 @@ func (d *deployChecker) get(ctx context.Context, path string, v any) (bool, erro
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+	if token := d.auth(); token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 
 	resp, err := d.client.Do(req)
 	if err != nil {
