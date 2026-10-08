@@ -353,6 +353,29 @@ func openAPI() *document {
 				Responses: withRefused(ref(PublishRefused{}),
 					ok(ref(publish.Result{}), "What was pushed.", "400", "405", "501")),
 			}},
+			"/github": {
+				Get: &operation{
+					OperationID: "getGitHub",
+					Summary: "Report how the project is linked to GitHub: where the token comes from, " +
+						"never the token itself, and the repository the remote points to.",
+					Responses: ok(ref(publish.GitHubState{}), "The link.", "501"),
+				},
+				Put: &operation{
+					OperationID: "connectGitHub",
+					Summary: "Link the project to a repository on GitHub with a fine-grained token for it, " +
+						"and push it there: start the repository and add origin where needed, write the " +
+						"deploy workflow and turn Pages on when asked, commit the site's own files and push. " +
+						"What would have to be refused is refused before anything changes.",
+					RequestBody: body(ref(publish.GitHubRequest{})),
+					Responses: withRefused(ref(PublishRefused{}),
+						ok(ref(publish.GitHubState{}), "What the connect did.", "400", "405", "501")),
+				},
+				Delete: &operation{
+					OperationID: "disconnectGitHub",
+					Summary:     "Forget the token the studio saved. One the environment gives stays.",
+					Responses:   ok(ref(publish.GitHubState{}), "The link as it now is.", "405", "501"),
+				},
+			},
 			"/export": {Post: &operation{
 				OperationID: "exportSite",
 				Summary: "Build the site as a deployment gets it, without drafts, and answer with it " +
