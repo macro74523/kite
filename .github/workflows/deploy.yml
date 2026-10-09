@@ -1,92 +1,25 @@
-# Builds the site and publishes it to GitHub Pages.
-#
-# Turn Pages on first: Settings -> Pages -> Source -> GitHub Actions.
-# Until then this workflow builds and then fails to deploy.
-name: Deploy
+# Cloudflare Pages 从 GitHub 拉取站点并部署；这里仅检查构建。
+name: Build site
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
-  # scheduled.yml calls this once a scheduled post has fallen due.
-  workflow_call:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-# One deployment at a time. A newer push waits rather than canceling the one
-# in flight, because a half-finished deployment is worse than a slow one.
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      base_url: ${{ steps.pages.outputs.base_url }}
     steps:
-      - uses: actions/checkout@v7
-
-      # Where Pages publishes the site: under the repository's name for a
-      # project site, or at its own domain. enablement turns Pages on with
-      # this workflow's own token, so no personal one needs the permission.
-      - id: pages
-        uses: actions/configure-pages@v6
-        with:
-          enablement: true
-
-      # Built for that address rather than the one kite.yaml names, which
-      # may still be the one the site was previewed at, and with the Kite
-      # release kite.lock pins, which kitew downloads and checks first, so
-      # this commit builds the same way in a year as it does today. --verify
-      # builds twice and compares every byte, so a site that would deploy
-      # differently on a second run fails here instead.
-      - name: Build
-        shell: bash # with pipefail, so a failed build is not hidden by tee
-        env:
-          KITE_SITE_BASEURL: ${{ steps.pages.outputs.base_url }}
+      - uses: actions/checkout@v4
+      - name: 检查站点构建
+        shell: bash
         run: sh ./kitew build --verify --json | tee build.json
-
-      # Tells scheduled.yml when there is next something to publish.
-      - name: Record the next scheduled post
+      - name: 记录下次定时发布
         run: jq -r '.next_due // "none"' build.json > .kite-next-due
-      - uses: actions/cache/save@v6
+      - uses: actions/cache/save@v4
         with:
           path: .kite-next-due
           key: kite-next-due-${{ github.run_id }}-${{ github.run_attempt }}
-
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: public
-          # A site's static/.well-known is published like any other file.
-          include-hidden-files: true
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v5
-
-  # Tells the update services publish.ping in kite.yaml lists, such as
-  # Explore, that the site has changed, for the address Pages published it
-  # at. A site that lists none pings nothing, and a ping that fails is
-  # reported here without failing the deployment.
-  ping:
-    needs: [build, deploy]
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v7
-      - name: Ping
-        env:
-          KITE_SITE_BASEURL: ${{ needs.build.outputs.base_url }}
-        run: sh ./kitew ping

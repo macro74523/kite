@@ -1,52 +1,38 @@
-# Publishes scheduled posts once their time has come.
-#
-# Every hour it reads when the next scheduled post falls due, as the last
-# build recorded it, and runs the deploy workflow only once that time has
-# passed. A run with nothing due ends after that check.
-#
-# GitHub can delay these runs, and turns them off in a public repository with
-# no commits for 60 days; turn them back on under the Actions tab. Deploying
-# on push is a separate workflow and keeps working either way.
+# 到达定时发布时间后，通过 Cloudflare Pages Deploy Hook 触发重建。
 name: Publish scheduled posts
 
 on:
   schedule:
     - cron: "17 * * * *"
+  workflow_dispatch:
 
 permissions: {}
 
 jobs:
-  due:
+  deploy:
     runs-on: ubuntu-latest
-    outputs:
-      build: ${{ steps.check.outputs.build }}
     steps:
-      - uses: actions/cache/restore@v6
+      - uses: actions/cache/restore@v4
         with:
           path: .kite-next-due
           key: kite-next-due
           restore-keys: kite-next-due-
-
-      # With no record, or one that cannot be read, it builds to find out.
-      - id: check
+      - name: 检查发布时间并触发 Cloudflare
+        env:
+          DEPLOY_HOOK: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_HOOK }}
+        shell: bash
         run: |
           due=$(cat .kite-next-due 2>/dev/null || echo unknown)
-          echo "next scheduled post: $due"
           case "$due" in
-            none) build=false ;;
-            unknown) build=true ;;
+            none) exit 0 ;;
+            unknown) ;;
             *)
               at=$(date -u -d "$due" +%s 2>/dev/null) || at=0
-              if [ "$(date -u +%s)" -ge "$at" ]; then build=true; else build=false; fi
+              if [ "$(date -u +%s)" -lt "$at" ]; then exit 0; fi
               ;;
           esac
-          echo "build=$build" >> "$GITHUB_OUTPUT"
-
-  deploy:
-    needs: due
-    if: needs.due.outputs.build == 'true'
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    uses: ./.github/workflows/deploy.yml
+          if [ -z "$DEPLOY_HOOK" ]; then
+            echo '::notice::如需定时发布，请设置 CLOUDFLARE_PAGES_DEPLOY_HOOK 仓库 Secret。普通 Git 推送仍由 Cloudflare 自动部署。'
+            exit 0
+          fi
+          curl --fail --silent --show-error --request POST "$DEPLOY_HOOK" > /dev/null

@@ -32,6 +32,5 @@ plugins:
       count_previews: true
   enabled:
     - comments
-    - cloudflare-r2
     - bilibili
     - analytics
