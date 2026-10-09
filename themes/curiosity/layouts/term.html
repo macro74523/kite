@@ -1,1 +1,17 @@
-{{ define "main" }}<section class="listing"><header class="listing-heading"><span class="eyebrow">{{ T "explore" }}</span><h1>{{ .Page.Title }}</h1>{{ with .Page.Description }}<p>{{ . }}</p>{{ end }}<div class="content">{{ .Page.Content }}</div></header>{{ range .Pages }}<article class="list-post">{{ partial "cover.html" . }}<div><div class="post-meta">{{ if not (time.IsZero .PublishDate) }}{{ time.Format "2006.01.02" .PublishDate }}{{ end }}</div><h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2><p>{{ .Excerpt }}</p></div></article>{{ else }}<p>{{ T "empty" }}</p>{{ end }}{{ partial "pagination.html" . }}</section>{{ end }}
+{{ define "main" }}{{ if and (eq .Page.Type "categories") (eq .Page.Title "视频作品") }}
+<section class="listing video-listing">
+  <header class="listing-heading"><span class="eyebrow">{{ T "explore" }}</span><h1>{{ .Page.Title }}</h1>{{ with .Page.Description }}<p>{{ . }}</p>{{ end }}<div class="content">{{ .Page.Content }}</div></header>
+  <div class="video-masonry">
+    {{ range .Pages }}
+    <article class="video-card"><a class="video-card-link" href="{{ .RelPermalink }}">
+      {{ partial "cover.html" . }}
+      <div class="video-card-body">
+        <h2>{{ .Title }}</h2>
+        <div class="video-card-meta">{{ if not (time.IsZero .PublishDate) }}<time datetime="{{ time.Format "2006-01-02" .PublishDate }}">{{ time.Format "2006.01.02" .PublishDate }}</time>{{ end }}{{ range .Terms "tags" }}<span class="video-card-tag">{{ .Name }}</span>{{ end }}</div>
+      </div>
+    </a></article>
+    {{ else }}<p>{{ T "empty" }}</p>{{ end }}
+  </div>
+  {{ partial "pagination.html" . }}
+</section>
+{{ else }}<section class="listing"><header class="listing-heading"><span class="eyebrow">{{ T "explore" }}</span><h1>{{ .Page.Title }}</h1>{{ with .Page.Description }}<p>{{ . }}</p>{{ end }}<div class="content">{{ .Page.Content }}</div></header>{{ range .Pages }}<article class="list-post">{{ partial "cover.html" . }}<div><div class="post-meta">{{ if not (time.IsZero .PublishDate) }}{{ time.Format "2006.01.02" .PublishDate }}{{ end }}</div><h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2><p>{{ .Excerpt }}</p></div></article>{{ else }}<p>{{ T "empty" }}</p>{{ end }}{{ partial "pagination.html" . }}</section>{{ end }}{{ end }}

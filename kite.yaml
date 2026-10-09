@@ -15,11 +15,21 @@ publish:
   ping:
     - https://explore.kite.plus/api/v1/ping
 
+menus:
+  main:
+    - {name: 首页, url: /}
+    - {name: 视频作品, url: /categories/视频作品/}
+    - {name: 归档, url: /posts/}
+    - {name: 标签, url: /tags/}
+
 theme:
   name: curiosity
   settings:
     qq: "3097188096"
     accent: '#5c792e'
+    photo: /uploads/4f5d1957e91016781c9e729b40bb3e10.webp
+    avatar: /uploads/微信图片_2025-10-28_134011_016.jpg
+    email: enhoen@qq.com
 plugins:
   settings:
     comments:
