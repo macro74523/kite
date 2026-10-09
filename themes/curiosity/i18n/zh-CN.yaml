@@ -3,17 +3,18 @@ close: 关闭
 hello: 你好，我是
 home: 首页
 writing: 文章
+back: 返回
 tags: 标签
 menu: 导航
 contact_role: 保持好奇，认真做事
 contact_me: 联系我
 contact_more: 更多方式
 about: 认识我
-works_guide: 作品指引
+works_guide: 查看作品
 about_default: 保持好奇，记录生活，在设计与代码之间探索。这里是我的个人空间，分享写作、项目和日常的新发现。
 hero_one: 把好奇心，
 hero_two: 变成作品。
-intro_default: 你好，我是 macro。喜欢设计、代码和日常里的小发现。在这里记录思考，也把一些想法慢慢做成作品。
+intro_default: 你好，我是 MACRO。喜欢折腾、拍摄跟剪辑。在这里记录思考，也把一些想法慢慢做成作品。
 personal_space: 个人空间
 photo_alt: 阳光下的安静海边，沙滩与浅蓝色海面
 small_moments: 日常切片
@@ -70,6 +71,10 @@ explore: EXPLORE / 探索
 not_found: 这条路暂时没有内容。
 not_found_hint: 换个方向，从首页继续探索吧。
 back_home: 回到首页
+lost_frame_label: 走丢的画面
+lost_frame_title: 这一帧，暂时不在镜头里。
+lost_frame_hint: 页面可能已移动，换个方向继续探索。
+lost_frame_navigation: 继续探索
 title:
   list:
     post: 文章

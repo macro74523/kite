@@ -3,6 +3,7 @@ close: Close
 hello: Hello, I'm
 home: Home
 writing: Writing
+back: Go back
 tags: Tags
 menu: Menu
 contact: Get in touch
@@ -66,6 +67,10 @@ explore: EXPLORE
 not_found: Nothing down this path yet.
 not_found_hint: Head home and keep exploring.
 back_home: Back home
+lost_frame_label: A missing frame
+lost_frame_title: This frame is out of the shot.
+lost_frame_hint: The page may have moved. Try another direction and keep exploring.
+lost_frame_navigation: Keep exploring
 title:
   list:
     post: Writing

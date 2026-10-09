@@ -6,7 +6,7 @@
 <span class="eyebrow">VIDEO · WORKS · EVERYDAY</span>
 <h1>{{ T "hero_one" }}<br>{{ T "hero_two" }}</h1>
 <p>{{ default (T "intro_default") $s.intro }}</p>
-<button class="hero-avatar" data-open-dialog="about-dialog" aria-label="{{ T "about" }}">{{ with $s.avatar }}<img class="avatar" src="{{ url.Rel . }}" alt="{{ $.Site.Author }}">{{ else }}<span class="avatar initials">{{ str.Truncate 1 (default .Site.Title .Site.Author) }}</span>{{ end }}</button>
+<div class="hero-avatar">{{ with $s.avatar }}<img class="avatar" src="{{ url.Rel . }}" alt="{{ $.Site.Author }}">{{ else }}<span class="avatar initials">{{ str.Truncate 1 (default .Site.Title .Site.Author) }}</span>{{ end }}</div>
 <div class="hero-bottom"><a class="pill" href="{{ url.For "term" "categories" "视频作品" }}">{{ T "works_guide" }} <span aria-hidden="true">↗</span></a><span class="quiet">A PERSONAL SPACE / {{ time.Year .Site.BuildTime }}</span></div>
 </article>
 <figure class="card photo-card">{{ $photo := default "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=editorial%20photography%2C%20sunlit%20seaside%2C%20clear%20blue%20sea%2C%20white%20beach%20umbrella%2C%20natural%20light%2C%2035mm%20lens%2C%20no%20text%2C%20no%20watermark&image_size=portrait_4_3" $s.photo }}<img src="{{ url.Rel $photo }}" alt="{{ default (T "photo_alt") $s.photo_caption }}" fetchpriority="high"><span class="photo-label">{{ T "small_moments" }}</span><figcaption><span>{{ default (T "photo_caption") $s.photo_caption }}</span><span>{{ default .Site.Title .Site.Author }} / {{ T "personal_space" }}</span></figcaption></figure>

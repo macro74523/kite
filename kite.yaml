@@ -18,7 +18,7 @@ publish:
 menus:
   main:
     - {name: 首页, url: /}
-    - {name: 视频作品, url: /categories/视频作品/}
+    - {name: 作品集, url: /categories/视频作品/}
     - {name: 归档, url: /posts/}
     - {name: 标签, url: /tags/}
 
@@ -30,7 +30,7 @@ theme:
     photo: /uploads/4f5d1957e91016781c9e729b40bb3e10.webp
     avatar: /uploads/微信图片_2025-10-28_134011_016.jpg
     email: enhoen@qq.com
-    intro: 你好，我是 macro。喜欢用镜头记录故事，把想法一点点拍成作品。这里是我的视频作品集，也记录创作背后的日常。
+    intro: 你好，我是 MACRO。喜欢折腾、拍摄跟剪辑。在这里记录思考，也把一些想法慢慢做成作品。
 plugins:
   settings:
     comments:
