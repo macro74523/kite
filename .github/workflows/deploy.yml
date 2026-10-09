@@ -31,9 +31,12 @@ jobs:
       - uses: actions/checkout@v7
 
       # Where Pages publishes the site: under the repository's name for a
-      # project site, or at its own domain.
+      # project site, or at its own domain. enablement turns Pages on with
+      # this workflow's own token, so no personal one needs the permission.
       - id: pages
         uses: actions/configure-pages@v6
+        with:
+          enablement: true
 
       # Built for that address rather than the one kite.yaml names, which
       # may still be the one the site was previewed at, and with the Kite
