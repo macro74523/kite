@@ -7,6 +7,7 @@ tags: Tags
 menu: Menu
 contact: Get in touch
 about: Meet me
+works_guide: Works guide
 about_default: Staying curious, recording everyday life, and exploring design and code. This is my personal space for writing, projects and small discoveries.
 hero_one: Stay curious.
 hero_two: Make things.
@@ -21,6 +22,10 @@ projects: Selected work
 project_default: Curiosity studio
 project_hint: Add your project names, descriptions and links in theme settings.
 recent: Recent writing
+archive_short: Archive
+works_latest: Latest works
+all_works: All works
+works_empty: No works yet.
 all_posts: All writing
 empty: Nothing here yet.
 calendar: Calendar

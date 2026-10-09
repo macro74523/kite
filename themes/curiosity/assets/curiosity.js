@@ -1,25 +1,28 @@
 (() => {
   'use strict';
-  // 暗黑模式切换
+  // 深色模式：默认跟随系统，点击切换为手动，再点恢复跟随系统
   const root = document.documentElement;
-  const stored = localStorage.getItem('curiosity-theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const initial = stored || (prefersDark ? 'dark' : 'light');
-  root.setAttribute('data-theme', initial);
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  let stored = null;
+  try { stored = localStorage.getItem('curiosity-theme'); } catch (_) {}
+  const effective = () => stored === 'light' ? 'light' : stored === 'dark' ? 'dark' : (mq.matches ? 'dark' : 'light');
+  const apply = () => root.setAttribute('data-theme', effective());
+  apply();
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
     toggle.addEventListener('click', () => {
-      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      localStorage.setItem('curiosity-theme', next);
+      if (stored === 'light' || stored === 'dark') {
+        stored = null;
+        try { localStorage.removeItem('curiosity-theme'); } catch (_) {}
+      } else {
+        stored = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        try { localStorage.setItem('curiosity-theme', stored); } catch (_) {}
+      }
+      apply();
     });
   }
-  // 跟随系统变化（仅当用户未手动选择时）
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (!localStorage.getItem('curiosity-theme')) {
-      root.setAttribute('data-theme', e.matches ? 'dark' : 'light');
-    }
-  });
+  // 未手动选择时，跟随系统实时变化
+  mq.addEventListener('change', () => { if (!stored) apply(); });
   const words = window.curiosityWords || {};
   const locale = document.body.dataset.language || 'zh-CN';
   let zone = document.body.dataset.timezone || 'Asia/Shanghai';
@@ -45,18 +48,6 @@
       if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
     });
   });
-  const clock = document.getElementById('clock-time');
-  if (clock) {
-    const tick = () => {
-      const now = new Date();
-      const p = zonedParts(now);
-      clock.replaceChildren(document.createTextNode(String(p.hour).padStart(2, '0')), Object.assign(document.createElement('span'), { textContent: ':' }), document.createTextNode(String(p.minute).padStart(2, '0')));
-      clock.dateTime = now.toISOString();
-      document.getElementById('clock-date').textContent = new Intl.DateTimeFormat(locale, { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' }).format(now);
-    };
-    tick();
-    setInterval(tick, 1000);
-  }
   const days = document.getElementById('calendar-days');
   if (days) {
     const today = zonedParts(new Date());

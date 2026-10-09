@@ -2,6 +2,7 @@
 <html lang="{{ .Site.Language }}" data-theme="light">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){var s=null;try{s=localStorage.getItem('curiosity-theme')}catch(e){}document.documentElement.setAttribute('data-theme',s==='light'||s==='dark'?s:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));})();</script>
 <title>{{ if ne .Page.Kind "home" }}{{ partial "title.html" .Page }} · {{ end }}{{ .Site.Title }}</title>
 {{ $description := .Site.Description }}{{ with .Page.Description }}{{ $description = . }}{{ end }}{{ with $description }}<meta name="description" content="{{ . }}">{{ end }}
 {{ $keywords := .Site.Keywords }}{{ with .Page.Params.keywords }}{{ $keywords = . }}{{ end }}{{ with $keywords }}<meta name="keywords" content="{{ if eq (printf "%T" .) "string" }}{{ . }}{{ else }}{{ str.Join ", " . }}{{ end }}">{{ end }}

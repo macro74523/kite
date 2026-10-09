@@ -9,6 +9,7 @@ contact_role: 保持好奇，认真做事
 contact_me: 联系我
 contact_more: 更多方式
 about: 认识我
+works_guide: 作品指引
 about_default: 保持好奇，记录生活，在设计与代码之间探索。这里是我的个人空间，分享写作、项目和日常的新发现。
 hero_one: 把好奇心，
 hero_two: 变成作品。
@@ -23,6 +24,10 @@ projects: 精选项目
 project_default: 好奇心实验室
 project_hint: 在主题设置中添加你的项目名称、简介和链接。
 recent: 近期文章
+archive_short: 归档
+works_latest: 最新作品
+all_works: 全部作品
+works_empty: 还没有作品。
 all_posts: 全部文章
 empty: 暂时还没有内容。
 calendar: 日历
