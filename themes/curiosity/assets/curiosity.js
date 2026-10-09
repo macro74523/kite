@@ -50,12 +50,9 @@
     const tick = () => {
       const now = new Date();
       const p = zonedParts(now);
-      clock.textContent = [p.hour, p.minute, p.second].map(n => String(n).padStart(2, '0')).join(':');
+      clock.replaceChildren(document.createTextNode(String(p.hour).padStart(2, '0')), Object.assign(document.createElement('span'), { textContent: ':' }), document.createTextNode(String(p.minute).padStart(2, '0')));
       clock.dateTime = now.toISOString();
-      document.getElementById('clock-date').textContent = new Intl.DateTimeFormat(locale, { timeZone: zone, month: 'short', day: 'numeric' }).format(now);
-      document.querySelector('.clock-hour').style.transform = `rotate(${p.hour * 30 + p.minute / 2}deg)`;
-      document.querySelector('.clock-minute').style.transform = `rotate(${p.minute * 6 + p.second / 10}deg)`;
-      document.querySelector('.clock-second').style.transform = `rotate(${p.second * 6}deg)`;
+      document.getElementById('clock-date').textContent = new Intl.DateTimeFormat(locale, { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' }).format(now);
     };
     tick();
     setInterval(tick, 1000);
@@ -94,6 +91,20 @@
       const current = zonedParts(new Date()); year = current.year; month = current.month - 1; draw();
     });
     draw();
+  }
+  const checkin = document.getElementById('checkin-button');
+  if (checkin) {
+    const key = `curiosity-checkin:${document.body.dataset.storageKey}`;
+    const dateKey = () => { const p = zonedParts(new Date()); return `${p.year}-${p.month}-${p.day}`; };
+    const markChecked = () => { checkin.disabled = true; checkin.textContent = words.checked || '今天已签到'; };
+    try { if (localStorage.getItem(key) === dateKey()) markChecked(); } catch (_) {}
+    checkin.addEventListener('click', () => {
+      try {
+        localStorage.setItem(key, dateKey());
+        markChecked();
+        document.getElementById('checkin-status').textContent = words.local_only || '仅保存在本机浏览器，无服务器统计。';
+      } catch (_) { document.getElementById('checkin-status').textContent = words.storage_unavailable; }
+    });
   }
   // Umami 统计数据
   const statsVisitors = document.getElementById('stats-visitors');
