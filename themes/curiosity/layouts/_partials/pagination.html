@@ -1,0 +1,1 @@
+{{ with .Paginator }}{{ if gt .TotalPages 1 }}<nav class="pagination" aria-label="{{ T "pagination" }}">{{ if .HasPrev }}<a class="pill" href="{{ .PrevURL }}">← {{ T "prev" }}</a>{{ end }}<span>{{ .PageNumber }} / {{ .TotalPages }}</span>{{ if .HasNext }}<a class="pill" href="{{ .NextURL }}">{{ T "next" }} →</a>{{ end }}</nav>{{ end }}{{ end }}

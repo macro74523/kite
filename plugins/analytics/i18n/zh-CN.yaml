@@ -1,0 +1,32 @@
+plugin:
+  title: 访问统计
+  description: 用百度统计、Google Analytics、Umami 或 Plausible 统计访问量。
+  settings:
+    provider:
+      label: 统计服务
+      options:
+        baidu: 百度统计
+        google: Google Analytics
+        umami: Umami
+        plausible: Plausible
+    baidu_id:
+      label: 站点代码
+      help: 百度统计给出的代码里 hm.js? 后面那一串。
+    google_id:
+      label: 衡量 ID
+      help: 在“管理 → 数据流”中网站数据流的 ID。
+    umami_id:
+      label: 网站 ID
+      help: Umami 里该网站跟踪代码中的 ID。
+    umami_script:
+      label: 脚本地址
+      help: 自己部署的 Umami 提供 script.js 的地址。用 Umami Cloud 时留空。
+    plausible_domain:
+      label: 域名
+      help: 网站在 Plausible 中登记的域名。留空时使用访问时的域名。
+    plausible_script:
+      label: 脚本地址
+      help: 自己部署的 Plausible 提供脚本的地址。用官方服务时留空。
+    count_previews:
+      label: 统计本机预览
+      help: 在本机 localhost 预览时也计入访问。

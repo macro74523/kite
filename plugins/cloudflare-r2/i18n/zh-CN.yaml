@@ -1,0 +1,25 @@
+plugin:
+  title: Cloudflare R2 图床
+  description: 把后台上传的媒体存进 Cloudflare R2 存储桶，正文直接引用桶里的地址，站点仓库不再保存媒体文件。
+  settings:
+    endpoint:
+      label: 接入点
+      help: 存储桶所在账号的 S3 API 地址，形如 https://<账户ID>.r2.cloudflarestorage.com。
+    bucket:
+      label: 存储桶
+      help: 上传的目标桶名。
+    access_key_id:
+      label: Access Key ID
+      help: Cloudflare 控制台里 R2 API 令牌的访问密钥。
+    secret_access_key:
+      label: Secret Access Key
+      help: 与访问密钥成对的私密密钥。
+    region:
+      label: 区域
+      help: R2 用 auto 即可；其他 S3 兼容服务按其文档填写。
+    prefix:
+      label: 目录前缀
+      help: 上传在桶内落在的目录，可留空。
+    custom_domain:
+      label: 自定义域名
+      help: 存储桶对公网开放的地址（自定义域名或 r2.dev 地址）。不填时链接指向 S3 API 本身，访客取不到文件。

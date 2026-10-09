@@ -1,0 +1,1 @@
+{{- $key := printf "title.%s.%s" .Kind .Type -}}{{- if i18n.Has $key -}}{{ T $key }}{{- else -}}{{ .Title }}{{- end -}}

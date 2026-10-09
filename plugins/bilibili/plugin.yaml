@@ -1,0 +1,14 @@
+id: bilibili
+name: Bilibili Video
+version: 0.1.0
+apiVersion: kite/plugin/v1
+description: Turn Bilibili video links in posts into responsive embedded players automatically.
+license: MIT
+homepage: https://www.bite.plus/
+
+inject:
+  - at: head
+    html: <link rel="stylesheet" href="{{ asset "bili.css" }}">
+  - at: body
+    pages: [single]
+    html: <script src="{{ asset "bili.js" }}"></script>

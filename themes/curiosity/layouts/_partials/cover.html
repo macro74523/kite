@@ -1,0 +1,8 @@
+{{- $page := . -}}{{- $cover := .Params.cover -}}
+{{- if ne (printf "%v" $cover) "false" -}}
+{{- if not $cover -}}{{- with coll.First 1 ($page.Resources.ByType "image") -}}{{- range . -}}{{- $cover = .Name -}}{{- end -}}{{- else -}}{{- with coll.First 1 $page.Images -}}{{- range . -}}{{- $cover = . -}}{{- end -}}{{- end -}}{{- end -}}{{- end -}}
+{{- if and $cover (eq (printf "%T" $cover) "string") -}}
+{{- with $page.Resources.Get $cover -}}<img class="post-cover" src="{{ .RelPermalink }}" alt="" loading="lazy">{{- else -}}
+{{- $src := url.Rel $cover -}}{{- if not (or (str.HasPrefix "/" $cover) (str.Contains ":" $cover)) -}}
+{{- $base := str.TrimSuffix "/" $page.RelPermalink -}}{{- if str.HasSuffix ".html" $base -}}{{- $parts := str.Split "/" $base -}}{{- $base = str.Join "/" (coll.First (math.Sub (coll.Len $parts) 1) $parts) -}}{{- end -}}
+{{- $src = printf "%s/%s" $base $cover -}}{{- end -}}<img class="post-cover" src="{{ $src }}" alt="" loading="lazy">{{- end -}}{{- end -}}{{- end -}}

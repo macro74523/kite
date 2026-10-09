@@ -1,0 +1,1 @@
+{{ define "main" }}<article class="card collection-page"><span class="eyebrow">GOOD COMPANY</span><h1>{{ .Page.Title }}</h1><div class="content">{{ .Page.Content }}</div>{{ $items := .Site.ThemeSettings.links }}{{ with .Page.Params.links }}{{ $items = . }}{{ end }}{{ partial "links.html" (dict "items" $items) }}</article>{{ end }}

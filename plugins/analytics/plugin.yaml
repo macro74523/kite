@@ -1,0 +1,122 @@
+id: analytics
+name: Analytics
+version: 0.1.0
+apiVersion: kite/plugin/v1
+requires: ">=0.1.0 <2.0.0"
+description: Counts visits with Baidu Tongji, Google Analytics, Umami or Plausible.
+author:
+  name: Kite
+  url: https://github.com/kite-plus
+license: Apache-2.0
+homepage: https://github.com/kite-plus/plugin-analytics
+hosts: [hm.baidu.com, www.googletagmanager.com, cloud.umami.is, plausible.io]
+
+# Each service's snippet loads its script from code rather than a tag, so
+# that a preview on the author's own computer is not counted unless asked.
+inject:
+  - at: head
+    when: {provider: baidu}
+    html: |
+      <script>
+      (function (id, previews) {
+        if (!id || (!previews && /^(localhost|127(\.\d+){3}|\[::1\])$/.test(location.hostname))) return;
+        window._hmt = window._hmt || [];
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://hm.baidu.com/hm.js?" + encodeURIComponent(id);
+        document.head.appendChild(s);
+      })({{ .Settings.baidu_id }}, {{ .Settings.count_previews }});
+      </script>
+  - at: head
+    when: {provider: google}
+    html: |
+      <script>
+      (function (id, previews) {
+        if (!id || (!previews && /^(localhost|127(\.\d+){3}|\[::1\])$/.test(location.hostname))) return;
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag("js", new Date());
+        window.gtag("config", id);
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(id);
+        document.head.appendChild(s);
+      })({{ .Settings.google_id }}, {{ .Settings.count_previews }});
+      </script>
+  - at: head
+    when: {provider: umami}
+    html: |
+      <script>
+      (function (id, src, previews) {
+        if (!id || (!previews && /^(localhost|127(\.\d+){3}|\[::1\])$/.test(location.hostname))) return;
+        var s = document.createElement("script");
+        s.defer = true;
+        s.src = src || "https://cloud.umami.is/script.js";
+        s.setAttribute("data-website-id", id);
+        document.head.appendChild(s);
+      })({{ .Settings.umami_id }}, {{ .Settings.umami_script }}, {{ .Settings.count_previews }});
+      </script>
+  - at: head
+    when: {provider: plausible}
+    html: |
+      <script>
+      (function (domain, src, previews) {
+        if (!previews && /^(localhost|127(\.\d+){3}|\[::1\])$/.test(location.hostname)) return;
+        var s = document.createElement("script");
+        s.defer = true;
+        s.src = src || "https://plausible.io/js/script.js";
+        s.setAttribute("data-domain", domain || location.hostname);
+        document.head.appendChild(s);
+      })({{ .Settings.plausible_domain }}, {{ .Settings.plausible_script }}, {{ .Settings.count_previews }});
+      </script>
+
+settings:
+  - key: provider
+    type: select
+    label: Service
+    default: baidu
+    options:
+      - {value: baidu, label: Baidu Tongji}
+      - {value: google, label: Google Analytics}
+      - {value: umami, label: Umami}
+      - {value: plausible, label: Plausible}
+  - key: baidu_id
+    type: string
+    label: Site code
+    help: The code after hm.js? in the snippet Baidu Tongji gives you.
+    placeholder: 0123456789abcdef0123456789abcdef
+    showIf: {provider: baidu}
+  - key: google_id
+    type: string
+    label: Measurement ID
+    help: The ID of the site's web stream, under Admin, Data streams.
+    placeholder: G-XXXXXXXXXX
+    showIf: {provider: google}
+  - key: umami_id
+    type: string
+    label: Website ID
+    help: Shown in the tracking code of the website in Umami.
+    placeholder: 94db1cb1-74f4-4a40-ad6c-962362670409
+    showIf: {provider: umami}
+  - key: umami_script
+    type: url
+    label: Script address
+    help: Where your own Umami serves script.js. Leave it empty for Umami Cloud.
+    placeholder: https://cloud.umami.is/script.js
+    showIf: {provider: umami}
+  - key: plausible_domain
+    type: string
+    label: Domain
+    help: The domain the site is added under in Plausible. Leave it empty for the one it is visited at.
+    placeholder: example.com
+    showIf: {provider: plausible}
+  - key: plausible_script
+    type: url
+    label: Script address
+    help: Where your own Plausible serves its script. Leave it empty for Plausible's.
+    placeholder: https://plausible.io/js/script.js
+    showIf: {provider: plausible}
+  - key: count_previews
+    type: boolean
+    label: Count previews
+    help: Also count visits to a preview on this computer, at localhost.

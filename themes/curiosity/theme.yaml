@@ -1,0 +1,97 @@
+name: curiosity
+title: Curiosity
+version: 1.0.0
+apiVersion: kite/v1
+requires: ">=0.1.0 <2.0.0"
+description: A warm bento theme for writing, projects and everyday curiosity.
+author:
+  name: macro
+license: MIT
+tags: [blog, bento, portfolio]
+capabilities: [static, dynamic]
+contentTypes: [post, page]
+taxonomies: [tags, categories]
+pagination:
+  home: 0
+  list: 12
+  term: 12
+menus:
+  - name: main
+    label: 主导航
+    depth: 2
+layouts:
+  - {name: links, label: 友情链接, types: [page]}
+  - {name: projects, label: 项目展示, types: [page]}
+settings:
+  - key: profile
+    type: section
+    label: 个人介绍
+    fields:
+      - {key: intro, type: text, label: 首页介绍}
+      - {key: about, type: text, label: 弹窗介绍}
+      - {key: avatar, type: image, label: 头像}
+      - {key: contact, type: url, label: 联系链接}
+      - {key: email, type: string, label: 邮箱}
+      - {key: qq, type: string, label: QQ号}
+  - key: photography
+    type: section
+    label: 日常照片
+    fields:
+      - {key: photo, type: image, label: 照片, help: 留空使用生成的海边日常照片}
+      - {key: photo_caption, type: string, label: 照片说明}
+  - key: work
+    type: section
+    label: 精选项目
+    fields:
+      - key: projects
+        type: repeat
+        label: 项目
+        fields:
+          - {key: name, type: string, label: 项目名称}
+          - {key: description, type: text, label: 简介}
+          - {key: url, type: url, label: 链接}
+          - {key: image, type: image, label: 图片}
+  - key: everyday
+    type: section
+    label: 日常与时区
+    fields:
+      - {key: timezone_name, type: string, label: 时区名称, default: Shanghai}
+      - {key: timezone, type: string, label: IANA 时区, default: Asia/Shanghai, help: 例如 Asia/Shanghai 或 Europe/London}
+  - key: collections
+    type: section
+    label: 收藏与友链
+    fields:
+      - key: bookmarks
+        type: repeat
+        label: 收藏链接
+        fields:
+          - {key: name, type: string, label: 名称}
+          - {key: description, type: string, label: 说明}
+          - {key: url, type: url, label: 链接}
+      - key: links
+        type: repeat
+        label: 友情链接
+        fields:
+          - {key: name, type: string, label: 名称}
+          - {key: description, type: string, label: 说明}
+          - {key: url, type: url, label: 链接}
+  - key: listening
+    type: section
+    label: 音乐与社交
+    fields:
+      - {key: audio_url, type: url, label: 音频 URL}
+      - {key: audio_title, type: string, label: 音频标题}
+      - {key: audio_author, type: string, label: 音频作者}
+      - key: social
+        type: repeat
+        label: 社交链接
+        fields:
+          - {key: name, type: string, label: 名称}
+          - {key: url, type: url, label: 链接}
+  - key: appearance
+    type: section
+    label: 阅读与外观
+    fields:
+      - {key: accent, type: color, label: 强调色, default: '#64734b'}
+      - {key: show_toc, type: boolean, label: 显示目录, default: true}
+      - {key: footer_text, type: string, label: 页脚文字}

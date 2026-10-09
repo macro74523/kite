@@ -1,0 +1,52 @@
+# Publishes scheduled posts once their time has come.
+#
+# Every hour it reads when the next scheduled post falls due, as the last
+# build recorded it, and runs the deploy workflow only once that time has
+# passed. A run with nothing due ends after that check.
+#
+# GitHub can delay these runs, and turns them off in a public repository with
+# no commits for 60 days; turn them back on under the Actions tab. Deploying
+# on push is a separate workflow and keeps working either way.
+name: Publish scheduled posts
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions: {}
+
+jobs:
+  due:
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.check.outputs.build }}
+    steps:
+      - uses: actions/cache/restore@v6
+        with:
+          path: .kite-next-due
+          key: kite-next-due
+          restore-keys: kite-next-due-
+
+      # With no record, or one that cannot be read, it builds to find out.
+      - id: check
+        run: |
+          due=$(cat .kite-next-due 2>/dev/null || echo unknown)
+          echo "next scheduled post: $due"
+          case "$due" in
+            none) build=false ;;
+            unknown) build=true ;;
+            *)
+              at=$(date -u -d "$due" +%s 2>/dev/null) || at=0
+              if [ "$(date -u +%s)" -ge "$at" ]; then build=true; else build=false; fi
+              ;;
+          esac
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: due
+    if: needs.due.outputs.build == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy.yml

@@ -1,0 +1,77 @@
+skip: 跳到正文
+close: 关闭
+hello: 你好，我是
+home: 首页
+writing: 文章
+tags: 标签
+menu: 导航
+contact_role: 保持好奇，认真做事
+contact_me: 联系我
+contact_more: 更多方式
+about: 认识我
+about_default: 保持好奇，记录生活，在设计与代码之间探索。这里是我的个人空间，分享写作、项目和日常的新发现。
+hero_one: 把好奇心，
+hero_two: 变成作品。
+intro_default: 你好，我是 macro。喜欢设计、代码和日常里的小发现。在这里记录思考，也把一些想法慢慢做成作品。
+personal_space: 个人空间
+photo_alt: 阳光下的安静海边，沙滩与浅蓝色海面
+small_moments: 日常切片
+photo_caption: 给生活留一点空白
+local_time: 当地时间
+needs_js: 启用 JavaScript 查看实时内容。
+projects: 精选项目
+project_default: 好奇心实验室
+project_hint: 在主题设置中添加你的项目名称、简介和链接。
+recent: 近期文章
+all_posts: 全部文章
+empty: 暂时还没有内容。
+calendar: 日历
+month_prev: 上个月
+month_next: 下个月
+weekdays: 一|二|三|四|五|六|日
+today: 今天
+checkin_title: 来过，就留个记号
+stats_title: 访客统计
+visitors_total: 累计访客
+visitors_today: 今日访客
+pageviews_total: 累计浏览
+loading: 加载中…
+stats_failed: 统计暂不可用
+visits: 签到天数
+checkin_hint: 一天一点，慢慢积累。
+checkin: 今日签到
+checked: 今天已签到
+local_only: 仅保存在本机浏览器，无服务器统计。
+storage_unavailable: 浏览器无法保存签到，本次未记录。
+bookmarks: 收藏夹
+empty_links: 在主题设置或页面数据中添加链接。
+listening: 正在听
+stay_connected: 保持连接
+slow_reading: 慢慢读，慢慢发现
+rss_hint: 用 RSS 订阅新的文章。
+subscribe: 订阅 RSS
+made: 带着好奇心生活
+archive: WRITING / 文章归档
+archive_intro: 一些想法，一些记录，一些仍在生长的好奇心。
+words_short: 字
+words: '{{ .Count }} 字'
+minutes: '{{ .Count }} 分钟阅读'
+neighbors: 前后文章
+prev: 上一篇
+next: 下一篇
+toc: 文章目录
+pagination: 分页
+explore: EXPLORE / 探索
+not_found: 这条路暂时没有内容。
+not_found_hint: 换个方向，从首页继续探索吧。
+back_home: 回到首页
+title:
+  list:
+    post: 文章
+    page: 页面
+  taxonomy:
+    tags: 标签
+    categories: 分类
+theme:
+  title: Curiosity · 好奇心
+  description: 温暖的 Bento 个人主题，展示真实写作、项目与日常。

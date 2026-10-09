@@ -1,0 +1,44 @@
+plugin:
+  title: 评论
+  description: 在每篇文章下放一个评论区，支持 Giscus、Waline 和 Twikoo。
+  settings:
+    provider:
+      label: 评论服务
+      options:
+        giscus: Giscus
+        waline: Waline
+        twikoo: Twikoo
+    repo:
+      label: 仓库
+      help: 存放评论的 GitHub 公开仓库，需开启 Discussions 并安装 giscus 应用。
+    repo_id:
+      label: 仓库 ID
+      help: 在 giscus.app 选好仓库后，页面给出的 data-repo-id。
+    category:
+      label: 讨论分类
+    category_id:
+      label: 分类 ID
+      help: 在 giscus.app 选好分类后，页面给出的 data-category-id。
+    mapping:
+      label: 文章与讨论的对应方式
+      options:
+        id: 文章 ID（改了地址也不变）
+        pathname: 地址中的路径
+        url: 完整地址
+        title: 文章标题
+    server:
+      label: 服务端地址
+      help: 你部署的 Waline 服务端地址。
+    env:
+      label: 环境
+      help: 你部署的 Twikoo 服务端地址，或腾讯云开发的环境 ID。
+    on_pages:
+      label: 页面也显示
+      help: 除文章外，“关于”等页面下也放评论区。
+    cdn:
+      label: 脚本来源
+      help: Waline 和 Twikoo 的脚本从哪里加载。在中国大陆访问 npmmirror 更快。
+      options:
+        jsdelivr: jsDelivr
+        unpkg: unpkg
+        npmmirror: npmmirror

@@ -1,0 +1,98 @@
+id: comments
+name: Comments
+version: 0.1.0
+apiVersion: kite/plugin/v1
+requires: ">=0.1.0 <2.0.0"
+description: A comment thread under every post, with Giscus, Waline or Twikoo.
+author:
+  name: Kite
+  url: https://github.com/kite-plus
+license: Apache-2.0
+homepage: https://github.com/kite-plus/plugin-comments
+hosts: [giscus.app, cdn.jsdelivr.net, unpkg.com, registry.npmmirror.com]
+
+# The thread goes at the end of the page's main content, or into an element
+# marked data-kite-comments where a theme has one. A post leaves it out with
+# comments: false in its front matter.
+inject:
+  - at: body
+    pages: [single]
+    kinds: [post]
+    skip: {comments: false}
+    html: &thread |
+      <script>window.KiteComments = {settings: {{ .Settings }}, page: {{ .Page.ID }}, lang: {{ .Site.Language }}};</script>
+      <script src="{{ asset "comments.js" }}" defer></script>
+  - at: body
+    pages: [single]
+    kinds: [page]
+    when: {on_pages: true}
+    skip: {comments: false}
+    html: *thread
+
+settings:
+  - key: provider
+    type: select
+    label: Service
+    default: giscus
+    options:
+      - {value: giscus, label: Giscus}
+      - {value: waline, label: Waline}
+      - {value: twikoo, label: Twikoo}
+  - key: repo
+    type: string
+    label: Repository
+    help: The public GitHub repository whose Discussions hold the comments, with the giscus app installed on it.
+    placeholder: owner/repo
+    showIf: {provider: giscus}
+  - key: repo_id
+    type: string
+    label: Repository ID
+    help: Shown as data-repo-id on giscus.app once the repository is chosen there.
+    placeholder: R_kgDOxxxxxxx
+    showIf: {provider: giscus}
+  - key: category
+    type: string
+    label: Discussion category
+    placeholder: Announcements
+    showIf: {provider: giscus}
+  - key: category_id
+    type: string
+    label: Category ID
+    help: Shown as data-category-id on giscus.app once the category is chosen there.
+    placeholder: DIC_kwDOxxxxxxx
+    showIf: {provider: giscus}
+  - key: mapping
+    type: select
+    label: Match a post to its discussion by
+    default: id
+    options:
+      - {value: id, label: The post's id, which stays when its address changes}
+      - {value: pathname, label: The path of its address}
+      - {value: url, label: Its whole address}
+      - {value: title, label: Its title}
+    showIf: {provider: giscus}
+  - key: server
+    type: url
+    label: Server address
+    help: Where your Waline server is deployed.
+    placeholder: https://comments.example.com
+    showIf: {provider: waline}
+  - key: env
+    type: string
+    label: Environment
+    help: The address of your Twikoo server, or the environment ID on Tencent CloudBase.
+    placeholder: https://twikoo.example.com
+    showIf: {provider: twikoo}
+  - key: on_pages
+    type: boolean
+    label: Under pages too
+    help: Also put a thread under pages, such as About, and not only under posts.
+  - key: cdn
+    type: select
+    label: Load scripts from
+    help: Where Waline and Twikoo load from. npmmirror is quicker from mainland China.
+    default: jsdelivr
+    options:
+      - {value: jsdelivr, label: jsDelivr}
+      - {value: unpkg, label: unpkg}
+      - {value: npmmirror, label: npmmirror}

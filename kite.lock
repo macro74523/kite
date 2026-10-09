@@ -1,0 +1,36 @@
+# Written by Kite: the Kite release this site builds with, which kitew
+# runs, and where each theme and plugin installed from an index came from.
+# Their files are in themes/ and plugins/.
+lockfileVersion: 1
+kite:
+  version: 0.1.10
+  checksums: sha256:3e8a7cc2438773765b4bc8155c795f6b5ec616f33981490395889213a97f9726
+plugins:
+  analytics:
+    version: 0.1.0
+    source: https://cdn.jsdelivr.net/gh/kite-plus/apps@main/index.json
+    resolved: https://cdn.jsdelivr.net/gh/kite-plus/apps@plugin-analytics-0.1.0/analytics-0.1.0.zip
+    checksum: sha256:077e540c3da8cd0e2c73656a77a12b19a2cf38f0ef742cab8315cc9a4107a17c
+    tree: sha256:64f462e537e3d856a070a83809ef8b9c2be3dc24e7bf403319e803310e48d6d6
+    granted:
+      inject: 4
+      loads:
+        - cloud.umami.is
+        - hm.baidu.com
+        - plausible.io
+        - www.googletagmanager.com
+      hooks: []
+  comments:
+    version: 0.1.0
+    source: https://cdn.jsdelivr.net/gh/kite-plus/apps@main/index.json
+    resolved: https://cdn.jsdelivr.net/gh/kite-plus/apps@plugin-comments-0.1.0/comments-0.1.0.zip
+    checksum: sha256:f02cbcaaadfd5f433f539be2b0a4826a5512b7f86cb769df7b096d4300afb1b3
+    tree: sha256:11de3a2469b3165dfde4c3dc44fc45e275317bfeed5b39ed373de0481e66d27d
+    granted:
+      inject: 2
+      loads:
+        - cdn.jsdelivr.net
+        - giscus.app
+        - registry.npmmirror.com
+        - unpkg.com
+      hooks: []

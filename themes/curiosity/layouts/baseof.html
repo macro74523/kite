@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="{{ .Site.Language }}" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ if ne .Page.Kind "home" }}{{ partial "title.html" .Page }} · {{ end }}{{ .Site.Title }}</title>
+{{ $description := .Site.Description }}{{ with .Page.Description }}{{ $description = . }}{{ end }}{{ with $description }}<meta name="description" content="{{ . }}">{{ end }}
+{{ $keywords := .Site.Keywords }}{{ with .Page.Params.keywords }}{{ $keywords = . }}{{ end }}{{ with $keywords }}<meta name="keywords" content="{{ if eq (printf "%T" .) "string" }}{{ . }}{{ else }}{{ str.Join ", " . }}{{ end }}">{{ end }}
+{{ with .Site.Author }}<meta name="author" content="{{ . }}">{{ end }}
+{{ if or .Site.NoIndex .Page.Params.noindex }}<meta name="robots" content="noindex, nofollow">{{ end }}
+<link rel="canonical" href="{{ .Page.Permalink }}">
+<link rel="alternate" type="application/rss+xml" title="{{ .Site.Title }}" href="{{ url.Rel "rss.xml" }}">
+<link rel="stylesheet" href="{{ url.Rel "assets/curiosity.css" }}">
+<style>:root { --accent: {{ default "#64734b" .Site.ThemeSettings.accent | safeCSS }}; }</style>
+<script defer src="{{ url.Rel "assets/curiosity.js" }}"></script>
+{{ .Site.HeadHTML }}
+</head>
+<body data-language="{{ .Site.Language }}" data-timezone="{{ .Site.ThemeSettings.timezone }}" data-storage-key="{{ url.For "home" }}">
+<a class="skip" href="#main">{{ T "skip" }}</a>
+{{ partial "header.html" . }}
+<main id="main" class="shell">{{ block "main" . }}{{ end }}</main>
+{{ partial "footer.html" . }}
+<dialog id="about-dialog" aria-labelledby="about-title"><button class="dialog-close" type="button" data-close-dialog aria-label="{{ T "close" }}">×</button><span class="eyebrow">DESIGN · CODE · EVERYDAY</span><h2 id="about-title">{{ T "hello" }} {{ default .Site.Title .Site.Author }}</h2><p class="about-copy">{{ default (T "about_default") .Site.ThemeSettings.about }}</p></dialog>
+<dialog id="contact-dialog" aria-labelledby="contact-title"><button class="dialog-close" type="button" data-close-dialog aria-label="{{ T "close" }}">×</button><span class="eyebrow">GET IN TOUCH</span><h2 id="contact-title">{{ T "contact_me" }}</h2>{{ with .Site.ThemeSettings.avatar }}<img class="contact-dialog-avatar" src="{{ url.Rel . }}" alt="{{ $.Site.Author }}">{{ end }}<div class="contact-methods">{{ with .Site.ThemeSettings.email }}<div class="contact-method"><span class="contact-method-label">Email</span><a href="mailto:{{ . }}">{{ . }}</a></div>{{ end }}{{ with .Site.ThemeSettings.qq }}<div class="contact-method"><span class="contact-method-label">QQ</span><span>{{ . }}</span></div>{{ end }}{{ with .Site.ThemeSettings.contact }}<div class="contact-method"><span class="contact-method-label">Website</span><a href="{{ url.Rel . }}">{{ . }}</a></div>{{ end }}{{ range .Site.ThemeSettings.social }}<div class="contact-method"><span class="contact-method-label">{{ .name }}</span><a href="{{ url.Rel .url }}">{{ .url }}</a></div>{{ end }}</div></dialog>
+<dialog id="menu-dialog" aria-labelledby="menu-title"><button class="dialog-close" type="button" data-close-dialog aria-label="{{ T "close" }}">×</button><h2 id="menu-title">{{ T "menu" }}</h2><nav aria-label="{{ T "menu" }}">{{ partial "navigation.html" . }}</nav></dialog>
+<script>window.curiosityWords = {{ i18n.Words "checked" "checkin" "storage_unavailable" "visits" "today" }};</script>
+{{ .Site.FooterHTML }}
+</body>
+</html>

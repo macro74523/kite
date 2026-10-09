@@ -1,0 +1,124 @@
+skip: Skip to content
+close: Close
+hello: Hello, I'm
+home: Home
+writing: Writing
+tags: Tags
+menu: Menu
+contact: Get in touch
+about: Meet me
+about_default: Staying curious, recording everyday life, and exploring design and code. This is my personal space for writing, projects and small discoveries.
+hero_one: Stay curious.
+hero_two: Make things.
+intro_default: Hello, I'm macro. I enjoy design, code and small everyday discoveries. Here I record my thoughts and turn ideas into things, one step at a time.
+personal_space: Personal space
+photo_alt: A quiet sunlit beach with warm sand and pale blue sea
+small_moments: Small moments
+photo_caption: A little room to breathe
+local_time: LOCAL TIME
+needs_js: Enable JavaScript for live content.
+projects: Selected work
+project_default: Curiosity studio
+project_hint: Add your project names, descriptions and links in theme settings.
+recent: Recent writing
+all_posts: All writing
+empty: Nothing here yet.
+calendar: Calendar
+month_prev: Previous month
+month_next: Next month
+weekdays: M|T|W|T|F|S|S
+today: Today
+checkin_title: Leave a little mark
+visits: Days checked in
+checkin_hint: One day at a time.
+checkin: Check in today
+checked: Checked in today
+local_only: Stored only in this browser. No server statistics.
+storage_unavailable: This browser cannot save your check-in. It was not recorded.
+bookmarks: Bookmarks
+empty_links: Add links in theme settings or page data.
+listening: Now listening
+stay_connected: Stay connected
+slow_reading: Read slowly. Discover more.
+rss_hint: Follow new writing with RSS.
+subscribe: Subscribe via RSS
+made: Made with curiosity
+archive: WRITING / ARCHIVE
+archive_intro: Thoughts, notes and a curiosity that keeps growing.
+words_short: words
+words:
+  one: '{{ .Count }} word'
+  other: '{{ .Count }} words'
+minutes:
+  one: '{{ .Count }} minute read'
+  other: '{{ .Count }} minutes read'
+neighbors: Adjacent articles
+prev: Previous
+next: Next
+toc: On this page
+pagination: Pagination
+explore: EXPLORE
+not_found: Nothing down this path yet.
+not_found_hint: Head home and keep exploring.
+back_home: Back home
+title:
+  list:
+    post: Writing
+    page: Pages
+  taxonomy:
+    tags: Tags
+    categories: Categories
+theme:
+  title: Curiosity
+  description: A warm bento theme for writing, projects and everyday curiosity.
+  layouts:
+    links: {label: Friends and links}
+    projects: {label: Projects}
+  menus:
+    main: {label: Main navigation}
+  settings:
+    profile: {label: Profile}
+    intro: {label: Home introduction}
+    about: {label: About dialog text}
+    avatar: {label: Avatar}
+    contact: {label: Contact URL}
+    photography: {label: Everyday photography}
+    photo: {label: Photo, help: Leave empty for a generated seaside photograph.}
+    photo_caption: {label: Photo caption}
+    work: {label: Selected work}
+    projects:
+      label: Projects
+      fields:
+        name: {label: Project name}
+        description: {label: Description}
+        url: {label: URL}
+        image: {label: Image}
+    everyday: {label: Everyday and timezone}
+    timezone_name: {label: Timezone display name}
+    timezone: {label: IANA timezone, help: For example Asia/Shanghai or Europe/London.}
+    collections: {label: Bookmarks and friends}
+    bookmarks:
+      label: Bookmarks
+      fields:
+        name: {label: Name}
+        description: {label: Description}
+        url: {label: URL}
+    links:
+      label: Friends and links
+      fields:
+        name: {label: Name}
+        description: {label: Description}
+        url: {label: URL}
+    listening: {label: Music and social links}
+    audio_url: {label: Audio URL}
+    audio_title: {label: Audio title}
+    audio_author: {label: Audio artist}
+    social:
+      label: Social links
+      fields:
+        name: {label: Name}
+        url: {label: URL}
+    appearance: {label: Reading and appearance}
+    accent: {label: Accent color}
+    show_toc: {label: Show table of contents}
+    footer_text: {label: Footer text}

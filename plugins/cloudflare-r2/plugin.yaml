@@ -1,0 +1,48 @@
+id: cloudflare-r2
+name: Cloudflare R2
+version: 0.1.0
+apiVersion: kite/plugin/v1
+description: Store the media authors upload in a Cloudflare R2 bucket over its S3-compatible API, and link them from there.
+license: MIT
+homepage: https://www.kite.plus/
+
+hooks:
+  - upload_media
+
+settings:
+  - key: endpoint
+    type: url
+    label: Endpoint
+    required: true
+    placeholder: https://<account-id>.r2.cloudflarestorage.com
+    help: The S3 API address of the account the bucket lives in.
+  - key: bucket
+    type: string
+    label: Bucket
+    required: true
+    help: The bucket the uploads go into.
+  - key: access_key_id
+    type: string
+    label: Access Key ID
+    required: true
+    help: An R2 API token's access key, from the Cloudflare dashboard.
+  - key: secret_access_key
+    type: string
+    label: Secret Access Key
+    required: true
+    help: The secret that pairs with the access key.
+  - key: region
+    type: string
+    label: Region
+    default: auto
+    help: auto is what R2 answers to; another S3-compatible service may want its own.
+  - key: prefix
+    type: string
+    label: Key prefix
+    placeholder: media
+    help: The folder inside the bucket uploads land in, if any.
+  - key: custom_domain
+    type: url
+    label: Custom domain
+    placeholder: https://cdn.example.com
+    help: Where the bucket is reachable from the public web, a custom domain or an r2.dev address. Without it the link points at the S3 API, which visitors cannot fetch.

@@ -1,0 +1,37 @@
+site:
+  title: MACRO - 有股喜欢随意折腾的劲
+  author: macro
+  baseURL: https://macro.wang
+  language: zh-CN
+
+content:
+  store: file
+  dir: content
+
+build:
+  output: public
+
+publish:
+  ping:
+    - https://explore.kite.plus/api/v1/ping
+
+theme:
+  name: curiosity
+  settings:
+    qq: "3097188096"
+    accent: '#5c792e'
+plugins:
+  settings:
+    comments:
+      provider: waline
+      server: https://waline77.macro.wang
+    analytics:
+      provider: umami
+      umami_id: 9c2dab11-97da-492f-aee4-f86c948b83e6
+      umami_script: https://umami777.macro.wang/script.js
+      count_previews: true
+  enabled:
+    - comments
+    - cloudflare-r2
+    - bilibili
+    - analytics
