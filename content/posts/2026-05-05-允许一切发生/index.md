@@ -1,5 +1,5 @@
 ---
-categories: []
+categories: [瞬间]
 cover: https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIWdWn6-0TKmsaJG24mrrTwuzYysi0cAAKlGwACGIvZV0p3gUoaBzOEOwQ.jpeg
 created_at: 2026-05-05T00:00:00Z
 description: 这是一篇有意思的文章
@@ -11,8 +11,9 @@ status: published
 tags:
     - 随想
 title: 允许一切发生
-updated_at: 2026-05-05T00:00:00Z
+updated_at: 2026-10-10T09:31:28Z
 ---
+
 ## “允许一切发生”
 
 莫言先生在《晚熟的人》中写到:
