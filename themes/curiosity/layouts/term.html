@@ -1,4 +1,18 @@
-{{ define "main" }}{{ if and (eq .Page.Type "categories") (eq .Page.Title "视频作品") }}
+{{ define "main" }}{{ if and (eq .Page.Type "categories") (eq .Page.Title "瞬间") }}
+<section class="listing moments-listing">
+  <header class="moments-heading"><span class="eyebrow">MOMENTS</span><h1>{{ .Page.Title }}</h1><p>记录生活里那些值得留下来的瞬间。</p></header>
+  <div class="moments-stream">
+    {{ range .Pages }}
+    <article class="moment-card">
+      <header class="moment-header"><span class="moment-avatar">M</span><div><strong>MACRO</strong><time datetime="{{ time.Format "2006-01-02" .PublishDate }}">{{ if not (time.IsZero .PublishDate) }}{{ time.Format "2006年01月02日 15:04" .PublishDate }}{{ end }}</time></div></header>
+      <div class="moment-body"><h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2><div class="moment-content">{{ .Content }}</div>{{ partial "cover.html" . }}</div>
+      <footer class="moment-footer">{{ range .Terms "tags" }}<a href="{{ .RelPermalink }}">#{{ .Name }}</a>{{ end }}<a class="moment-more" href="{{ .RelPermalink }}">查看详情 ↗</a></footer>
+    </article>
+    {{ else }}<p>{{ T "empty" }}</p>{{ end }}
+  </div>
+  {{ partial "pagination.html" . }}
+</section>
+{{ else if and (eq .Page.Type "categories") (eq .Page.Title "视频作品") }}
 <section class="listing video-listing">
   <header class="listing-heading"><span class="eyebrow">{{ T "explore" }}</span><h1>{{ .Page.Title }}</h1>{{ with .Page.Description }}<p>{{ . }}</p>{{ end }}<div class="content">{{ .Page.Content }}</div></header>
   <div class="video-masonry">

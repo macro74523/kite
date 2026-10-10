@@ -17,10 +17,14 @@ publish:
 
 menus:
   main:
-    - {name: 首页, url: /}
-    - {name: 作品集, url: /categories/视频作品/}
-    - {name: 归档, url: /posts/}
-    - {name: 标签, url: /tags/}
+    - name: 首页
+      url: /
+    - name: 作品集
+      url: /categories/视频作品/
+    - name: 瞬间
+      url: /categories/瞬间/
+    - name: 标签
+      url: /tags/
 
 theme:
   name: curiosity
