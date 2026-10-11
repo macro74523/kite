@@ -41,8 +41,8 @@ theme:
     audio_title: 春和景明
     audio_author: 纯音乐
     audio_file: /uploads/春和景明.mp3
-    logo: /uploads/avatar.jpg
-    logo_size: "100"
+    logo: /uploads/MACRO.WANG-3.png
+    logo_size: "120"
 plugins:
   settings:
     comments:
