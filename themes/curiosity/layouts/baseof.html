@@ -12,6 +12,7 @@
 <link rel="alternate" type="application/rss+xml" title="{{ .Site.Title }}" href="{{ url.Rel "rss.xml" }}">
 <link rel="stylesheet" href="{{ url.Rel "assets/curiosity.css" }}">
 <style>:root { --accent: {{ default "#64734b" .Site.ThemeSettings.accent | safeCSS }}; }</style>
+{{ with .Site.ThemeSettings.favicon }}<link rel="icon" href="{{ url.Rel . }}">{{ end }}
 <script defer src="{{ url.Rel "assets/curiosity.js" }}"></script>
 {{ .Site.HeadHTML }}
 </head>

@@ -93,3 +93,4 @@ settings:
       - {key: accent, type: color, label: 强调色, default: '#64734b'}
       - {key: show_toc, type: boolean, label: 显示目录, default: true}
       - {key: footer_text, type: string, label: 页脚文字}
+      - {key: favicon, type: image, label: 网站图标, help: 显示在浏览器标签页和书签上，建议使用 64px 以上的方形图片}

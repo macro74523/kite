@@ -35,6 +35,7 @@ theme:
     avatar: /uploads/微信图片_2025-10-28_134011_016.jpg
     email: enhoen@qq.com
     intro: 你好，我是 MACRO。喜欢折腾、拍摄跟剪辑。在这里记录思考，也把一些想法慢慢做成作品。
+    favicon: /uploads/M.png
 plugins:
   settings:
     comments:

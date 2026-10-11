@@ -106,6 +106,40 @@
     });
   }
 
+  // Works card: show as many items as fit the card height
+  const worksCard = document.querySelector('.works-card');
+  if (worksCard) {
+    const wcs = getComputedStyle(worksCard);
+    const fitWorks = () => {
+      const head = worksCard.querySelector('.card-heading');
+      const inner = worksCard.clientHeight - parseFloat(wcs.paddingTop) - parseFloat(wcs.paddingBottom)
+        - (head ? head.offsetHeight + parseFloat(getComputedStyle(head).marginBottom) : 0);
+      let used = 0, lastVisible = null;
+      worksCard.querySelectorAll('.works-item').forEach(it => {
+        it.style.display = '';
+        it.classList.remove('is-last');
+        used += it.offsetHeight;
+        if (used > inner) it.style.display = 'none';
+        else lastVisible = it;
+      });
+      if (lastVisible) lastVisible.classList.add('is-last');
+    };
+    fitWorks();
+    window.addEventListener('resize', fitWorks);
+  }
+
+  // Video works skeleton: fade cover in when loaded
+  document.querySelectorAll('.video-listing .video-card').forEach(card => {
+    const img = card.querySelector('img.post-cover');
+    if (!img) { card.classList.add('is-loaded'); return; }
+    const done = () => card.classList.add('is-loaded');
+    if (img.complete && img.naturalWidth) done();
+    else {
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', done, { once: true });
+    }
+  });
+
   // Umami stats（localStorage 缓存：当天 10 分钟内刷新直接读缓存，过期才重新请求）
   const sVis = document.getElementById('stats-visitors');
   if (sVis && window.curiosityStats) {

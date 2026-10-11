@@ -91,7 +91,6 @@ theme:
   settings:
     profile: {label: Profile}
     intro: {label: Home introduction}
-    about: {label: About dialog text}
     avatar: {label: Avatar}
     contact: {label: Contact URL}
     photography: {label: Everyday photography}
@@ -106,7 +105,6 @@ theme:
         url: {label: URL}
         image: {label: Image}
     everyday: {label: Everyday and timezone}
-    timezone_name: {label: Timezone display name}
     timezone: {label: IANA timezone, help: For example Asia/Shanghai or Europe/London.}
     collections: {label: Bookmarks and friends}
     bookmarks:
@@ -134,3 +132,4 @@ theme:
     accent: {label: Accent color}
     show_toc: {label: Show table of contents}
     footer_text: {label: Footer text}
+    favicon: {label: Site icon, help: Shown in browser tabs and bookmarks. A square picture of at least 64 pixels suits it best.}
