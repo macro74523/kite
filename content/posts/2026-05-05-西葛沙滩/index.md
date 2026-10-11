@@ -1,10 +1,10 @@
 ---
 categories: [视频作品]
-cover: https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIWcWn69eispIQL1_vNrIiVGeerhtLrAAKeGwACGIvZVweFrPWRcFQCOwQ.png
+cover: https://jpg.macro.wang/20261011113057273.jpg
 created_at: 2026-05-05T00:00:00Z
 description: 这是一篇有意思的文章
 id: 01KQTPYE00AG6V3SGSQD8KEZ24
-og_image: https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIWcWn69eispIQL1_vNrIiVGeerhtLrAAKeGwACGIvZVweFrPWRcFQCOwQ.png
+og_image: https://jpg.macro.wang/20261011113057273.jpg
 published_at: 2026-05-06T00:00:00Z
 slug: 2026-05-05-西葛沙滩
 status: published

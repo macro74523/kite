@@ -1,10 +1,10 @@
 ---
 categories: [视频作品]
-cover: https://img.cdn1.vip/i/6a07c2a6113b9_1778893478.webp
+cover: https://jpg.macro.wang/20261011113240844.jpg
 created_at: 2026-05-15T00:00:00Z
 description: 这是一篇有意思的文章
 id: 01KRMEXM0035KJMZM30ACJV7YZ
-og_image: https://img.cdn1.vip/i/6a07c2a6113b9_1778893478.webp
+og_image: https://jpg.macro.wang/20261011113240844.jpg
 published_at: 2026-05-16T00:00:00Z
 slug: 2026-05-15-烟草局活动
 status: published

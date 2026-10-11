@@ -1,10 +1,10 @@
 ---
 categories: [瞬间]
-cover: https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIWdWn6-0TKmsaJG24mrrTwuzYysi0cAAKlGwACGIvZV0p3gUoaBzOEOwQ.jpeg
+cover: https://jpg.macro.wang/20261011113128610.jpg
 created_at: 2026-05-05T00:00:00Z
 description: 这是一篇有意思的文章
 id: 01KQTPYE00N39VEVPNA9CMG87R
-og_image: https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIWdWn6-0TKmsaJG24mrrTwuzYysi0cAAKlGwACGIvZV0p3gUoaBzOEOwQ.jpeg
+og_image: https://jpg.macro.wang/20261011113128610.jpg
 published_at: 2026-05-06T00:00:00Z
 slug: 2026-05-05-允许一切发生
 status: published

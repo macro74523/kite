@@ -1,10 +1,10 @@
 ---
 categories: [视频作品]
-cover: https://img.cdn1.vip/i/69ff14163720e_1778324502.webp
+cover: https://jpg.macro.wang/20261011113152228.jpg
 created_at: 2026-05-08T00:00:00Z
 description: 这是一篇有意思的文章
 id: 01KR2E4K00HT56AEZW63AV1WQ7
-og_image: https://img.cdn1.vip/i/69ff14163720e_1778324502.webp
+og_image: https://jpg.macro.wang/20261011113152228.jpg
 published_at: 2026-05-09T00:00:00Z
 slug: 2026-05-08-传承600多年历史的年例习俗-走将军
 status: published

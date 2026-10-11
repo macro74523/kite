@@ -1,10 +1,10 @@
 ---
 categories: [视频作品]
-cover: https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIWc2n6-t4BEnQwT1G9NSQesurATnF4AAKiGwACGIvZV_CqTaAZ_5utOwQ.png
+cover: https://jpg.macro.wang/20261011112837474.jpg
 created_at: 2026-05-05T00:00:00Z
 description: 这是一篇有意思的文章
 id: 01KQTPYE0041E79NRDWBR90ZB2
-og_image: https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIWc2n6-t4BEnQwT1G9NSQesurATnF4AAKiGwACGIvZV_CqTaAZ_5utOwQ.png
+og_image: https://jpg.macro.wang/20261011112837474.jpg
 published_at: 2026-05-06T00:00:00Z
 slug: 2026-05-05-打造好玩-有料-能凝聚的团建体验
 status: published

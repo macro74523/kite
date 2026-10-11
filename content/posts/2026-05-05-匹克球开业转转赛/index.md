@@ -1,10 +1,10 @@
 ---
 categories: [视频作品]
-cover: https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIWemn7AyHYUR3K7zIeEccw7tA8XSnJAAK_GwACGIvZVyU_zescOxANOwQ.png
+cover: https://jpg.macro.wang/20261011112937966.jpg
 created_at: 2026-05-05T00:00:00Z
 description: 这是一篇有意思的文章
 id: 01KQTPYE000XHKGZCZ7JDY9A92
-og_image: https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIWemn7AyHYUR3K7zIeEccw7tA8XSnJAAK_GwACGIvZVyU_zescOxANOwQ.png
+og_image: https://jpg.macro.wang/20261011112937966.jpg
 published_at: 2026-05-06T00:00:00Z
 slug: 2026-05-05-匹克球开业转转赛
 status: published

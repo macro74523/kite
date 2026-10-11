@@ -1,10 +1,10 @@
 ---
 categories: [视频作品]
-cover: https://img.cdn1.vip/i/6a07c3935175f_1778893715.webp
+cover: https://jpg.macro.wang/20261011111916952.jpg
 created_at: 2026-05-15T00:00:00Z
 description: 这是一篇有意思的文章
 id: 01KRMEXM00XWT52QE3ZAZZ3S8S
-og_image: https://img.cdn1.vip/i/6a07c3935175f_1778893715.webp
+og_image: https://jpg.macro.wang/20261011111916952.jpg
 published_at: 2026-05-16T00:00:00Z
 slug: 2026-05-15-广油之星
 status: published

@@ -1,10 +1,10 @@
 ---
 categories: [视频作品]
-cover: https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIWd2n7AAG2bxwDQPW3lXOGJ1VCbDo7cwACthsAAhiL2Vf7Y-sfJNhRvTsE.png
+cover: https://jpg.macro.wang/20261011113015534.jpg
 created_at: 2026-05-05T00:00:00Z
 description: 这是一篇有意思的文章
 id: 01KQTPYE0068100MTBYMMDN61H
-og_image: https://img2.nloln.de/file/BQACAgUAAyEGAASLVN5eAAIWd2n7AAG2bxwDQPW3lXOGJ1VCbDo7cwACthsAAhiL2Vf7Y-sfJNhRvTsE.png
+og_image: https://jpg.macro.wang/20261011113015534.jpg
 published_at: 2026-05-06T00:00:00Z
 slug: 2026-05-05-匹克球擂主挑战赛
 status: published
