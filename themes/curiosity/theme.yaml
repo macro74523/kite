@@ -91,7 +91,14 @@ settings:
     type: section
     label: 阅读与外观
     fields:
-      - {key: accent, type: color, label: 强调色, default: '#64734b'}
+      - {key: accent, type: color, label: 强调色, default: '#6366f1'}
+      - {key: bg_color, type: color, label: 背景色, default: '#f8fafc', help: 页面整体背景颜色（渐变为空时使用）}
+      - {key: gradient_start, type: color, label: 渐变起始色, default: '#eff6ff', help: 渐变的起始颜色（顶部）}
+      - {key: gradient_mid, type: color, label: 渐变中间色, default: '#f8fafc', help: 渐变的中间过渡颜色}
+      - {key: gradient_end, type: color, label: 渐变结束色, default: '#f1f5f9', help: 渐变的结束颜色（底部）}
+      - {key: gradient_angle, type: string, label: 渐变角度, default: '180deg', help: 渐变方向角度，例如 135deg（对角）、180deg（从上到下）、90deg（从左到右）}
+      - {key: card_color, type: color, label: 卡片色, default: '#ffffff', help: 卡片和模块的背景颜色}
+      - {key: line_color, type: color, label: 边框色, default: '#e2e8f0', help: 边框和分隔线的颜色}
       - {key: show_toc, type: boolean, label: 显示目录, default: true}
       - {key: footer_text, type: string, label: 页脚文字}
       - {key: favicon, type: image, label: 网站图标, help: 显示在浏览器标签页和书签上，建议使用 64px 以上的方形图片}

@@ -11,7 +11,8 @@
 <link rel="canonical" href="{{ .Page.Permalink }}">
 <link rel="alternate" type="application/rss+xml" title="{{ .Site.Title }}" href="{{ url.Rel "rss.xml" }}">
 <link rel="stylesheet" href="{{ url.Rel "assets/curiosity.css" }}">
-<style>:root { --accent: {{ default "#64734b" .Site.ThemeSettings.accent | safeCSS }}; }</style>
+<style>:root { --accent: {{ default "#6366f1" .Site.ThemeSettings.accent | safeCSS }}; --bg: {{ default "#f8fafc" .Site.ThemeSettings.bg_color | safeCSS }}; --card: {{ default "#ffffff" .Site.ThemeSettings.card_color | safeCSS }}; --line: {{ default "#e2e8f0" .Site.ThemeSettings.line_color | safeCSS }}; }
+html[data-theme="light"] body { background: linear-gradient({{ default "180deg" .Site.ThemeSettings.gradient_angle | safeCSS }}, {{ default "#eff6ff" .Site.ThemeSettings.gradient_start | safeCSS }} 0%, {{ default "#f8fafc" .Site.ThemeSettings.gradient_mid | safeCSS }} 60%, {{ default "#f1f5f9" .Site.ThemeSettings.gradient_end | safeCSS }} 100%); }</style>
 {{ with .Site.ThemeSettings.favicon }}<link rel="icon" href="{{ url.Rel . }}">{{ end }}
 <script defer src="{{ url.Rel "assets/curiosity.js" }}"></script>
 {{ .Site.HeadHTML }}
