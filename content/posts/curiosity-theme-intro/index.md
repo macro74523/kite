@@ -3,7 +3,7 @@ categories: []
 cover: https://jpg.macro.wang/20260812122404861.jpg
 created_at: 2026-10-01T10:00:00Z
 description: Curiosity 是一款专为内容创作者打造的 Bento 风格博客主题，支持视频作品、瞬间、项目展示等多种内容形态。
-id: curiosity-intro
+id: 1HZF4SDM24SHQA51QRMGN336HE
 og_image: https://jpg.macro.wang/20260812122404861.jpg
 published_at: 2026-10-01T10:00:00Z
 slug: curiosity-theme-intro

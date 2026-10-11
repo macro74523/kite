@@ -1,6 +1,6 @@
 {{ define "main" }}{{ if and (eq .Page.Type "categories") (eq .Page.Title "瞬间") }}
 <section class="listing moments-listing">
-  <header class="moments-heading"><span class="eyebrow">MOMENTS / 瞬间</span><h1>{{ .Page.Title }}</h1><p>记录生活里那些值得留下来的瞬间。</p></header>
+  <header class="moments-heading"><span class="eyebrow">MOMENTS / 瞬间</span><h1>{{ .Page.Title }}</h1></header>
   <div class="moments-stream">
     {{ $mi := 0 }}{{ range .Pages }}
     <article class="moment-card" id="moment-{{ $mi }}">
@@ -28,4 +28,4 @@
   </div>
   {{ partial "pagination.html" . }}
 </section>
-{{ else }}<section class="listing"><header class="listing-heading"><span class="eyebrow">{{ T "explore" }}</span><h1>{{ .Page.Title }}</h1>{{ with .Page.Description }}<p>{{ . }}</p>{{ end }}<div class="content">{{ .Page.Content }}</div></header>{{ range .Pages }}<article class="list-post">{{ partial "cover.html" . }}<div><div class="post-meta">{{ if not (time.IsZero .PublishDate) }}{{ time.Format "2006.01.02" .PublishDate }}{{ end }}</div><h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2><p>{{ .Excerpt }}</p></div></article>{{ else }}<p>{{ T "empty" }}</p>{{ end }}{{ partial "pagination.html" . }}</section>{{ end }}{{ end }}
+{{ else }}<section class="listing term-post-listing"><header class="listing-heading"><span class="eyebrow">{{ T "explore" }}</span><h1>{{ .Page.Title }}</h1>{{ with .Page.Description }}<p>{{ . }}</p>{{ end }}<div class="content">{{ .Page.Content }}</div></header><div class="term-post-grid">{{ range .Pages }}<article class="term-post-card"><a class="term-post-link" href="{{ .RelPermalink }}"><div class="term-post-cover">{{ partial "cover.html" . }}</div><div class="term-post-body"><h2>{{ .Title }}</h2><div class="term-post-meta">{{ if not (time.IsZero .PublishDate) }}<time datetime="{{ time.Format "2006-01-02" .PublishDate }}">{{ time.Format "2006.01.02" .PublishDate }}</time>{{ end }}{{ range .Terms "tags" }}<span class="term-post-tag">{{ .Name }}</span>{{ end }}</div></div></a></article>{{ else }}<p class="quiet">{{ T "empty" }}</p>{{ end }}</div>{{ partial "pagination.html" . }}</section>{{ end }}{{ end }}

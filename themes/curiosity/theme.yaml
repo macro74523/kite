@@ -55,6 +55,16 @@ settings:
           - {key: description, type: text, label: 简介}
           - {key: url, type: url, label: 链接}
           - {key: image, type: image, label: 图片}
+      - key: plan_goals
+        type: repeat
+        label: 计划预期
+        help: 首页"计划预期"卡片显示的目标清单
+        fields:
+          - {key: title, type: string, label: 目标名称, default: '大语言模型原理'}
+          - {key: progress, type: number, label: 进度(%), default: 65, min: 0, max: 100}
+          - {key: tag, type: string, label: 标签, default: '学习', help: '分类标签，如：学习 / 阅读 / 项目'}
+          - {key: status, type: string, label: 状态, default: '进行中', help: '如：未开始 / 进行中 / 已完成'}
+      - {key: plan_footer_text, type: string, label: 底部寄语, default: '日拱一卒，功不唐捐', help: '组件底部显示的鼓励文字'}
       - {key: timezone, type: string, label: IANA 时区, default: Asia/Shanghai, help: 用于签到、统计与日历的时区，例如 Asia/Shanghai 或 Europe/London}
   - key: collections
     type: section

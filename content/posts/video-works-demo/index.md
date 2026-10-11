@@ -1,19 +1,16 @@
 ---
-categories:
-    - 视频作品
 cover: https://jpg.macro.wang/20260812122404861.jpg
 created_at: 2026-10-08T10:00:00Z
 description: Curiosity 主题的视频作品功能展示，支持横屏和竖屏两种封面比例，自动适配最佳展示效果。
-id: video-works-demo
+id: 1HZF4TGQ82894BR47ZP1BNMR5E
 og_image: https://jpg.macro.wang/20260812122404861.jpg
 published_at: 2026-10-08T10:00:00Z
 slug: video-works-demo
 status: published
 tags:
-    - 示例
-    - 短视频
+  - 示例
 title: 视频作品功能展示
-updated_at: 2026-10-08T10:00:00Z
+updated_at: 2026-10-11T13:06:52Z
 ---
 
 ## 关于视频作品

@@ -85,70 +85,89 @@
     content.after(button);
   });
 
-  // Calendar — ring style
+  // Calendar — timeline style
   const days = document.getElementById('calendar-days');
   if (days) {
     const today = zonedParts(new Date());
     let year = today.year, month = today.month - 1;
-    const postDates = new Set((days.dataset.dates || '').split('|').filter(Boolean));
-    const ringProgress = document.getElementById('ring-progress');
-    const ringDay = document.getElementById('ring-day');
-    const ringWeekday = document.getElementById('ring-weekday');
-    const ringPostcount = document.getElementById('ring-postcount');
-    const circumference = 2 * Math.PI * 70; // r=70
+    const dateList = (days.dataset.dates || '').split('|').filter(Boolean);
+    const titleList = (days.dataset.titles || '').split('|').filter(Boolean);
+    const linkList = (days.dataset.links || '').split('|').filter(Boolean);
+    const calCount = document.getElementById('cal-count');
+    const timelineItems = document.getElementById('timeline-items');
 
-    const countMonthPosts = (y, m) => {
-      let count = 0;
-      const total = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
-      for (let d = 1; d <= total; d++) {
-        const key = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        if (postDates.has(key)) count++;
-      }
-      return count;
+    const getMonthPosts = (y, m) => {
+      const prefix = `${y}-${String(m + 1).padStart(2, '0')}`;
+      const posts = [];
+      dateList.forEach((date, i) => {
+        if (date.startsWith(prefix)) {
+          posts.push({ date, title: titleList[i] || '', link: linkList[i] || '#' });
+        }
+      });
+      // Sort by day descending (newest first)
+      posts.sort((a, b) => b.date.localeCompare(a.date));
+      return posts;
+    };
+
+    const animateCount = (el, target) => {
+      const duration = 800;
+      const start = 0;
+      const startTime = performance.now();
+      const step = (now) => {
+        const p = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = String(Math.round(start + (target - start) * eased));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
     };
 
     const draw = () => {
       const cur = zonedParts(new Date());
-      const isCurrentMonth = year === cur.year && month === cur.month - 1;
-      const totalDays = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-      const postCount = countMonthPosts(year, month);
+      const posts = getMonthPosts(year, month);
 
       // Update month label
       document.getElementById('calendar-month').textContent =
-        new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month, 1)));
+        new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month, 1)));
 
-      // Ring center: show today's date if current month, else 1st of month
-      const displayDay = isCurrentMonth ? cur.day : 1;
-      const displayDate = new Date(Date.UTC(year, month, displayDay));
-      ringDay.textContent = String(displayDay);
-      ringWeekday.textContent = locale.startsWith('zh')
-        ? ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][displayDate.getUTCDay()]
-        : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][displayDate.getUTCDay()];
+      // Animate count
+      animateCount(calCount, posts.length);
 
-      // Ring progress: posts / total days (capped at 100%)
-      const progress = Math.min(postCount / totalDays, 1);
-      const offset = circumference * (1 - progress);
-      ringProgress.style.strokeDasharray = `${circumference}`;
-      ringProgress.style.strokeDashoffset = `${offset}`;
+      // Render timeline items
+      timelineItems.innerHTML = '';
+      if (posts.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'timeline-empty';
+        empty.textContent = locale.startsWith('zh') ? '本月暂无更新' : 'No posts this month';
+        timelineItems.appendChild(empty);
+      } else {
+        const todayStr = `${cur.year}-${String(cur.month).padStart(2, '0')}-${String(cur.day).padStart(2, '0')}`;
+        posts.forEach((post, idx) => {
+          const item = document.createElement('div');
+          item.className = 'timeline-item';
+          if (post.date === todayStr) item.classList.add('is-today');
+          const day = parseInt(post.date.split('-')[2], 10);
+          const weekday = new Date(Date.UTC(year, month, day)).getUTCDay();
+          const weekdayLabel = locale.startsWith('zh')
+            ? ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][weekday]
+            : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][weekday];
 
-      // Post count
-      ringPostcount.textContent = String(postCount);
+          const dateEl = document.createElement('div');
+          dateEl.className = 'timeline-date';
+          dateEl.textContent = `${String(month + 1).padStart(2, '0')}.${String(day).padStart(2, '0')} · ${weekdayLabel}`;
 
-      // Keep the hidden calendar-days updated for accessibility / fallback
-      days.replaceChildren();
-      const offset_d = (new Date(Date.UTC(year, month, 1)).getUTCDay() + 6) % 7;
-      for (let i = 0; i < offset_d + totalDays; i++) {
-        const cell = document.createElement('span');
-        if (i >= offset_d) {
-          const day = i - offset_d + 1;
-          cell.textContent = String(day);
-          const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          if (postDates.has(key)) cell.classList.add('has-post');
-          if (year === cur.year && month === cur.month - 1 && day === cur.day) {
-            cell.classList.add('is-today');
-          }
-        } else cell.setAttribute('aria-hidden', 'true');
-        days.append(cell);
+          const titleEl = document.createElement('a');
+          titleEl.className = 'timeline-title';
+          titleEl.href = post.link;
+          titleEl.textContent = post.title;
+
+          item.appendChild(dateEl);
+          item.appendChild(titleEl);
+          timelineItems.appendChild(item);
+
+          // Staggered animation
+          setTimeout(() => item.classList.add('is-visible'), idx * 60);
+        });
       }
     };
 
@@ -162,6 +181,35 @@
       const cur = zonedParts(new Date()); year = cur.year; month = cur.month - 1; draw();
     });
     draw();
+  }
+
+  // Cassette player controls
+  const cassetteAudio = document.getElementById('cassette-audio');
+  const playerPlay = document.getElementById('player-play');
+  const cassettePlayer = document.querySelector('.cassette-player');
+  if (cassetteAudio && playerPlay && cassettePlayer) {
+    let playing = false;
+    const syncPlay = () => {
+      playing = !cassetteAudio.paused;
+      cassettePlayer.classList.toggle('is-playing', playing);
+      playerPlay.textContent = playing ? '❚❚' : '▶';
+      playerPlay.classList.toggle('is-playing', playing);
+      playerPlay.setAttribute('aria-label', playing ? 'pause' : 'play');
+    };
+    playerPlay.addEventListener('click', () => {
+      if (cassetteAudio.paused) cassetteAudio.play().catch(() => {});
+      else cassetteAudio.pause();
+    });
+    cassetteAudio.addEventListener('play', syncPlay);
+    cassetteAudio.addEventListener('pause', syncPlay);
+    cassetteAudio.addEventListener('ended', syncPlay);
+    // Knob rotation on hover for fun
+    const knob = document.querySelector('.player-knob');
+    let knobAngle = 25;
+    knob?.addEventListener('click', () => {
+      knobAngle = knobAngle >= 135 ? -45 : knobAngle + 30;
+      knob.querySelector('span').style.transform = `rotate(${knobAngle}deg)`;
+    });
   }
 
   // Checkin
@@ -331,15 +379,20 @@
     wrap.className = 'video-cover-wrap';
     img.parentNode.insertBefore(wrap, img);
     wrap.appendChild(img);
-    const done = () => {
-      const ratio = img.naturalWidth / img.naturalHeight;
+    let finished = false;
+    const done = (isError) => {
+      if (finished) return;
+      finished = true;
+      const ratio = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 1.78;
       wrap.classList.add(ratio > 1 ? 'is-landscape' : 'is-portrait');
       card.classList.add('is-loaded');
     };
-    if (img.complete && img.naturalWidth) done();
+    if (img.complete && img.naturalWidth) done(false);
     else {
-      img.addEventListener('load', done, { once: true });
-      img.addEventListener('error', () => { wrap.classList.add('is-landscape'); card.classList.add('is-loaded'); }, { once: true });
+      img.addEventListener('load', () => done(false), { once: true });
+      img.addEventListener('error', () => done(true), { once: true });
+      // Fallback: show content after 3s even if image is still loading
+      setTimeout(() => done(false), 3000);
     }
   });
 

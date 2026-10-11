@@ -35,7 +35,7 @@ theme:
     avatar: /uploads/微信图片_2025-10-28_134011_016.jpg
     email: enhoen@qq.com
     intro: 你好，我是 MACRO。喜欢折腾、拍摄跟剪辑。在这里记录思考，也把一些想法慢慢做成作品。
-    favicon: /uploads/M.png
+    favicon: /uploads/M-2.png
     audio_url: /uploads/lofi-chill.mp3
     audio_title: 春和景明
     audio_author: 纯音乐
@@ -45,6 +45,32 @@ theme:
     line_color: '#ede5e5'
     logo_dark: /uploads/MACRO.WANG-4.png
     logo_size_mobile: 62
+    ai_quests:
+      - progress: 65
+        status: 进行中
+        tag: LLM
+        title: 大语言模型原理
+      - progress: 20
+        status: 进行中
+        tag: CV
+        title: AI视频
+    plan_goals:
+      - progress: 65
+        status: 进行中
+        tag: 制作
+        title: 使用GPT 5.6 sol
+      - progress: 1
+        status: 进行中
+        tag: 学习
+        title: AI 全链路剪辑工作流重构
+      - progress: 30
+        status: 进行中
+        tag: 学习
+        title: AI 镜头语言与叙事控制
+      - progress: 16
+        status: 进行中
+        tag: 学习
+        title: 识别、修复 AI 缺陷
 plugins:
   settings:
     comments:

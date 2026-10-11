@@ -3,7 +3,7 @@ categories: []
 cover: https://jpg.macro.wang/20260812122404861.jpg
 created_at: 2026-10-05T10:00:00Z
 description: 一篇完整展示 Markdown 排版能力的示例文章，包含标题、列表、引用、代码、表格等常用元素。
-id: markdown-showcase
+id: 1HZF4SFEPRXJVX90YFV0ZFEM25
 og_image: https://jpg.macro.wang/20260812122404861.jpg
 published_at: 2026-10-05T10:00:00Z
 slug: markdown-showcase
