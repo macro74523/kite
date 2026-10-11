@@ -1,6 +1,6 @@
 {{ define "main" }}{{ if and (eq .Page.Type "categories") (eq .Page.Title "瞬间") }}
 <section class="listing moments-listing">
-  <header class="moments-heading"><span class="eyebrow">MOMENTS</span><h1>{{ .Page.Title }}</h1><p>记录生活里那些值得留下来的瞬间。</p></header>
+  <header class="moments-heading"><span class="eyebrow">MOMENTS / 瞬间</span><h1>{{ .Page.Title }}</h1><p>记录生活里那些值得留下来的瞬间。</p></header>
   <div class="moments-stream">
     {{ $mi := 0 }}{{ range .Pages }}
     <article class="moment-card" id="moment-{{ $mi }}">

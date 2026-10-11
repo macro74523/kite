@@ -3,6 +3,7 @@ site:
   author: macro
   baseURL: https://macro.wang
   language: zh-CN
+  timezone: Asia/Shanghai
 
 content:
   store: file
@@ -36,6 +37,12 @@ theme:
     email: enhoen@qq.com
     intro: 你好，我是 MACRO。喜欢折腾、拍摄跟剪辑。在这里记录思考，也把一些想法慢慢做成作品。
     favicon: /uploads/M.png
+    audio_url: /uploads/lofi-chill.mp3
+    audio_title: 春和景明
+    audio_author: 纯音乐
+    audio_file: /uploads/春和景明.mp3
+    logo: /uploads/avatar.jpg
+    logo_size: "100"
 plugins:
   settings:
     comments:

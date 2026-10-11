@@ -128,15 +128,24 @@
     window.addEventListener('resize', fitWorks);
   }
 
-  // Video works skeleton: fade cover in when loaded
+  // Video works: wrap cover, detect aspect ratio (16:9 landscape, 3:4 portrait)
   document.querySelectorAll('.video-listing .video-card').forEach(card => {
     const img = card.querySelector('img.post-cover');
     if (!img) { card.classList.add('is-loaded'); return; }
-    const done = () => card.classList.add('is-loaded');
+    // wrap image
+    const wrap = document.createElement('div');
+    wrap.className = 'video-cover-wrap';
+    img.parentNode.insertBefore(wrap, img);
+    wrap.appendChild(img);
+    const done = () => {
+      const ratio = img.naturalWidth / img.naturalHeight;
+      wrap.classList.add(ratio > 1 ? 'is-landscape' : 'is-portrait');
+      card.classList.add('is-loaded');
+    };
     if (img.complete && img.naturalWidth) done();
     else {
       img.addEventListener('load', done, { once: true });
-      img.addEventListener('error', done, { once: true });
+      img.addEventListener('error', () => { wrap.classList.add('is-landscape'); card.classList.add('is-loaded'); }, { once: true });
     }
   });
 
