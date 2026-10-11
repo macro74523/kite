@@ -4,7 +4,7 @@
   <div class="moments-stream">
     {{ $mi := 0 }}{{ range .Pages }}
     <article class="moment-card" id="moment-{{ $mi }}">
-      <header class="moment-header">{{ with $.Site.ThemeSettings.avatar }}<span class="moment-avatar"><img src="{{ url.Rel . }}" alt="{{ default $.Site.Title $.Site.Author }}"></span>{{ else }}<span class="moment-avatar">{{ str.Truncate 1 (default $.Site.Title $.Site.Author) }}</span>{{ end }}<div><strong>{{ default $.Site.Title $.Site.Author }}</strong><time datetime="{{ time.Format "2006-01-02" .PublishDate }}">{{ if not (time.IsZero .PublishDate) }}{{ time.Format "2006年01月02日 15:04" .PublishDate }}{{ end }}</time></div></header>
+      <header class="moment-header">{{ with $.Site.ThemeSettings.avatar }}<span class="moment-avatar"><img src="{{ url.Rel . }}" alt="{{ default $.Site.Title $.Site.Author }}"></span>{{ else }}<span class="moment-avatar">{{ str.Truncate 1 (default $.Site.Title $.Site.Author) }}</span>{{ end }}<div><strong>{{ default $.Site.Title $.Site.Author }}</strong><a class="moment-date" href="{{ .RelPermalink }}"><time datetime="{{ time.Format "2006-01-02" .PublishDate }}">{{ if not (time.IsZero .PublishDate) }}{{ time.Format "2006.01.02 15:04" .PublishDate }}{{ end }}</time></a></div></header>
       <div class="moment-body"><h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2><div class="moment-content">{{ .Content }}</div>{{ partial "cover.html" . }}</div>
       {{ $mtags := .Terms "tags" }}{{ if $mtags }}<footer class="moment-footer">{{ range $mtags }}<a href="{{ .RelPermalink }}">#{{ .Name }}</a>{{ end }}</footer>{{ end }}
     </article>{{ $mi = math.Add $mi 1 }}

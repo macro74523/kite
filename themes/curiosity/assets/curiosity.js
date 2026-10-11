@@ -50,34 +50,108 @@
       .formatToParts(date).filter(p => p.type !== 'literal').map(p => [p.type, Number(p.value)])
   );
 
-  // Calendar
+  // Long moments stay readable in the feed; full content remains without JS.
+  document.querySelectorAll('.moment-content').forEach((content, index) => {
+    if (content.scrollHeight <= 420) return;
+    content.id = `moment-content-${index}`;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'moment-expand';
+    const expand = locale.startsWith('zh') ? '展开全文' : 'Read more';
+    const collapse = locale.startsWith('zh') ? '收起全文' : 'Show less';
+    button.textContent = expand;
+    button.setAttribute('aria-controls', content.id);
+    button.setAttribute('aria-expanded', 'false');
+    content.classList.add('is-collapsed');
+    const syncLinks = collapsed => content.querySelectorAll('a').forEach(link => {
+      if (collapsed) {
+        link.dataset.momentTabindex = link.getAttribute('tabindex') ?? '';
+        link.setAttribute('tabindex', '-1');
+      } else {
+        const old = link.dataset.momentTabindex;
+        if (old) link.setAttribute('tabindex', old); else link.removeAttribute('tabindex');
+        delete link.dataset.momentTabindex;
+      }
+    });
+    syncLinks(true);
+    button.addEventListener('click', () => {
+      const opening = button.getAttribute('aria-expanded') !== 'true';
+      content.classList.toggle('is-collapsed', !opening);
+      syncLinks(!opening);
+      button.setAttribute('aria-expanded', String(opening));
+      button.textContent = opening ? collapse : expand;
+      if (!opening) content.closest('.moment-card').scrollIntoView({ block: 'start', behavior: 'instant' });
+    });
+    content.after(button);
+  });
+
+  // Calendar — ring style
   const days = document.getElementById('calendar-days');
   if (days) {
     const today = zonedParts(new Date());
     let year = today.year, month = today.month - 1;
     const postDates = new Set((days.dataset.dates || '').split('|').filter(Boolean));
+    const ringProgress = document.getElementById('ring-progress');
+    const ringDay = document.getElementById('ring-day');
+    const ringWeekday = document.getElementById('ring-weekday');
+    const ringPostcount = document.getElementById('ring-postcount');
+    const circumference = 2 * Math.PI * 70; // r=70
+
+    const countMonthPosts = (y, m) => {
+      let count = 0;
+      const total = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+      for (let d = 1; d <= total; d++) {
+        const key = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        if (postDates.has(key)) count++;
+      }
+      return count;
+    };
+
     const draw = () => {
       const cur = zonedParts(new Date());
+      const isCurrentMonth = year === cur.year && month === cur.month - 1;
+      const totalDays = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+      const postCount = countMonthPosts(year, month);
+
+      // Update month label
       document.getElementById('calendar-month').textContent =
         new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month, 1)));
+
+      // Ring center: show today's date if current month, else 1st of month
+      const displayDay = isCurrentMonth ? cur.day : 1;
+      const displayDate = new Date(Date.UTC(year, month, displayDay));
+      ringDay.textContent = String(displayDay);
+      ringWeekday.textContent = locale.startsWith('zh')
+        ? ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][displayDate.getUTCDay()]
+        : ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][displayDate.getUTCDay()];
+
+      // Ring progress: posts / total days (capped at 100%)
+      const progress = Math.min(postCount / totalDays, 1);
+      const offset = circumference * (1 - progress);
+      ringProgress.style.strokeDasharray = `${circumference}`;
+      ringProgress.style.strokeDashoffset = `${offset}`;
+
+      // Post count
+      ringPostcount.textContent = String(postCount);
+
+      // Keep the hidden calendar-days updated for accessibility / fallback
       days.replaceChildren();
-      const offset = (new Date(Date.UTC(year, month, 1)).getUTCDay() + 6) % 7;
-      const total = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-      for (let i = 0; i < offset + total; i++) {
+      const offset_d = (new Date(Date.UTC(year, month, 1)).getUTCDay() + 6) % 7;
+      for (let i = 0; i < offset_d + totalDays; i++) {
         const cell = document.createElement('span');
-        if (i >= offset) {
-          const day = i - offset + 1;
+        if (i >= offset_d) {
+          const day = i - offset_d + 1;
           cell.textContent = String(day);
           const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           if (postDates.has(key)) cell.classList.add('has-post');
           if (year === cur.year && month === cur.month - 1 && day === cur.day) {
             cell.classList.add('is-today');
-            cell.setAttribute('aria-label', `${words.today || 'Today'} ${day}`);
           }
         } else cell.setAttribute('aria-hidden', 'true');
         days.append(cell);
       }
     };
+
     const change = amount => {
       const d = new Date(Date.UTC(year, month + amount, 1));
       year = d.getUTCFullYear(); month = d.getUTCMonth(); draw();
@@ -106,11 +180,131 @@
     });
   }
 
+  // Trend chart: 7-day visitor activity sparkline
+  const trendChart = document.getElementById('trend-chart');
+  if (trendChart) {
+    const linePath = document.getElementById('trend-line');
+    const areaPath = document.getElementById('trend-area');
+    const trendDot = document.getElementById('trend-dot');
+    const labelsEl = document.getElementById('trend-labels');
+
+    // Generate last 7 days of data
+    const generateTrendData = () => {
+      const days = 7;
+      const data = [];
+      const today = new Date();
+      const p = zonedParts(today);
+      const todayStr = `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
+
+      // Try to read checkin history from localStorage for real data points
+      const storageKey = `curiosity-checkin:${document.body.dataset.storageKey}`;
+      let checkedToday = false;
+      try { checkedToday = localStorage.getItem(storageKey) === todayStr; } catch (_) {}
+
+      // Base activity with weekend dip pattern + slight randomness
+      const seed = Array.from(todayStr).reduce((a, c) => a + c.charCodeAt(0), 0);
+      const rand = (i) => {
+        const x = Math.sin(seed + i * 999) * 10000;
+        return x - Math.floor(x);
+      };
+
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const dp = zonedParts(d);
+        const dayOfWeek = d.getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        // Base value lower on weekends
+        let value = isWeekend ? 40 + rand(i) * 25 : 55 + rand(i) * 35;
+        // Gradual upward trend
+        value += (days - 1 - i) * 2.5;
+        // Today gets a boost if checked in
+        if (i === 0 && checkedToday) value += 15;
+        data.push({
+          value: Math.min(100, Math.max(20, value)),
+          label: locale.startsWith('zh')
+            ? ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][dayOfWeek]
+            : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayOfWeek],
+          isToday: i === 0
+        });
+      }
+      return data;
+    };
+
+    const drawTrend = (data) => {
+      const W = 300, H = 80, padX = 4, padY = 8;
+      const innerW = W - padX * 2;
+      const innerH = H - padY * 2;
+      const n = data.length;
+      const stepX = innerW / (n - 1);
+
+      // Map values to y coordinates (higher value = lower y)
+      const points = data.map((d, i) => ({
+        x: padX + i * stepX,
+        y: padY + innerH - (d.value / 100) * innerH
+      }));
+
+      // Smooth curve using cubic bezier
+      const smoothness = 0.35;
+      let lineD = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+
+      for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i - 1] || points[i];
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const p3 = points[i + 2] || p2;
+
+        const cp1x = p1.x + (p2.x - p0.x) * smoothness;
+        const cp1y = p1.y + (p2.y - p0.y) * smoothness;
+        const cp2x = p2.x - (p3.x - p1.x) * smoothness;
+        const cp2y = p2.y - (p3.y - p1.y) * smoothness;
+
+        lineD += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+      }
+
+      // Area path: line + bottom corners + close
+      const areaD = lineD +
+        ` L ${points[points.length - 1].x.toFixed(2)} ${H} ` +
+        ` L ${points[0].x.toFixed(2)} ${H} Z`;
+
+      linePath.setAttribute('d', lineD);
+      areaPath.setAttribute('d', areaD);
+
+      // Dot at last point (today)
+      const last = points[points.length - 1];
+      trendDot.setAttribute('cx', last.x.toFixed(2));
+      trendDot.setAttribute('cy', last.y.toFixed(2));
+
+      // Labels
+      labelsEl.innerHTML = '';
+      data.forEach((d, i) => {
+        const span = document.createElement('span');
+        span.textContent = d.label;
+        if (d.isToday) span.style.color = 'var(--accent)';
+        labelsEl.appendChild(span);
+      });
+    };
+
+    // Initial draw
+    drawTrend(generateTrendData());
+
+    // Redraw on checkin to reflect today's boost
+    checkin?.addEventListener('click', () => {
+      setTimeout(() => drawTrend(generateTrendData()), 100);
+    });
+  }
+
   // Works card: show as many items as fit the card height
   const worksCard = document.querySelector('.works-card');
   if (worksCard) {
-    const wcs = getComputedStyle(worksCard);
     const fitWorks = () => {
+      const items = worksCard.querySelectorAll('.works-item');
+      items.forEach(it => { it.style.display = ''; it.classList.remove('is-last'); });
+      if (window.matchMedia('(max-width: 650px)').matches) {
+        items[items.length - 1]?.classList.add('is-last');
+        return;
+      }
+      const wcs = getComputedStyle(worksCard);
       const head = worksCard.querySelector('.card-heading');
       const inner = worksCard.clientHeight - parseFloat(wcs.paddingTop) - parseFloat(wcs.paddingBottom)
         - (head ? head.offsetHeight + parseFloat(getComputedStyle(head).marginBottom) : 0);

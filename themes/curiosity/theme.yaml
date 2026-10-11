@@ -23,25 +23,30 @@ layouts:
   - {name: links, label: 友情链接, types: [page]}
   - {name: projects, label: 项目展示, types: [page]}
 settings:
+  - key: branding
+    type: section
+    label: 品牌标识
+    fields:
+      - {key: logo, type: image, label: 亮色 Logo, help: 上传或拖入图片；未设置时显示站点名称}
+      - {key: logo_dark, type: image, label: 暗色 Logo, help: 暗色模式自动使用此图片，留空沿用亮色 Logo}
+      - {key: logo_size, type: number, label: 桌面 Logo 高度, default: 36, min: 20, max: 120, step: 1, help: 单位 px，建议 36–60}
+      - {key: logo_size_mobile, type: number, label: 手机 Logo 高度, default: 45, min: 20, max: 72, step: 1, help: 单位 px，建议 32–48}
+      - {key: favicon, type: image, label: 网站图标, help: 上传方形图片，建议至少 64 × 64 px}
   - key: profile
     type: section
-    label: 个人介绍与联系
+    label: 个人资料
     fields:
       - {key: intro, type: text, label: 首页介绍, help: 显示在首页头像卡片的自我介绍}
       - {key: avatar, type: image, label: 头像, help: 用于首页头像和“聊聊”弹窗，留空显示首字母}
       - {key: contact, type: url, label: 个人网站, help: 显示在“聊聊”弹窗}
       - {key: email, type: string, label: 邮箱, help: 显示在“聊聊”弹窗，留空则不显示}
       - {key: qq, type: string, label: QQ号, help: 显示在“聊聊”弹窗，留空则不显示}
-  - key: photography
+  - key: homepage
     type: section
-    label: 瞬间卡片回退
+    label: 首页内容
     fields:
       - {key: photo, type: image, label: 回退照片, help: 首页“日常切片”卡片优先随机展示“瞬间”分类文章，仅当没有任何瞬间时才显示此照片；留空使用生成的海边照片}
       - {key: photo_caption, type: string, label: 照片说明, help: 回退照片下方显示的文字}
-  - key: work
-    type: section
-    label: 精选项目
-    fields:
       - key: projects
         type: repeat
         label: 项目
@@ -50,14 +55,10 @@ settings:
           - {key: description, type: text, label: 简介}
           - {key: url, type: url, label: 链接}
           - {key: image, type: image, label: 图片}
-  - key: everyday
-    type: section
-    label: 日常与时区
-    fields:
       - {key: timezone, type: string, label: IANA 时区, default: Asia/Shanghai, help: 用于签到、统计与日历的时区，例如 Asia/Shanghai 或 Europe/London}
   - key: collections
     type: section
-    label: 收藏与友链
+    label: 链接
     fields:
       - key: bookmarks
         type: repeat
@@ -75,7 +76,7 @@ settings:
           - {key: url, type: url, label: 链接}
   - key: listening
     type: section
-    label: 音乐与社交
+    label: 音乐
     fields:
       - {key: audio_file, type: image, label: 上传音乐, help: 上传本地音乐文件（支持 mp3 等格式），优先于下方的音频 URL}
       - {key: audio_url, type: url, label: 音频 URL, help: 音乐文件外链地址，未上传音乐时使用此字段}
@@ -89,7 +90,7 @@ settings:
           - {key: url, type: url, label: 链接}
   - key: appearance
     type: section
-    label: 阅读与外观
+    label: 外观
     fields:
       - {key: accent, type: color, label: 强调色, default: '#6366f1'}
       - {key: bg_color, type: color, label: 背景色, default: '#f8fafc', help: 页面整体背景颜色（渐变为空时使用）}
@@ -101,6 +102,3 @@ settings:
       - {key: line_color, type: color, label: 边框色, default: '#e2e8f0', help: 边框和分隔线的颜色}
       - {key: show_toc, type: boolean, label: 显示目录, default: true}
       - {key: footer_text, type: string, label: 页脚文字}
-      - {key: favicon, type: image, label: 网站图标, help: 显示在浏览器标签页和书签上，建议使用 64px 以上的方形图片}
-      - {key: logo, type: image, label: 前台 Logo, help: 显示在网站左上角的 Logo 图片，建议透明 PNG 或 SVG；留空则显示文字标题}
-      - {key: logo_size, type: string, label: Logo 高度(px), default: '36', help: Logo 图片显示高度，单位像素，默认 36px}

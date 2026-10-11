@@ -40,9 +40,11 @@ theme:
     audio_title: 春和景明
     audio_author: 纯音乐
     audio_file: /uploads/春和景明.mp3
-    logo: /uploads/MACRO.WANG-3.png
+    logo: /uploads/MACRO.WANG hei.png
     logo_size: "100"
     line_color: '#ede5e5'
+    logo_dark: /uploads/MACRO.WANG-4.png
+    logo_size_mobile: 62
 plugins:
   settings:
     comments:

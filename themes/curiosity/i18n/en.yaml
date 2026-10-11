@@ -34,6 +34,7 @@ month_prev: Previous month
 month_next: Next month
 weekdays: M|T|W|T|F|S|S
 today: Today
+posts_this_month: posts this month
 checkin_title: Leave a little mark
 visits: Days checked in
 checkin_hint: One day at a time.
