@@ -1,6 +1,6 @@
 ---
 categories: [瞬间]
-cover: ./social-card.avif
+cover: https://jpg.macro.wang/20260812122054194.jpg
 created_at: 2026-05-04T00:00:00Z
 description: 程序员行业不会消失，但会被 AI 彻底重构：淘汰的是 "纯码农"，崛起的是 "懂业务、会驾驭 AI 的工程决策者"。
 id: 01KQR4HQ0025V3GVY53V936AY1
