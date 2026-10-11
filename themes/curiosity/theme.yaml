@@ -25,20 +25,19 @@ layouts:
 settings:
   - key: profile
     type: section
-    label: 个人介绍
+    label: 个人介绍与联系
     fields:
-      - {key: intro, type: text, label: 首页介绍}
-      - {key: about, type: text, label: 弹窗介绍}
-      - {key: avatar, type: image, label: 头像}
-      - {key: contact, type: url, label: 联系链接}
-      - {key: email, type: string, label: 邮箱}
-      - {key: qq, type: string, label: QQ号}
+      - {key: intro, type: text, label: 首页介绍, help: 显示在首页头像卡片的自我介绍}
+      - {key: avatar, type: image, label: 头像, help: 用于首页头像和“聊聊”弹窗，留空显示首字母}
+      - {key: contact, type: url, label: 个人网站, help: 显示在“聊聊”弹窗}
+      - {key: email, type: string, label: 邮箱, help: 显示在“聊聊”弹窗，留空则不显示}
+      - {key: qq, type: string, label: QQ号, help: 显示在“聊聊”弹窗，留空则不显示}
   - key: photography
     type: section
-    label: 日常照片
+    label: 瞬间卡片回退
     fields:
-      - {key: photo, type: image, label: 照片, help: 留空使用生成的海边日常照片}
-      - {key: photo_caption, type: string, label: 照片说明}
+      - {key: photo, type: image, label: 回退照片, help: 首页“日常切片”卡片优先随机展示“瞬间”分类文章，仅当没有任何瞬间时才显示此照片；留空使用生成的海边照片}
+      - {key: photo_caption, type: string, label: 照片说明, help: 回退照片下方显示的文字}
   - key: work
     type: section
     label: 精选项目
@@ -55,8 +54,7 @@ settings:
     type: section
     label: 日常与时区
     fields:
-      - {key: timezone_name, type: string, label: 时区名称, default: Shanghai}
-      - {key: timezone, type: string, label: IANA 时区, default: Asia/Shanghai, help: 例如 Asia/Shanghai 或 Europe/London}
+      - {key: timezone, type: string, label: IANA 时区, default: Asia/Shanghai, help: 用于签到、统计与日历的时区，例如 Asia/Shanghai 或 Europe/London}
   - key: collections
     type: section
     label: 收藏与友链

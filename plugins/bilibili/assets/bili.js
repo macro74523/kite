@@ -1,6 +1,60 @@
 // 把正文里被转义的 B 站 iframe 嵌入代码替换成响应式播放器
+// 播放器按视频真实比例自适应（通过 B 站 API JSONP 获取分辨率，带本地缓存）
 (function () {
   var urlRe = /(?:https?:)?\/\/player\.bilibili\.com\/player\.html\?[^"<\s]+/i;
+  var bvidRe = /[?&]bvid=([A-Za-z0-9]+)/i;
+  var CACHE_KEY = 'bili-video-dims';
+
+  function readCache() {
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch (e) { return {}; }
+  }
+  function writeCache(c) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(c)); } catch (e) {}
+  }
+
+  function applyDims(box, d) {
+    if (!d || !d.w || !d.h) return;
+    var w = d.w, h = d.h;
+    if (d.r === 90 || d.r === 270) { var t = w; w = h; h = t; }
+    var ratio = w / h;
+    if (ratio < 0.5 || ratio > 2.6) return;
+    box.style.paddingTop = '0';
+    box.style.aspectRatio = w + ' / ' + h;
+    if (h > w) {
+      // 竖屏视频：限制高度，居中显示
+      box.style.maxWidth = 'calc(78vh * ' + (w / h).toFixed(4) + ')';
+      box.style.marginLeft = 'auto';
+      box.style.marginRight = 'auto';
+    }
+  }
+
+  function once(fn) {
+    var done = false;
+    return function (v) { if (!done) { done = true; fn(v); } };
+  }
+
+  function loadDims(bvid, cb) {
+    var cache = readCache();
+    if (cache[bvid]) { cb(cache[bvid]); return; }
+    var fin = once(cb);
+    var fn = '__biliDim' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    var s = document.createElement('script');
+    window[fn] = function (res) {
+      var d = null;
+      if (res && res.data && res.data.dimension && res.data.dimension.width) {
+        d = { w: res.data.dimension.width, h: res.data.dimension.height, r: res.data.dimension.rotate || 0 };
+        cache[bvid] = d;
+        writeCache(cache);
+      }
+      fin(d);
+      delete window[fn];
+      s.remove();
+    };
+    s.src = 'https://api.bilibili.com/x/web-interface/view?bvid=' + bvid + '&jsonp=jsonp&callback=' + fn;
+    s.onerror = function () { fin(null); delete window[fn]; s.remove(); };
+    document.head.appendChild(s);
+    setTimeout(function () { fin(null); }, 6000);
+  }
 
   document.querySelectorAll('.content p, .content div').forEach(function (el) {
     if (el.classList.contains('bili-player')) return;
@@ -27,5 +81,9 @@
     frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
     box.appendChild(frame);
     el.parentNode.replaceChild(box, el);
+
+    // 按视频真实分辨率调整播放器比例
+    var bv = (url.match(bvidRe) || [])[1];
+    if (bv) loadDims(bv, function (d) { applyDims(box, d); });
   });
 })();

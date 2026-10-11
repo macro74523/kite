@@ -2,12 +2,12 @@
 <section class="listing moments-listing">
   <header class="moments-heading"><span class="eyebrow">MOMENTS</span><h1>{{ .Page.Title }}</h1><p>记录生活里那些值得留下来的瞬间。</p></header>
   <div class="moments-stream">
-    {{ range .Pages }}
-    <article class="moment-card">
+    {{ $mi := 0 }}{{ range .Pages }}
+    <article class="moment-card" id="moment-{{ $mi }}">
       <header class="moment-header"><span class="moment-avatar">M</span><div><strong>MACRO</strong><time datetime="{{ time.Format "2006-01-02" .PublishDate }}">{{ if not (time.IsZero .PublishDate) }}{{ time.Format "2006年01月02日 15:04" .PublishDate }}{{ end }}</time></div></header>
       <div class="moment-body"><h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2><div class="moment-content">{{ .Content }}</div>{{ partial "cover.html" . }}</div>
       <footer class="moment-footer">{{ range .Terms "tags" }}<a href="{{ .RelPermalink }}">#{{ .Name }}</a>{{ end }}<a class="moment-more" href="{{ .RelPermalink }}">查看详情 ↗</a></footer>
-    </article>
+    </article>{{ $mi = math.Add $mi 1 }}
     {{ else }}<p>{{ T "empty" }}</p>{{ end }}
   </div>
   {{ partial "pagination.html" . }}

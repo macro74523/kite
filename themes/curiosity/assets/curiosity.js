@@ -55,6 +55,7 @@
   if (days) {
     const today = zonedParts(new Date());
     let year = today.year, month = today.month - 1;
+    const postDates = new Set((days.dataset.dates || '').split('|').filter(Boolean));
     const draw = () => {
       const cur = zonedParts(new Date());
       document.getElementById('calendar-month').textContent =
@@ -67,8 +68,10 @@
         if (i >= offset) {
           const day = i - offset + 1;
           cell.textContent = String(day);
+          const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          if (postDates.has(key)) cell.classList.add('has-post');
           if (year === cur.year && month === cur.month - 1 && day === cur.day) {
-            cell.className = 'is-today';
+            cell.classList.add('is-today');
             cell.setAttribute('aria-label', `${words.today || 'Today'} ${day}`);
           }
         } else cell.setAttribute('aria-hidden', 'true');
