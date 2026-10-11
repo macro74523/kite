@@ -106,7 +106,7 @@
     });
   }
 
-  // Umami stats
+  // Umami stats（localStorage 缓存：当天 10 分钟内刷新直接读缓存，过期才重新请求）
   const sVis = document.getElementById('stats-visitors');
   if (sVis && window.curiosityStats) {
     const S = window.curiosityStats;
@@ -118,16 +118,32 @@
     const p = zonedParts(new Date());
     const zoneOffset = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - Date.now();
     const todayStart = Date.UTC(p.year, p.month - 1, p.day) - zoneOffset;
-    Promise.all([fetchStats(0), fetchStats(todayStart)])
-      .then(([total, today]) => {
-        const fail = !total && !today;
-        if (fail) document.getElementById('stats-status').textContent = words.stats_failed || '统计暂不可用';
-        else {
-          sVis.textContent = formatN(total?.visitors?.value ?? 0);
-          document.getElementById('stats-today').textContent = formatN(today?.visitors?.value ?? 0);
-          document.getElementById('stats-pageviews').textContent = formatN(total?.pageviews?.value ?? 0);
+    const dateKey = `${p.year}-${p.month}-${p.day}`;
+    const CACHE_KEY = `curiosity-stats:${document.body.dataset.storageKey || 'home'}`;
+    const TTL = 10 * 60 * 1000;
+    const apply = (total, today) => {
+      sVis.textContent = formatN(total?.visitors?.value ?? 0);
+      document.getElementById('stats-today').textContent = formatN(today?.visitors?.value ?? 0);
+      document.getElementById('stats-pageviews').textContent = formatN(total?.pageviews?.value ?? 0);
+    };
+    let cache = null;
+    try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { cache = null; }
+    const fresh = !!(cache && cache.total && cache.date === dateKey && Date.now() - cache.t < TTL);
+    if (cache && cache.total) {
+      apply(cache.total, cache.today);
+      if (fresh) document.getElementById('stats-status').textContent = '';
+    }
+    if (!fresh) {
+      Promise.all([fetchStats(0), fetchStats(todayStart)])
+        .then(([total, today]) => {
+          if (!total && !today) {
+            if (!cache) document.getElementById('stats-status').textContent = words.stats_failed || '统计暂不可用';
+            return;
+          }
+          apply(total, today);
           document.getElementById('stats-status').textContent = '';
-        }
-      }).catch(() => { document.getElementById('stats-status').textContent = words.stats_failed || '统计暂不可用'; });
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), date: dateKey, total, today })); } catch (_) {}
+        });
+    }
   }
 })();

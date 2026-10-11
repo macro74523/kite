@@ -49,6 +49,8 @@ slow_reading: Read slowly. Discover more.
 rss_hint: Follow new writing with RSS.
 subscribe: Subscribe via RSS
 made: Made with curiosity
+powered_before: "Powered by "
+powered_after: ""
 archive: WRITING / ARCHIVE
 archive_intro: Thoughts, notes and a curiosity that keeps growing.
 words_short: words

@@ -57,6 +57,8 @@ slow_reading: 慢慢读，慢慢发现
 rss_hint: 用 RSS 订阅新的文章。
 subscribe: 订阅 RSS
 made: 带着好奇心生活
+powered_before: "由 "
+powered_after: " 驱动"
 archive: WRITING / 文章归档
 archive_intro: 一些想法，一些记录，一些仍在生长的好奇心。
 words_short: 字
