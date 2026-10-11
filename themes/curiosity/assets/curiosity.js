@@ -177,9 +177,28 @@
     };
     document.getElementById('month-prev')?.addEventListener('click', () => change(-1));
     document.getElementById('month-next')?.addEventListener('click', () => change(1));
-    document.getElementById('calendar-today')?.addEventListener('click', () => {
-      const cur = zonedParts(new Date()); year = cur.year; month = cur.month - 1; draw();
-    });
+    const todayBtn = document.getElementById('calendar-today');
+    if (todayBtn) {
+      todayBtn.addEventListener('click', () => {
+        const original = todayBtn.innerHTML;
+        todayBtn.innerHTML = '<span class="brand-dot" style="background:#22c55e"></span>已收到';
+        todayBtn.style.color = '#22c55e';
+        try {
+          const key = `curiosity-nudge:${new Date().toDateString()}`;
+          const count = parseInt(localStorage.getItem(key) || '0', 10) + 1;
+          localStorage.setItem(key, String(count));
+          if (count > 1) {
+            setTimeout(() => {
+              todayBtn.innerHTML = `<span class="brand-dot" style="background:#22c55e"></span>今天第 ${count} 次啦`;
+            }, 800);
+          }
+        } catch (_) {}
+        setTimeout(() => {
+          todayBtn.innerHTML = original;
+          todayBtn.style.color = '';
+        }, 2000);
+      });
+    }
     draw();
   }
 
