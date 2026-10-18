@@ -252,7 +252,6 @@
   if (trendChart) {
     const linePath = document.getElementById('trend-line');
     const areaPath = document.getElementById('trend-area');
-    const trendDot = document.getElementById('trend-dot');
     const labelsEl = document.getElementById('trend-labels');
 
     // Generate last 7 days of data
@@ -336,11 +335,6 @@
 
       linePath.setAttribute('d', lineD);
       areaPath.setAttribute('d', areaD);
-
-      // Dot at last point (today)
-      const last = points[points.length - 1];
-      trendDot.setAttribute('cx', last.x.toFixed(2));
-      trendDot.setAttribute('cy', last.y.toFixed(2));
 
       // Labels
       labelsEl.innerHTML = '';
