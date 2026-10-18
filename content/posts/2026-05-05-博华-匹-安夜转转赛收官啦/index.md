@@ -11,6 +11,8 @@ status: published
 tags:
     - 短视频
 title: 博华 “匹” 安夜转转赛收官啦！
-updated_at: 2026-05-05T00:00:00Z
+updated_at: 2026-10-12T00:37:20Z
+pinned: true
 ---
+
 &lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=116526740997872&bvid=BV1ZXRWBiEkf&cid=38130749178&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=116526740997872&bvid=BV1ZXRWBiEkf&cid=38130749178&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;

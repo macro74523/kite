@@ -11,6 +11,8 @@ status: published
 tags:
     - 长视频
 title: 学习之星
-updated_at: 2026-05-15T00:00:00Z
+updated_at: 2026-10-12T00:47:15Z
+pinned: true
 ---
+
 &lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=116581535385724&bvid=BV1cH5k6FEXN&cid=38366413031&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=116581535385724&bvid=BV1cH5k6FEXN&cid=38366413031&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
