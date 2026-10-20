@@ -4,8 +4,10 @@ title: 初中篇V5
 slug: 初中篇v5
 status: draft
 created_at: 2026-10-20T01:44:22Z
+cover: https://jpg.macro.wang/20261020094646720.jpg
 tags:
   - 长视频
+  - 学校宣传片
 categories:
   - 视频作品
 ---

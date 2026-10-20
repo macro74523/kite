@@ -7,9 +7,10 @@ created_at: 2026-10-20T01:40:03Z
 categories:
   - 未分类
   - 视频作品
-cover: false
+cover: https://jpg.macro.wang/20261020094646720.jpg
 tags:
   - 长视频
+  - 学校宣传片
 published_at: 2026-10-20T01:40:12.969Z
 ---
 
