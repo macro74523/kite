@@ -4,7 +4,7 @@ title: 住之篇
 slug: 0住之篇
 status: published
 created_at: 2026-10-20T01:43:35Z
-cover: https://jpg.macro.wang/20261020094646720.jpg
+cover: https://jpg.macro.wang/20261020131117499.jpg
 categories:
   - 视频作品
 tags:
