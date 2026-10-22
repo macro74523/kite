@@ -813,7 +813,6 @@
       sheet.style.transform = `translate(-50%, ${dy.toFixed(1)}px)`;
     });
     const endDrag = () => {
-      if (!pressing) return;
       pressing = false;
       if (!engaged) return;
       engaged = false;
