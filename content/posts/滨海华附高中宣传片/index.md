@@ -12,6 +12,7 @@ tags:
   - 学校宣传片
 published_at: 2026-10-20T01:51:59Z
 pinned: true
+description: 23年作品
 ---
 
 &lt;iframe src="//[player.bilibili.com/player.html?bvid=BV1ySnF6hE1q&amp;page=1](http://player.bilibili.com/player.html?bvid=BV1ySnF6hE1q&page=1)" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"&gt; &lt;/iframe&gt;
