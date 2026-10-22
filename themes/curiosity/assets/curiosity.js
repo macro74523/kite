@@ -789,6 +789,7 @@
     let pressing = false, engaged = false, sy = 0, dy = 0, ly = 0, lt = 0, vel = 0;
     sheet.addEventListener('pointerdown', e => {
       if (!sheet.classList.contains('is-open') || e.button !== 0) return;
+      if (e.pointerType && e.pointerType !== 'mouse') return; // touch/pen are handled by the touch events below
       pressing = true; engaged = false; dy = 0; vel = 0;
       sy = ly = e.clientY; lt = performance.now();
     });
@@ -823,5 +824,35 @@
     };
     sheet.addEventListener('pointerup', endDrag);
     sheet.addEventListener('pointercancel', endDrag);
+
+    // Touch: the browser would claim the vertical pan for scrolling and fire
+    // pointercancel mid-drag (the reason dismissal felt impossible on
+    // phones). Drive the drag from touch events instead and preventDefault
+    // once engaged, like vaul and Radix sheets do, so the gesture is ours.
+    let touching = false;
+    sheet.addEventListener('touchstart', e => {
+      if (!sheet.classList.contains('is-open') || !e.touches.length) return;
+      touching = true; pressing = false; engaged = false; dy = 0; vel = 0;
+      sy = ly = e.touches[0].clientY; lt = performance.now();
+    }, { passive: true });
+    sheet.addEventListener('touchmove', e => {
+      if (!touching || !e.touches.length) return;
+      const raw = e.touches[0].clientY - sy;
+      if (!engaged) {
+        if (raw > 8 && (scroller.scrollTop <= 2 || e.target.closest('.sheet-grabber'))) {
+          engaged = true;
+          sheet.classList.add('is-drag');
+        } else if (raw < -8) { touching = false; return; }
+        else return;
+      }
+      e.preventDefault();
+      dy = raw > 0 ? raw : raw * 0.22;
+      const now = performance.now(), dt = now - lt;
+      if (dt > 0) { vel = (e.touches[0].clientY - ly) / dt; ly = e.touches[0].clientY; lt = now; }
+      sheet.style.transform = `translate(-50%, ${dy.toFixed(1)}px)`;
+    }, { passive: false });
+    const endTouch = () => { if (!touching) return; touching = false; endDrag(); };
+    sheet.addEventListener('touchend', endTouch);
+    sheet.addEventListener('touchcancel', endTouch);
   }
 })();

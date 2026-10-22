@@ -506,7 +506,8 @@ html[data-theme=dark] .kite-comments .waline{
 .sheet.is-open{transform:translate(-50%,0)}
 .sheet.is-drag{transition:none}
 .sheet.is-closing{transform:translate(-50%,105%);transition:transform .34s cubic-bezier(.45,0,.7,.35)}
-.sheet-grabber{flex:0 0 auto;width:42px;height:5px;border-radius:999px;background:var(--line);margin:10px auto 2px;cursor:grab;touch-action:none}
+.sheet-grabber{flex:0 0 auto;position:relative;width:42px;height:5px;border-radius:999px;background:var(--line);margin:10px auto 2px;cursor:grab;touch-action:none}
+.sheet-grabber::before{content:'';position:absolute;inset:-16px -60px}
 .sheet-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px 22px 30px}
 @media(min-width:651px){.sheet-scroll{padding:16px 44px 40px}}
 .sheet-inner{padding-top:8px}
