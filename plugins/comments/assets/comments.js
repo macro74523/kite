@@ -1,11 +1,9 @@
 // Puts a comment thread on the page, with the service the site's settings
 // name. Kite writes the settings into window.KiteComments before this runs.
+// Dynamic hosts (bottom-sheet previews) call window.KiteCommentsInit(at, cfg)
+// with a cfg carrying the article's `pathname` for per-article threads.
 (function () {
   "use strict";
-
-  var config = window.KiteComments;
-  if (!config) return;
-  var settings = config.settings || {};
 
   var WALINE = "3.15.2";
   var TWIKOO = "2.0.9";
@@ -21,18 +19,26 @@
       return "https://registry.npmmirror.com/" + pkg + "/" + version + "/files/" + file;
     },
   };
-  var cdn = cdns[settings.cdn] || cdns.jsdelivr;
 
   var local = /^(localhost|127(\.\d+){3}|\[::1\])$/.test(location.hostname);
 
+  // Sheet previews re-init threads per article; skip re-fetching libs.
+  var fetched = {};
   function script(src, then) {
+    if (fetched[src]) { fetched[src].then(then); return; }
     var el = document.createElement("script");
+    fetched[src] = new Promise(function (res) {
+      el.onload = res;
+      el.onerror = res;
+    });
     el.src = src;
-    el.onload = then;
     document.head.appendChild(el);
+    fetched[src].then(then);
   }
 
   function stylesheet(href) {
+    if (fetched[href]) return;
+    fetched[href] = Promise.resolve();
     var el = document.createElement("link");
     el.rel = "stylesheet";
     el.href = href;
@@ -77,15 +83,14 @@
     return at;
   }
 
-  var zh = /^zh/i.test(config.lang || "");
-  var labels = zh
-    ? { repo: "仓库", repo_id: "仓库 ID", category_id: "分类 ID", server: "服务端地址", env: "环境" }
-    : { repo: "Repository", repo_id: "Repository ID", category_id: "Category ID", server: "Server address", env: "Environment" };
-
   // missing says, on a preview only, which settings a service still needs:
   // a reader has no use for the note.
-  function missing(at, keys) {
+  function missing(at, keys, config) {
     if (!local) return;
+    var zh = /^zh/i.test((config && config.lang) || "");
+    var labels = zh
+      ? { repo: "仓库", repo_id: "仓库 ID", category_id: "分类 ID", server: "服务端地址", env: "环境" }
+      : { repo: "Repository", repo_id: "Repository ID", category_id: "Category ID", server: "Server address", env: "Environment" };
     var names = keys.map(function (key) {
       return labels[key];
     });
@@ -104,9 +109,10 @@
     return lang.split("-")[0];
   }
 
-  function giscus(at) {
+  function giscus(at, config, cdn) {
+    var settings = config.settings || {};
     if (!settings.repo || !settings.repo_id || !settings.category_id) {
-      return missing(at, ["repo", "repo_id", "category_id"]);
+      return missing(at, ["repo", "repo_id", "category_id"], config);
     }
     var byID = !settings.mapping || settings.mapping === "id";
     var data = {
@@ -143,8 +149,9 @@
     });
   }
 
-  function waline(at) {
-    if (!settings.server) return missing(at, ["server"]);
+  function waline(at, config, cdn) {
+    var settings = config.settings || {};
+    if (!settings.server) return missing(at, ["server"], config);
     // Waline turns dark while a selector matches, so the page's state is
     // kept in a class of its own.
     var root = document.documentElement;
@@ -159,15 +166,16 @@
       window.Waline.init({
         el: box,
         serverURL: settings.server,
-        path: location.pathname,
+        path: config.pathname || location.pathname,
         lang: config.lang || "en",
         dark: "html.kite-comments-dark",
       });
     });
   }
 
-  function twikoo(at) {
-    if (!settings.env) return missing(at, ["env"]);
+  function twikoo(at, config, cdn) {
+    var settings = config.settings || {};
+    if (!settings.env) return missing(at, ["env"], config);
     var box = document.createElement("div");
     box.id = "kite-twikoo";
     at.appendChild(box);
@@ -181,12 +189,23 @@
     });
   }
 
-  function start() {
+  // init(at, cfg): render a thread into `at`. cfg falls back to the
+  // page-injected window.KiteComments; sheet hosts pass one with the
+  // article's `pathname` so the thread maps to the previewed article.
+  function init(at, cfg) {
+    var config = cfg || window.KiteComments;
+    if (!at || !config) return;
+    var settings = config.settings || {};
+    var cdn = cdns[settings.cdn] || cdns.jsdelivr;
     var services = { giscus: giscus, waline: waline, twikoo: twikoo };
-    var service = services[settings.provider] || giscus;
-    service(place());
+    (services[settings.provider] || giscus)(at, config, cdn);
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
-  else start();
+  window.KiteCommentsInit = init;
+
+  if (window.KiteComments) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", function () { init(place()); });
+    } else init(place());
+  }
 })();

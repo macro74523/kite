@@ -56,34 +56,41 @@
     setTimeout(function () { fin(null); }, 6000);
   }
 
-  document.querySelectorAll('.content p, .content div').forEach(function (el) {
-    if (el.classList.contains('bili-player')) return;
+  // enhance(root)：可复用入口，root 为限定范围（默认全文档）；
+  // 动态注入的内容（如底部弹窗正文）注入后需再调用一次。
+  function enhance(root) {
+    (root || document).querySelectorAll('.content p, .content div').forEach(function (el) {
+      if (el.classList.contains('bili-player')) return;
 
-    var text = el.textContent || '';
-    if (text.indexOf('iframe') === -1) return;
+      var text = el.textContent || '';
+      if (text.indexOf('iframe') === -1) return;
 
-    // 优先从 <a> 标签拿干净 URL
-    var a = el.querySelector('a[href*="player.bilibili.com"]');
-    var url = a ? a.href : null;
+      // 优先从 <a> 标签拿干净 URL
+      var a = el.querySelector('a[href*="player.bilibili.com"]');
+      var url = a ? a.href : null;
 
-    // 兜底：从文本里提取
-    if (!url) {
-      var m = text.match(urlRe);
-      if (m) url = m[0].startsWith('//') ? 'https:' + m[0] : m[0];
-    }
-    if (!url) return;
+      // 兜底：从文本里提取
+      if (!url) {
+        var m = text.match(urlRe);
+        if (m) url = m[0].startsWith('//') ? 'https:' + m[0] : m[0];
+      }
+      if (!url) return;
 
-    var box = document.createElement('div');
-    box.className = 'bili-player';
-    var frame = document.createElement('iframe');
-    frame.src = url;
-    frame.setAttribute('allowfullscreen', '');
-    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
-    box.appendChild(frame);
-    el.parentNode.replaceChild(box, el);
+      var box = document.createElement('div');
+      box.className = 'bili-player';
+      var frame = document.createElement('iframe');
+      frame.src = url;
+      frame.setAttribute('allowfullscreen', '');
+      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
+      box.appendChild(frame);
+      el.parentNode.replaceChild(box, el);
 
-    // 按视频真实分辨率调整播放器比例
-    var bv = (url.match(bvidRe) || [])[1];
-    if (bv) loadDims(bv, function (d) { applyDims(box, d); });
-  });
+      // 按视频真实分辨率调整播放器比例
+      var bv = (url.match(bvidRe) || [])[1];
+      if (bv) loadDims(bv, function (d) { applyDims(box, d); });
+    });
+  }
+
+  window.biliEnhance = enhance;
+  enhance(document);
 })();

@@ -23,6 +23,20 @@
 
   // Delegated dialog handler: catch any future dialog-open/close triggers too
   document.addEventListener('click', e => {
+    // Back button on article pages: return to where the reader came from
+    // (same-site referrer), falling back to the posts list otherwise.
+    const backBtn = e.target.closest('.header-back');
+    if (backBtn) {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      let ref = null;
+      try { ref = new URL(document.referrer, location.href); } catch (_) {}
+      if (ref && ref.origin === location.origin && ref.href !== location.href) {
+        e.preventDefault();
+        if (history.length > 1) history.back();
+        else location.href = ref.href;
+      }
+      return;
+    }
     const openBtn = e.target.closest('[data-open-dialog], #contact-button');
     if (openBtn) {
       const id = openBtn.dataset.openDialog || (openBtn.id === 'contact-button' ? 'contact-dialog' : '');
@@ -448,5 +462,356 @@
           try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), date: dateKey, total, today })); } catch (_) {}
         });
     }
+  }
+
+  // Product-card press feedback on the works grid: the card tilts toward
+  // the pressed corner (max 8deg), a faint sheen tracks the finger, and
+  // releasing springs it flat (~400ms) before the click navigates.
+  (() => {
+    const grid = document.querySelector('.video-listing .video-masonry');
+    if (!grid || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const TILT = 8, RELEASE_MS = 400, NAV_DELAY = 300;
+    let press = null, last = null, navTimer = 0;
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    const vars = (card, rx, ry, mx, my, scale) => {
+      card.style.setProperty('--rx', rx + 'deg');
+      card.style.setProperty('--ry', ry + 'deg');
+      card.style.setProperty('--pscale', scale);
+      card.style.setProperty('--mx', mx + 'px');
+      card.style.setProperty('--my', my + 'px');
+    };
+    grid.addEventListener('pointerdown', e => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const link = e.target.closest('.video-card-link');
+      if (!link) return;
+      clearTimeout(navTimer);
+      const card = link.closest('.video-card');
+      press = { card, link, id: e.pointerId };
+      card.classList.remove('is-releasing');
+      card.classList.add('is-pressed');
+      try { link.setPointerCapture(e.pointerId); } catch (_) {}
+      track(e);
+    });
+    function track(e) {
+      if (!press || e.pointerId !== press.id) return;
+      const r = press.card.getBoundingClientRect();
+      const dx = (e.clientX - r.left) / r.width - 0.5;
+      const dy = (e.clientY - r.top) / r.height - 0.5;
+      vars(press.card,
+        clamp(-dy * 2, -1, 1) * TILT,
+        clamp(dx * 2, -1, 1) * TILT,
+        e.clientX - r.left, e.clientY - r.top, 0.97);
+    }
+    grid.addEventListener('pointermove', track);
+    function release(e) {
+      if (!press || (e && e.pointerId !== press.id)) return;
+      const { card, link } = press;
+      press = null;
+      last = { link, at: Date.now() };
+      card.classList.remove('is-pressed');
+      card.classList.add('is-releasing');
+      vars(card, 0, 0, 0, 0, 1);
+      setTimeout(() => card.classList.remove('is-releasing'), RELEASE_MS + 60);
+    }
+    grid.addEventListener('pointerup', release);
+    grid.addEventListener('pointercancel', release);
+    grid.addEventListener('lostpointercapture', release);
+    // Plain left clicks right after a press wait out most of the rebound.
+    grid.addEventListener('click', e => {
+      if (!last) return;
+      // On sheet-viewer pages the bottom-sheet click handler owns card
+      // taps; don't preventDefault or navigate out from under it.
+      if (document.querySelector('.page-shell')) return;
+      const link = e.target.closest('.video-card-link');
+      if (!link || link !== last.link || Date.now() - last.at > 600) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      const href = link.href;
+      clearTimeout(navTimer);
+      navTimer = setTimeout(() => { location.href = href; }, NAV_DELAY);
+    });
+  })();
+
+  // Works carousel (LATEST WORKS): travel-app wheel — center card full,
+  // sides peek and dim, dragging follows the finger, release glides by
+  // momentum and snaps to the nearest card. Scale/brightness interpolate
+  // with distance from the center the whole way, not only when it settles.
+  document.querySelectorAll('.moment-track').forEach(track => {
+    if (track.dataset.carousel) return;
+    track.dataset.carousel = '1';
+    const slides = Array.from(track.children);
+    const dotsBox = track.parentElement.querySelector('.moment-dots');
+    if (!slides.length || !dotsBox) return;
+    const dots = slides.map((_, i) => {
+      const d = document.createElement('span');
+      if (!i) d.className = 'is-current';
+      dotsBox.appendChild(d);
+      return d;
+    });
+    if (slides.length < 2) dotsBox.style.display = 'none';
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let w = 0, base = 0, x = 0, target = 0, raf = 0;
+    let dragging = false, startX = 0, startOffset = 0, lastX = 0, lastT = 0, v = 0, moved = 0, upAt = 0;
+    const unit = () => w || 1;
+    function measure() {
+      w = slides.length > 1 ? slides[1].offsetLeft - slides[0].offsetLeft : 0;
+      base = (track.clientWidth - slides[0].offsetWidth) / 2;
+    }
+    const current = () => Math.max(0, Math.min(slides.length - 1, Math.round((base - x) / unit())));
+    function apply() {
+      track.style.transform = `translate3d(${x.toFixed(2)}px,0,0)`;
+      const u = unit();
+      slides.forEach((s, i) => {
+        const d = Math.min(Math.abs((i * w + x - base) / u), 1.5);
+        const k = Math.min(d, 1);
+        s.style.transform = `scale(${(1 - k * 0.12).toFixed(4)})`;
+        s.style.filter = `brightness(${(1 - k * 0.28).toFixed(3)})`;
+        s.style.opacity = (d > 1 ? Math.max(0, 1 - (d - 1) * 0.7).toFixed(3) : '1');
+      });
+      const cur = current();
+      dots.forEach((d, i) => d.classList.toggle('is-current', i === cur));
+    }
+    function loop() {
+      raf = 0;
+      x += (target - x) * 0.18;
+      if (Math.abs(target - x) < 0.5) { x = target; apply(); return; }
+      apply();
+      raf = requestAnimationFrame(loop);
+    }
+    const kick = () => { if (!raf && !reduce) raf = requestAnimationFrame(loop); };
+    const rubber = xx => {
+      const lo = base - (slides.length - 1) * w, hi = base;
+      if (xx > hi) return hi + (xx - hi) * 0.35;
+      if (xx < lo) return lo + (xx - lo) * 0.35;
+      return xx;
+    };
+    track.addEventListener('pointerdown', e => {
+      if (e.button !== 0 || slides.length < 2) return;
+      dragging = true; moved = 0; v = 0;
+      startX = lastX = e.clientX;
+      startOffset = x;
+      lastT = performance.now();
+    });
+    // Slides are links; without this the browser starts a native link
+    // drag on mouse-down+move and pointer events stop firing.
+    track.addEventListener('dragstart', e => e.preventDefault());
+    track.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      moved = Math.max(moved, Math.abs(dx));
+      // Capture only once a real drag starts: capturing on pointerdown
+      // would retarget the click away from the slide's link.
+      if (moved > 6 && !track.classList.contains('is-dragging')) {
+        track.classList.add('is-dragging');
+        try { track.setPointerCapture(e.pointerId); } catch (_) {}
+      }
+      if (moved <= 6) return;
+      x = rubber(startOffset + dx);
+      const now = performance.now(), dt = now - lastT;
+      if (dt > 0) { v = (e.clientX - lastX) / dt; lastX = e.clientX; lastT = now; }
+      apply();
+    });
+    // Press that never became a drag and left the track: not a drag.
+    track.addEventListener('pointerleave', () => { if (dragging && moved <= 6) dragging = false; });
+    function release() {
+      if (!dragging) return;
+      dragging = false;
+      upAt = Date.now();
+      track.classList.remove('is-dragging');
+      const projected = x + v * 160;
+      const i = Math.max(0, Math.min(slides.length - 1, Math.round((base - projected) / unit())));
+      target = base - i * w;
+      if (reduce) { x = target; apply(); } else kick();
+    }
+    track.addEventListener('pointerup', release);
+    track.addEventListener('pointercancel', release);
+    // A real drag should not open the card's link.
+    track.addEventListener('click', e => {
+      if (moved > 6 && Date.now() - upAt < 600) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+    window.addEventListener('resize', () => {
+      const i = current();
+      measure();
+      x = target = base - i * w;
+      apply();
+    });
+    measure();
+    x = target = base;
+    apply();
+  });
+
+  // Bottom-sheet article viewer: home work cards and the works listing open
+  // in a sheet that springs up while the page behind steps back (scale + dim).
+  const pageWorks = document.querySelector('.works-card.works-carousel, .video-listing');
+  if (pageWorks) {
+    const shell = document.createElement('div');
+    shell.className = 'page-shell';
+    while (document.body.firstChild) shell.appendChild(document.body.firstChild);
+    document.body.appendChild(shell);
+    const backdrop = document.createElement('div');
+    backdrop.className = 'sheet-backdrop';
+    const sheet = document.createElement('section');
+    sheet.className = 'sheet';
+    sheet.setAttribute('role', 'dialog');
+    sheet.setAttribute('aria-modal', 'true');
+    sheet.setAttribute('aria-label', '文章预览');
+    sheet.tabIndex = -1;
+    sheet.innerHTML = '<span class="sheet-grabber" aria-hidden="true"></span>'
+      + '<div class="sheet-scroll"><div class="sheet-inner"><h2 class="sheet-title"></h2>'
+      + '<div class="sheet-meta"></div><div class="sheet-tags"></div>'
+      + '<div class="content sheet-content"></div>'
+      + '<aside class="disclaimer sheet-disclaimer" aria-label="免责声明" hidden></aside>'
+      + '<details class="comments-collapse sheet-comments" hidden><summary><span class="comments-toggle">评论<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary>'
+      + '<section class="kite-comments sheet-thread" data-kite-comments></section></details>'
+      + '<a class="sheet-open" href="#">阅读原文 ↗</a></div></div>';
+    document.body.append(backdrop, sheet);
+    const scroller = sheet.querySelector('.sheet-scroll');
+    const sTitle = sheet.querySelector('.sheet-title');
+    const sMeta = sheet.querySelector('.sheet-meta');
+    const sTags = sheet.querySelector('.sheet-tags');
+    const sContent = sheet.querySelector('.sheet-content');
+    const sDisc = sheet.querySelector('.sheet-disclaimer');
+    const sComments = sheet.querySelector('.sheet-comments');
+    const sThread = sheet.querySelector('.sheet-thread');
+    const sOpen = sheet.querySelector('.sheet-open');
+    // Comments mount lazily: only when the reader expands the collapsed
+    // block, since waline measures layout and a hidden container mis-renders.
+    let pendingComments = null;
+    sComments.addEventListener('toggle', () => {
+      if (!sComments.open || sThread.dataset.mounted) return;
+      sThread.dataset.mounted = '1';
+      if (pendingComments) mountThread(pendingComments);
+    });
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let lastFocus = null;
+
+    // Re-run content enhancers (e.g. the bilibili plugin's escaped-iframe
+    // player) on freshly injected sheet content; lazy-load if not present.
+    const enhanceSheet = () => {
+      if (window.biliEnhance) { window.biliEnhance(sContent); return; }
+      const s = document.createElement('script');
+      s.src = '/plugins/bilibili/bili.js';
+      s.onload = () => { if (window.biliEnhance) window.biliEnhance(sContent); };
+      document.head.appendChild(s);
+    };
+
+    const fill = (a) => {
+      sTitle.textContent = a.closest('figure')?.querySelector('figcaption a')?.textContent
+        || a.querySelector('h2')?.textContent || a.textContent.trim();
+      sMeta.textContent = '';
+      sTags.textContent = '';
+      sDisc.hidden = true; sDisc.innerHTML = '';
+      sComments.hidden = true; sComments.open = false; sThread.innerHTML = '';
+      delete sThread.dataset.mounted;
+      pendingComments = null;
+      sContent.innerHTML = '<div class="sheet-skeleton"><span style="width:92%"></span><span style="width:84%"></span><span style="width:88%"></span><span style="width:60%"></span></div>';
+      sOpen.href = a.href;
+    };
+
+    function closeSheet() {
+      if (!sheet.classList.contains('is-open')) return;
+      sheet.classList.remove('is-open', 'is-drag');
+      sheet.style.transform = '';
+      sheet.classList.add('is-closing');
+      shell.classList.remove('is-behind');
+      backdrop.classList.remove('is-on');
+      document.documentElement.style.overflow = '';
+      setTimeout(() => {
+        sheet.classList.remove('is-closing');
+        backdrop.style.display = '';
+        if (lastFocus) { lastFocus.focus({ preventScroll: true }); lastFocus = null; }
+      }, reduce ? 0 : 380);
+    }
+
+    // Sheet comments: pull the article's KiteComments config out of the
+    // fetched page and mount a per-article thread into the sheet.
+    const sheetCommentConfig = (doc) => {
+      const s = [...doc.querySelectorAll('script')].find(x => x.textContent.includes('window.KiteComments'));
+      if (!s) return null;
+      try { return (new Function(s.textContent + ';return window.KiteComments;'))(); }
+      catch (_) { return null; }
+    };
+    const mountThread = (cfg) => {
+      const run = () => { if (window.KiteCommentsInit) window.KiteCommentsInit(sThread, cfg); };
+      if (window.KiteCommentsInit) { run(); return; }
+      const s = document.createElement('script');
+      s.src = '/plugins/comments/comments.js?v=' + Date.now();
+      s.onload = run;
+      document.head.appendChild(s);
+    };
+
+    function openSheet(anchor) {
+      lastFocus = anchor;
+      fill(anchor);
+      backdrop.style.display = 'block';
+      sheet.classList.add('is-open');
+      shell.classList.add('is-behind');
+      backdrop.classList.add('is-on');
+      document.documentElement.style.overflow = 'hidden';
+      requestAnimationFrame(() => { scroller.scrollTop = 0; sheet.focus({ preventScroll: true }); });
+      fetch(anchor.href).then(r => r.text()).then(html => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        sTitle.textContent = doc.querySelector('.article-heading h1')?.textContent || sTitle.textContent;
+        sMeta.innerHTML = doc.querySelector('.post-meta')?.innerHTML || '';
+        sTags.innerHTML = doc.querySelector('.tags')?.innerHTML || '';
+        sContent.innerHTML = doc.querySelector('.content')?.innerHTML
+          || '<p class="quiet">内容加载失败，点击下方链接查看完整文章。</p>';
+        scroller.scrollTop = 0;
+        enhanceSheet();
+        const disc = doc.querySelector('aside.disclaimer');
+        if (disc) { sDisc.innerHTML = disc.innerHTML; sDisc.hidden = false; }
+        pendingComments = sheetCommentConfig(doc);
+        if (pendingComments) sComments.hidden = false;
+      }).catch(() => {
+        sContent.innerHTML = '<p class="quiet">内容加载失败，点击下方链接查看完整文章。</p>';
+      });
+    }
+
+    document.addEventListener('click', e => {
+      const a = e.target.closest('.moment-slide a, .recent-item, .timeline-title, .video-card-link');
+      if (!a || e.defaultPrevented) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      openSheet(a);
+    });
+    backdrop.addEventListener('click', closeSheet);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+    // Drag to dismiss: follows the finger down (rubber band up), closes
+    // past 1/3 of the sheet or on a quick downward flick.
+    let pressing = false, engaged = false, sy = 0, dy = 0, ly = 0, lt = 0, vel = 0;
+    sheet.addEventListener('pointerdown', e => {
+      if (!sheet.classList.contains('is-open') || e.button !== 0) return;
+      pressing = true; engaged = false; dy = 0; vel = 0;
+      sy = ly = e.clientY; lt = performance.now();
+    });
+    sheet.addEventListener('pointermove', e => {
+      if (!pressing) return;
+      const raw = e.clientY - sy;
+      if (!engaged) {
+        if (raw > 8 && (scroller.scrollTop <= 2 || e.target.closest('.sheet-grabber'))) {
+          engaged = true;
+          sheet.classList.add('is-drag');
+          try { sheet.setPointerCapture(e.pointerId); } catch (_) {}
+        } else if (raw < -8) { pressing = false; return; }
+        else return;
+      }
+      dy = raw > 0 ? raw : raw * 0.22;
+      const now = performance.now(), dt = now - lt;
+      if (dt > 0) { vel = (e.clientY - ly) / dt; ly = e.clientY; lt = now; }
+      sheet.style.transform = `translate(-50%, ${dy.toFixed(1)}px)`;
+    });
+    const endDrag = () => {
+      if (!pressing) return;
+      pressing = false;
+      if (!engaged) return;
+      engaged = false;
+      sheet.classList.remove('is-drag');
+      const h = sheet.offsetHeight || 1;
+      if (dy > h / 3 || (dy > 40 && vel > 0.6)) closeSheet();
+      else sheet.style.transform = ''; // springs back via transition
+    };
+    sheet.addEventListener('pointerup', endDrag);
+    sheet.addEventListener('pointercancel', endDrag);
   }
 })();

@@ -10,7 +10,7 @@ tags:
   - 学校宣传片
 categories:
   - 视频作品
-published_at: 2026-10-20T01:51:13.911Z
+published_at: 2023-08-05T09:00:00Z
 ---
 
 &lt;iframe src="//[player.bilibili.com/player.html?bvid=BV1CSnF6hEd1&amp;page=1](http://player.bilibili.com/player.html?bvid=BV1CSnF6hEd1&page=1)" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"&gt; &lt;/iframe&gt;
