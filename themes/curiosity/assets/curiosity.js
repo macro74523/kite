@@ -719,6 +719,13 @@
       setTimeout(() => {
         sheet.classList.remove('is-closing');
         backdrop.style.display = '';
+        // Tear down the previewed article: embedded videos (bilibili
+        // iframes) keep playing otherwise, and the fetched DOM is dead weight.
+        sContent.innerHTML = ''; sDisc.innerHTML = ''; sThread.innerHTML = '';
+        sMeta.innerHTML = ''; sTags.innerHTML = '';
+        sDisc.hidden = true; sComments.hidden = true; sComments.open = false;
+        delete sThread.dataset.mounted;
+        pendingComments = null;
         if (lastFocus) { lastFocus.focus({ preventScroll: true }); lastFocus = null; }
       }, reduce ? 0 : 380);
     }
@@ -789,7 +796,10 @@
       if (!pressing) return;
       const raw = e.clientY - sy;
       if (!engaged) {
-        if (raw > 8 && (scroller.scrollTop <= 2 || e.target.closest('.sheet-grabber'))) {
+        // Mouse drags dismiss from anywhere; touch defers to content
+        // scrolling until the sheet is at the top (or on the grabber).
+        const canGrab = e.pointerType === 'mouse' || scroller.scrollTop <= 2 || e.target.closest('.sheet-grabber');
+        if (raw > 8 && canGrab) {
           engaged = true;
           sheet.classList.add('is-drag');
           try { sheet.setPointerCapture(e.pointerId); } catch (_) {}
@@ -808,7 +818,7 @@
       engaged = false;
       sheet.classList.remove('is-drag');
       const h = sheet.offsetHeight || 1;
-      if (dy > h / 3 || (dy > 40 && vel > 0.6)) closeSheet();
+      if (dy > Math.min(h * 0.28, 150) || (dy > 30 && vel > 0.45)) closeSheet();
       else sheet.style.transform = ''; // springs back via transition
     };
     sheet.addEventListener('pointerup', endDrag);
