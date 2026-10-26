@@ -854,4 +854,107 @@
     sheet.addEventListener('touchend', endTouch);
     sheet.addEventListener('touchcancel', endTouch);
   }
+
+  // Moments photo card: flip-to-detail layer. The cover FLIPs (First-Last-
+  // Invert-Play) to the screen center, then the card spins on its Y axis to
+  // reveal the moment content; closing reverses the whole path.
+  const photoCard = document.querySelector('.photo-card.has-flip');
+  if (photoCard) {
+    const srcImg = photoCard.querySelector('.moment-link img');
+    const clone = photoCard.querySelector('.moment-clone');
+    let layer = null, stage = null, inner = null, openedAt = 0;
+    let flyTimers = [];
+
+    const clearTimers = () => { flyTimers.forEach(clearTimeout); flyTimers = []; };
+    const removeLayer = () => {
+      clearTimers();
+      if (layer) layer.remove();
+      layer = stage = inner = null;
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', onKey);
+    };
+    const closeFlip = () => {
+      if (!layer || !stage) return;
+      if (Date.now() - openedAt < 450) return; // let the fly-to-center land first
+      inner.classList.remove('is-flipped');    // spin back to the cover face
+      flyTimers.push(setTimeout(() => {
+        if (!stage) return;
+        stage.style.transform = stage.dataset.from; // reverse the FLIP path
+        layer.classList.remove('is-active');
+        flyTimers.push(setTimeout(() => { if (layer) removeLayer(); }, 520));
+      }, 430));
+    };
+    const onKey = e => { if (e.key === 'Escape') closeFlip(); };
+    const buildLayer = () => {
+      const box = document.createElement('div');
+      box.className = 'moment-flip';
+      box.innerHTML = '<div class="moment-flip-stage"><div class="moment-flip-inner"><div class="moment-flip-face is-front"><img alt=""></div><div class="moment-flip-face is-back"><button type="button" class="moment-flip-close" aria-label="关闭">✕</button><div class="moment-flip-head"></div><div class="moment-flip-body"></div></div></div></div>';
+      box.querySelector('.is-front img').src = srcImg ? (srcImg.currentSrc || srcImg.src) : '';
+      const head = box.querySelector('.moment-flip-head');
+      const title = clone.querySelector('h2'), when = clone.querySelector('time');
+      if (title) { const h = document.createElement('h2'); h.textContent = title.textContent; head.appendChild(h); }
+      if (when) { const t = document.createElement('time'); t.textContent = when.textContent; head.appendChild(t); }
+      box.querySelector('.moment-flip-body').innerHTML = clone.querySelector('.moment-clone-body').innerHTML;
+      box.addEventListener('click', e => {
+        if (e.target === box || e.target.closest('.moment-flip-close')) closeFlip();
+      });
+      return box;
+    };
+    const openFlip = e => {
+      if (layer) return;
+      const hit = e.target.closest('.moment-link, figcaption a');
+      if (!hit) return;
+      e.preventDefault();
+      const r = (srcImg || photoCard).getBoundingClientRect(); // First: the cover rect
+      layer = buildLayer();
+      stage = layer.querySelector('.moment-flip-stage');
+      inner = layer.querySelector('.moment-flip-inner');
+      document.body.appendChild(layer);
+      const W = Math.min(window.innerWidth * .86, 620);
+      const H = Math.min(window.innerHeight * .72, Math.round(W * .72));
+      const cx = Math.round((window.innerWidth - W) / 2), cy = Math.round((window.innerHeight - H) / 2);
+      stage.style.width = W + 'px';
+      stage.style.height = H + 'px';
+      const from = `translate(${Math.round(r.left - cx)}px, ${Math.round(r.top - cy)}px) scale(${(r.width / W).toFixed(3)}, ${(r.height / H).toFixed(3)})`;
+      stage.dataset.from = from;
+      stage.style.transition = 'none';
+      stage.style.transform = from;
+      void stage.offsetWidth;
+      stage.style.transition = '';
+      layer.classList.add('is-active');
+      document.body.style.overflow = 'hidden';
+      openedAt = Date.now();
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        stage.style.transform = 'translate(0,0) scale(1)'; // fly to center
+        flyTimers.push(setTimeout(() => { if (inner) inner.classList.add('is-flipped'); }, 500));
+      }));
+      document.addEventListener('keydown', onKey);
+    };
+    photoCard.addEventListener('click', openFlip);
+  }
+
+  // Liquid-glass header: the edge glow slides with scroll, and glass/text
+  // colors flip to the dark variant when what passes underneath is dark.
+  const glass = document.querySelector('.site-header');
+  if (glass) {
+    let glassTick = false;
+    const glassProbe = () => {
+      glassTick = false;
+      glass.style.setProperty('--glow-x', (50 + Math.sin(window.scrollY / 700) * 36).toFixed(1) + '%');
+      glass.classList.toggle('is-scrolled', window.scrollY > 8);
+      const y = Math.min((glass.offsetHeight || 70) + 18, window.innerHeight - 2);
+      let lum = 0.85; // assume the light page background when nothing solid is below
+      for (const el of document.elementsFromPoint(window.innerWidth / 2, y)) {
+        if (el === glass || glass.contains(el)) continue;
+        const m = getComputedStyle(el).backgroundColor.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/);
+        if (m && (m[4] === undefined || parseFloat(m[4]) > .5)) {
+          lum = (0.2126 * +m[1] + 0.7152 * +m[2] + 0.0722 * +m[3]) / 255;
+          break;
+        }
+      }
+      glass.classList.toggle('is-on-dark', lum < .45);
+    };
+    addEventListener('scroll', () => { if (!glassTick) { glassTick = true; requestAnimationFrame(glassProbe); } }, { passive: true });
+    glassProbe();
+  }
 })();

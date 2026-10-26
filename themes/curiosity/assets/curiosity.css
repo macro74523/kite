@@ -536,3 +536,92 @@ html[data-theme=dark] .kite-comments .waline{
   .page-shell.is-behind{filter:none}
   .sheet.is-closing{transform:translate(-50%,105%)}
 }
+
+/* Video works listing: staggered spring rise-in per card. `backwards` fill
+   keeps the to-state out of the way so the press/tilt transform still works. */
+.video-card{animation:card-rise .62s cubic-bezier(.22,1.32,.36,1) backwards;animation-delay:min(calc(var(--i,0)*70ms),840ms)}
+@keyframes card-rise{from{opacity:0;transform:translateY(26px) scale(.97)}}
+@media (prefers-reduced-motion:reduce){.video-card{animation:none}}
+
+/* Moments photo card: flip-to-detail layer */
+.moment-flip{position:fixed;inset:0;z-index:95;display:grid;place-items:center;opacity:0;pointer-events:none;transition:opacity .35s ease;perspective:1400px}
+.moment-flip.is-active{opacity:1;pointer-events:auto}
+.moment-flip:before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#0f172acc,#0f172ae6)}
+.moment-flip-stage{position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,1.3,.4,1);will-change:transform}
+.moment-flip-inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .48s cubic-bezier(.32,1.35,.45,1)}
+.moment-flip-inner.is-flipped{transform:rotateY(180deg)}
+.moment-flip-face{position:absolute;inset:0;border-radius:16px;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--card);box-shadow:0 26px 70px #00000052}
+.moment-flip-face.is-front{display:grid;place-items:center;background:var(--skeleton,#e3e5e8)}
+.moment-flip-face.is-front img{width:100%;height:100%;object-fit:cover}
+.moment-flip-face.is-back{transform:rotateY(180deg);display:flex;flex-direction:column;padding:20px 22px 6px}
+.moment-flip-head h2{font-size:19px;line-height:1.35;margin-bottom:3px}
+.moment-flip-head time{font-size:12px;color:var(--muted)}
+.moment-flip-body{overflow:auto;margin-top:12px;padding-bottom:12px;font-size:14px;line-height:1.75}
+.moment-flip-body img{border-radius:8px;margin:10px 0}
+.moment-flip-body p{margin:0 0 10px}
+.moment-flip-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:50%;background:#ffffff26;color:#fff;backdrop-filter:blur(6px);display:grid;place-items:center;font-size:14px;line-height:1}
+.moment-flip-close:hover{background:#ffffff42;color:#fff}
+@media (prefers-reduced-motion:reduce){.moment-flip-stage,.moment-flip-inner{transition:none}}
+
+/* Liquid-glass floating header: blur + saturate backdrop, rolling edge glow
+   driven by --glow-x, and light/dark glass flipped by sampled content
+   brightness below the bar. */
+html{scroll-padding-top:96px}
+.site-header{position:sticky;top:10px;z-index:60;border-radius:22px;border:1px solid #ffffff3d;background:color-mix(in srgb,var(--card) 55%,transparent);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);box-shadow:inset 0 1px 0 #ffffff7a,inset 0 -1px 0 #ffffff14,inset 1px 0 0 #ffffff2e,inset -1px 0 0 #ffffff2e,0 10px 30px #0f172a16;transition:background .35s ease,box-shadow .35s ease,border-color .35s ease}
+.site-header:before{content:'';position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;background:radial-gradient(135% 200% at var(--glow-x,50%) -50%,#ffffff5c,transparent 56%)}
+.site-header.is-scrolled{background:color-mix(in srgb,var(--card) 74%,transparent);box-shadow:inset 0 1px 0 #ffffff8c,inset 0 -1px 0 #ffffff14,0 14px 34px #0f172a22}
+.site-header.is-on-dark{--card:#0d1526b4;--ink:#f8fafc;--muted:#9fb0c8;--line:#ffffff24;border-color:#ffffff26;box-shadow:inset 0 1px 0 #ffffff33,inset 0 -1px 0 #ffffff0d,0 12px 32px #02061759}
+.site-header.is-on-dark .brand-mark{color:#0b1220}
+.site-header.is-on-dark .contact{background:#ffffff14;border-color:#ffffff24;color:#f8fafc}
+.site-header.is-on-dark .contact:hover{background:#ffffff26;color:#fff}
+.site-header.is-on-dark .theme-toggle{background:#ffffff14;border-color:#ffffff24;color:#f8fafc}
+.site-header.is-on-dark .theme-toggle:hover{background:#ffffff26}
+.site-header.is-on-dark .brand-logo-light{display:none}
+.site-header.is-on-dark .brand-logo-dark{display:block}
+@media (prefers-reduced-motion:reduce){.site-header{transition:none}}
+/* Header single-row merge: logo + nav items + actions stay on one line,
+   nav vertically centered against the logo art band (image is a square
+   with the drawing in its middle band). Overrides the stacked layout. */
+@media(max-width:650px){
+  .site-header{flex-wrap:nowrap;height:auto;padding:8px 0;gap:10px}
+  .brand{margin-left:8px;flex-shrink:0}
+  .brand-images .brand-logo{height:min(var(--logo-mobile,45px),48px);max-width:none}
+  .desktop-nav{display:block;width:auto;order:0;border-top:0;margin-top:0;padding-top:0;flex:1 1 auto;min-width:0}
+  .desktop-nav .nav-list{display:flex;justify-content:center;flex-wrap:nowrap;gap:2px 13px;padding-bottom:0;font-size:13px;white-space:nowrap}
+  .desktop-nav .nav-list>li{flex-shrink:0}
+  .desktop-nav .nav-list a{padding:8px 0}
+  .desktop-nav .nav-list details{position:relative}
+  .desktop-nav .nav-list .submenu{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:0;box-shadow:0 12px 30px #20221e1a;z-index:9;white-space:nowrap}
+  .header-actions{gap:8px;flex-shrink:0;padding-right:6px}
+  .is-article-header .desktop-nav{width:auto;gap:10px;justify-content:flex-start}
+  .is-article-header .header-back{width:34px;height:34px}
+}
+@media(max-width:380px){
+  .brand{margin-left:4px}
+  .brand-images .brand-logo{height:min(var(--logo-mobile,45px),42px)}
+  .desktop-nav .nav-list{gap:2px 9px;font-size:12.5px}
+  .header-actions{gap:6px;padding-right:4px}
+}
+html{scroll-padding-top:84px}
+/* Breathing room between the sticky glass header pill and page content.
+   body padding-top matches the header's sticky top:10px so the pill's
+   natural position equals its sticky threshold — otherwise the sticky
+   constraint pushes it 10px down over the content at scrollY=0. */
+body{padding-top:10px}
+main.shell{margin-top:16px}
+@media(max-width:650px){main.shell{margin-top:12px}}
+/* Header pill: less rounded corners */
+.site-header{border-radius:12px}
+/* Logo breathing room from the pill edge: use inner padding on the header
+   itself instead of nudging the brand with margins. */
+.site-header{padding-left:18px;padding-right:14px}
+@media(max-width:650px){
+  .site-header{padding-left:14px;padding-right:12px}
+  .brand{margin-left:0}
+  .header-actions{padding-right:0}
+  .brand-images .brand-logo{height:min(var(--logo-mobile,45px),44px)}
+  .desktop-nav .nav-list{gap:2px 11px}
+}
+@media(max-width:380px){
+  .brand{margin-left:0}
+}
