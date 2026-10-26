@@ -24,8 +24,6 @@ menus:
       url: /categories/视频作品/
     - name: 瞬间
       url: /categories/瞬间/
-    - name: 标签
-      url: /tags/
 
 theme:
   name: curiosity
