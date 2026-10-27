@@ -1,6 +1,7 @@
 {{ define "main" }}{{ if and (eq .Page.Type "categories") (eq .Page.Title "瞬间") }}
 <section class="listing moments-listing">
   <header class="moments-heading"><span class="eyebrow">MOMENTS / 瞬间</span><h1>{{ .Page.Title }}</h1></header>
+  <div class="moments-two-col">
   <div class="moments-stream">
     {{ $mi := 0 }}{{ range .Pages }}
     <article class="moment-card" id="moment-{{ $mi }}">
@@ -11,6 +12,11 @@
     {{ else }}<p>{{ T "empty" }}</p>{{ end }}
   </div>
   {{ partial "pagination.html" . }}
+  <aside class="bangumi-rail">
+    <header class="rail-head"><span class="eyebrow">BANGUMI / 追番</span></header>
+    {{ partial "bangumi-rail.html" . }}
+  </aside>
+  </div>
 </section>
 {{ else if and (eq .Page.Type "categories") (eq .Page.Title "视频作品") }}
 <section class="listing video-listing">

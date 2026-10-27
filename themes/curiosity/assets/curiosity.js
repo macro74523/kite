@@ -591,6 +591,7 @@
       startX = lastX = e.clientX;
       startOffset = x;
       lastT = performance.now();
+      arm(); // grabbing the carousel restarts the auto-advance countdown
     });
     // Slides are links; without this the browser starts a native link
     // drag on mouse-down+move and pointer events stop firing.
@@ -618,8 +619,11 @@
       dragging = false;
       upAt = Date.now();
       track.classList.remove('is-dragging');
-      const projected = x + v * 160;
-      const i = Math.max(0, Math.min(slides.length - 1, Math.round((base - projected) / unit())));
+      // Snap to the nearest slide. Velocity only nudges the choice (capped
+      // at just under half a slide) so a flick advances at most one card
+      // and noisy last-sample speed can never overshoot the snap point.
+      const boost = Math.max(-0.45, Math.min(0.45, v * 0.12));
+      const i = Math.max(0, Math.min(slides.length - 1, Math.round((base - x) / unit() + boost)));
       target = base - i * w;
       if (reduce) { x = target; apply(); } else kick();
     }
@@ -629,12 +633,33 @@
     track.addEventListener('click', e => {
       if (moved > 6 && Date.now() - upAt < 600) { e.preventDefault(); e.stopPropagation(); }
     }, true);
-    window.addEventListener('resize', () => {
+    // Auto-advance every 3s. Grabbing the carousel restarts the countdown;
+    // ticks are skipped while a drag is live or the tab is hidden, and the
+    // reduced-motion preference disables auto-play entirely.
+    let timer = 0;
+    function arm() {
+      clearTimeout(timer);
+      if (reduce || slides.length < 2) return;
+      timer = setTimeout(() => {
+        if (!dragging && !document.hidden) {
+          target = base - ((current() + 1) % slides.length) * w;
+          kick();
+        }
+        arm();
+      }, 3000);
+    }
+    arm();
+    const refit = () => {
       const i = current();
       measure();
       x = target = base - i * w;
       apply();
-    });
+    };
+    window.addEventListener('resize', refit);
+    // Tile-mode resizing changes the card width without a window resize
+    // event, which left w/base stale and snapped the carousel to half a
+    // slide. Re-measure whenever the track itself changes size.
+    if (window.ResizeObserver) new ResizeObserver(refit).observe(track);
     measure();
     x = target = base;
     apply();
@@ -855,82 +880,36 @@
     sheet.addEventListener('touchcancel', endTouch);
   }
 
-  // Moments photo card: flip-to-detail layer. The cover FLIPs (First-Last-
-  // Invert-Play) to the screen center, then the card spins on its Y axis to
-  // reveal the moment content; closing reverses the whole path.
+  // Moments photo card: in-place 3D flip. Clicking the cover spins the whole
+  // card on its Y axis to reveal the moment content on the back face; no
+  // overlay, no scroll lock. Esc or the back button flips it forward again.
   const photoCard = document.querySelector('.photo-card.has-flip');
   if (photoCard) {
-    const srcImg = photoCard.querySelector('.moment-link img');
     const clone = photoCard.querySelector('.moment-clone');
-    let layer = null, stage = null, inner = null, openedAt = 0;
-    let flyTimers = [];
-
-    const clearTimers = () => { flyTimers.forEach(clearTimeout); flyTimers = []; };
-    const removeLayer = () => {
-      clearTimers();
-      if (layer) layer.remove();
-      layer = stage = inner = null;
-      document.body.style.overflow = '';
-      document.removeEventListener('keydown', onKey);
-    };
-    const closeFlip = () => {
-      if (!layer || !stage) return;
-      if (Date.now() - openedAt < 450) return; // let the fly-to-center land first
-      inner.classList.remove('is-flipped');    // spin back to the cover face
-      flyTimers.push(setTimeout(() => {
-        if (!stage) return;
-        stage.style.transform = stage.dataset.from; // reverse the FLIP path
-        layer.classList.remove('is-active');
-        flyTimers.push(setTimeout(() => { if (layer) removeLayer(); }, 520));
-      }, 430));
-    };
-    const onKey = e => { if (e.key === 'Escape') closeFlip(); };
-    const buildLayer = () => {
-      const box = document.createElement('div');
-      box.className = 'moment-flip';
-      box.innerHTML = '<div class="moment-flip-stage"><div class="moment-flip-inner"><div class="moment-flip-face is-front"><img alt=""></div><div class="moment-flip-face is-back"><button type="button" class="moment-flip-close" aria-label="关闭">✕</button><div class="moment-flip-head"></div><div class="moment-flip-body"></div></div></div></div>';
-      box.querySelector('.is-front img').src = srcImg ? (srcImg.currentSrc || srcImg.src) : '';
-      const head = box.querySelector('.moment-flip-head');
-      const title = clone.querySelector('h2'), when = clone.querySelector('time');
-      if (title) { const h = document.createElement('h2'); h.textContent = title.textContent; head.appendChild(h); }
-      if (when) { const t = document.createElement('time'); t.textContent = when.textContent; head.appendChild(t); }
-      box.querySelector('.moment-flip-body').innerHTML = clone.querySelector('.moment-clone-body').innerHTML;
-      box.addEventListener('click', e => {
-        if (e.target === box || e.target.closest('.moment-flip-close')) closeFlip();
+    if (clone) {
+      const onKey = e => {
+        if (e.key === 'Escape' && photoCard.classList.contains('is-flipped')) photoCard.classList.remove('is-flipped');
+      };
+      photoCard.addEventListener('click', e => {
+        if (e.__momentFlip) return; // one click, one flip decision (double-bound handlers in test rigs)
+        e.__momentFlip = true;
+        if (photoCard.classList.contains('is-flipped')) {
+          // Back face: links and text selection keep their normal behavior;
+          // any other click flips the card forward again.
+          if (e.target.closest('a')) return;
+          const sel = getSelection();
+          if (!sel.isCollapsed && photoCard.contains(sel.anchorNode)) return;
+          e.preventDefault();
+          photoCard.classList.remove('is-flipped');
+          return;
+        }
+        // Front face: any click flips the card over.
+        e.preventDefault();
+        clone.hidden = false;
+        requestAnimationFrame(() => photoCard.classList.add('is-flipped'));
       });
-      return box;
-    };
-    const openFlip = e => {
-      if (layer) return;
-      const hit = e.target.closest('.moment-link, figcaption a');
-      if (!hit) return;
-      e.preventDefault();
-      const r = (srcImg || photoCard).getBoundingClientRect(); // First: the cover rect
-      layer = buildLayer();
-      stage = layer.querySelector('.moment-flip-stage');
-      inner = layer.querySelector('.moment-flip-inner');
-      document.body.appendChild(layer);
-      const W = Math.min(window.innerWidth * .86, 620);
-      const H = Math.min(window.innerHeight * .72, Math.round(W * .72));
-      const cx = Math.round((window.innerWidth - W) / 2), cy = Math.round((window.innerHeight - H) / 2);
-      stage.style.width = W + 'px';
-      stage.style.height = H + 'px';
-      const from = `translate(${Math.round(r.left - cx)}px, ${Math.round(r.top - cy)}px) scale(${(r.width / W).toFixed(3)}, ${(r.height / H).toFixed(3)})`;
-      stage.dataset.from = from;
-      stage.style.transition = 'none';
-      stage.style.transform = from;
-      void stage.offsetWidth;
-      stage.style.transition = '';
-      layer.classList.add('is-active');
-      document.body.style.overflow = 'hidden';
-      openedAt = Date.now();
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        stage.style.transform = 'translate(0,0) scale(1)'; // fly to center
-        flyTimers.push(setTimeout(() => { if (inner) inner.classList.add('is-flipped'); }, 500));
-      }));
       document.addEventListener('keydown', onKey);
-    };
-    photoCard.addEventListener('click', openFlip);
+    }
   }
 
   // Liquid-glass header: the edge glow slides with scroll, and glass/text
@@ -938,10 +917,22 @@
   const glass = document.querySelector('.site-header');
   if (glass) {
     let glassTick = false;
+    let lastY = window.scrollY;
+    const mobileNavMq = matchMedia('(max-width:650px)');
     const glassProbe = () => {
       glassTick = false;
-      glass.style.setProperty('--glow-x', (50 + Math.sin(window.scrollY / 700) * 36).toFixed(1) + '%');
-      glass.classList.toggle('is-scrolled', window.scrollY > 8);
+      const sy = window.scrollY;
+      glass.style.setProperty('--glow-x', (50 + Math.sin(sy / 700) * 36).toFixed(1) + '%');
+      glass.classList.toggle('is-scrolled', sy > 8);
+      // Mobile: scroll down hides the bar, scroll up brings it back.
+      if (mobileNavMq.matches) {
+        const dy = sy - lastY;
+        if (sy < 140 || dy < -8) glass.classList.remove('is-nav-hidden');
+        else if (dy > 8) glass.classList.add('is-nav-hidden');
+      } else {
+        glass.classList.remove('is-nav-hidden');
+      }
+      lastY = sy;
       const y = Math.min((glass.offsetHeight || 70) + 18, window.innerHeight - 2);
       let lum = 0.85; // assume the light page background when nothing solid is below
       for (const el of document.elementsFromPoint(window.innerWidth / 2, y)) {
@@ -957,4 +948,286 @@
     addEventListener('scroll', () => { if (!glassTick) { glassTick = true; requestAnimationFrame(glassProbe); } }, { passive: true });
     glassProbe();
   }
+
+  // Archive map: the site drawn as a map — a hub for the whole site, big
+  // stops for categories, small dots for posts, spokes linking it together.
+  const mapHost = document.getElementById('archive-map');
+  if (mapHost) {
+    const dataEl = mapHost.parentElement.querySelector('.archive-data');
+    if (dataEl) {
+      const NS = 'http://www.w3.org/2000/svg';
+      const posts = [...dataEl.querySelectorAll('a[data-t]')].map(a => ({
+        t: a.dataset.t, u: a.dataset.u, c: (a.dataset.c || '').split('|').filter(Boolean)
+      }));
+      const catUrls = {};
+      dataEl.querySelectorAll('b[data-n]').forEach(b => { if (!catUrls[b.dataset.n]) catUrls[b.dataset.n] = b.dataset.u; });
+      const cats = Object.keys(catUrls).map(n => ({
+        name: n, url: catUrls[n], posts: posts.filter(p => p.c.includes(n)).slice(0, 4)
+      })).sort((a, b) => b.posts.length - a.posts.length || a.name.localeCompare(b.name, 'zh'));
+
+      if (cats.length) {
+        const W = 360, H = 300, CX = W / 2, CY = H / 2 + 6;
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        svg.setAttribute('role', 'img');
+        const el = (tag, attrs, parent) => {
+          const n = document.createElementNS(NS, tag);
+          for (const k in attrs) n.setAttribute(k, attrs[k]);
+          (parent || svg).appendChild(n);
+          return n;
+        };
+        const lineLayer = el('g', { class: 'map-lines' });
+        const nodeLayer = el('g', { class: 'map-nodes' });
+
+        // Hub for the whole site.
+        const hub = el('a', { href: '/', class: 'map-hub' }, nodeLayer);
+        const hubLabel = el('text', { x: CX, y: CY - 16, class: 'map-hub-label', 'text-anchor': 'middle' }, hub);
+        hubLabel.textContent = mapHost.dataset.homeLabel || 'HOME';
+        el('circle', { cx: CX, cy: CY, r: 8, class: 'map-hub-dot' }, hub);
+
+        const n = cats.length;
+        const R = n <= 3 ? 88 : 100;
+        const PR = 40;
+        cats.forEach((cat, i) => {
+          const ang = -Math.PI / 2 + i * 2 * Math.PI / n;
+          const x = CX + Math.cos(ang) * R, y = CY + Math.sin(ang) * R;
+          el('line', { x1: CX, y1: CY, x2: x, y2: y, class: 'map-line' }, lineLayer);
+          const g = el('a', { href: cat.url, class: 'map-cat' }, nodeLayer);
+          g.dataset.cat = cat.name;
+          el('circle', { cx: x, cy: y, r: 5.5 + Math.min(cat.posts.length, 5) * 0.9, class: 'map-cat-dot' }, g);
+          const lx = CX + Math.cos(ang) * (R + 18), ly = CY + Math.sin(ang) * (R + 18);
+          const label = el('text', {
+            x: lx, y: ly, class: 'map-cat-label',
+            'text-anchor': Math.cos(ang) > .35 ? 'start' : Math.cos(ang) < -.35 ? 'end' : 'middle',
+            'dominant-baseline': Math.sin(ang) > .35 ? 'hanging' : Math.sin(ang) < -.35 ? 'auto' : 'middle'
+          }, g);
+          label.textContent = cat.name;
+          const m = cat.posts.length;
+          cat.posts.forEach((p, j) => {
+            const pa = ang + (m === 1 ? 0 : (j / (m - 1) - .5) * .46);
+            const px = x + Math.cos(pa) * PR, py = y + Math.sin(pa) * PR;
+            el('line', { x1: x, y1: y, x2: px, y2: py, class: 'map-thread' }, lineLayer).dataset.cat = cat.name;
+            const dot = el('a', { href: p.u, class: 'map-post-dot' }, nodeLayer);
+            dot.dataset.cat = cat.name;
+            el('circle', { cx: px, cy: py, r: 3, class: 'map-post-circle' }, dot);
+            const tip = document.createElementNS(NS, 'title');
+            tip.textContent = p.t;
+            dot.appendChild(tip);
+          });
+          g.addEventListener('mouseenter', () => {
+            svg.querySelectorAll('[data-cat]').forEach(e2 => e2.classList.toggle('is-hl', e2.dataset.cat === cat.name));
+          });
+          g.addEventListener('mouseleave', () => {
+            svg.querySelectorAll('.is-hl').forEach(e2 => e2.classList.remove('is-hl'));
+          });
+        });
+        mapHost.appendChild(svg);
+        // Fit the viewBox tightly around everything that was drawn —
+        // labels poke past the nominal 360×300 canvas — so the map
+        // always scales to fit its card instead of spilling out.
+        try {
+          const bb = svg.getBBox();
+          const pad = 6;
+          svg.setAttribute('viewBox', (bb.x - pad) + ' ' + (bb.y - pad) + ' ' + (bb.width + pad * 2) + ' ' + (bb.height + pad * 2));
+        } catch (e) {}
+      } else {
+        mapHost.insertAdjacentHTML('beforeend', '<p class="quiet">No posts yet.</p>');
+      }
+    }
+  }
+
+  // Desktop tile mode: all cards share ONE 3-column grid (the row
+  // sections become display:contents), so any card can swap with any
+  // other — across rows too. Drag the ⠿ handle onto another card to
+  // swap places, or onto empty grid space to just move; drag the
+  // corner grip to resize in fixed steps (1/2/3 columns × 1/2/3 rows,
+  // overlapped neighbours get pushed aside). Double-click ⠿ resets.
+  // Persists in localStorage; ?tiles=1 force-enables the mode below
+  // the desktop breakpoint for testing.
+  (() => {
+    if (!document.querySelector('.page-home')) return;
+    const gridEl = document.querySelector('.home-grid');
+    if (!gridEl) return;
+    const mq = window.matchMedia('(min-width:1024px)');
+    const enabled = () => mq.matches || /[?&]tiles=1/.test(location.search);
+    const STORE = 'home-tiles-v2';
+    const COLS = 3, MAXW = 3, MAXH = 3, ROW_H = 280, GAP = 12;
+    const DEFS = [
+      { id: 'works', sel: '.work-big', r: 1, c: 1, w: 2, h: 2 },
+      { id: 'cal', sel: '.calendar-card', r: 5, c: 2, w: 1, h: 2 },
+      { id: 'hero', sel: '.hero-big', r: 1, c: 3, w: 1, h: 2 },
+      { id: 'stats', sel: '.stats-big', r: 3, c: 1, w: 1, h: 1 },
+      { id: 'plan', sel: '.plan-card', r: 3, c: 2, w: 1, h: 1 },
+      { id: 'bookmarks', sel: '.bookmarks-card', r: 3, c: 3, w: 1, h: 1 },
+      { id: 'moments', sel: '.moments-big', r: 4, c: 1, w: 1, h: 1 },
+      { id: 'archive', sel: '.archive-map-card', r: 4, c: 2, w: 1, h: 1 },
+      { id: 'music', sel: '.music-card', r: 4, c: 3, w: 1, h: 1 },
+    ];
+    const cards = [];
+    let state = new Map();
+    DEFS.forEach(d => {
+      const el = document.querySelector(d.sel);
+      if (el) { cards.push({ id: d.id, el }); state.set(d.id, { r: d.r, c: d.c, w: d.w, h: d.h }); }
+    });
+    const ov = (a, b) => a.r < b.r + b.h && b.r < a.r + a.h && a.c < b.c + b.w && b.c < a.c + a.w;
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE));
+      const ok = saved && typeof saved === 'object' && cards.length > 0 &&
+        cards.every(c => { const t = saved[c.id]; return t && t.r >= 1 && t.c >= 1 && t.w >= 1 && t.h >= 1 && t.w <= MAXW && t.h <= MAXH && t.c + t.w - 1 <= COLS; }) &&
+        !cards.some((a, i) => cards.some((b, j) => j > i && ov(saved[a.id], saved[b.id])));
+      if (ok) cards.forEach(c => state.set(c.id, { ...saved[c.id] }));
+    } catch (e) {}
+    const render = () => {
+      const out = {};
+      cards.forEach(c => {
+        const t = state.get(c.id);
+        c.el.style.gridArea = t.r + ' / ' + t.c + ' / ' + (t.r + t.h) + ' / ' + (t.c + t.w);
+        out[c.id] = t;
+      });
+      try { localStorage.setItem(STORE, JSON.stringify(out)); } catch (e) {}
+    };
+    // Nearest free cell for a w×h card among `placed` (Manhattan distance
+    // from `near` keeps pushed cards close to where they were).
+    const freeSpot = (placed, w, h, near) => {
+      const maxR = placed.reduce((m, t) => Math.max(m, t.r + t.h - 1), 0);
+      let best = null, bd = Infinity;
+      for (let r = 1; r <= maxR + h; r++)
+        for (let c = 1; c + w - 1 <= COLS; c++) {
+          if (placed.some(t => ov({ r, c, w, h }, t))) continue;
+          const d = near ? Math.abs(r - near.r) + Math.abs(c - near.c) : 0;
+          if (d < bd) { bd = d; best = { r, c }; }
+        }
+      return best;
+    };
+    // Apply the moves, pushing overlapped neighbours to the nearest free
+    // cell; rolls everything back (returns false) when it cannot fit.
+    const commit = moves => {
+      const st = new Map(state);
+      const pinned = new Set();
+      moves.forEach(([id, p]) => { st.set(id, p); pinned.add(id); });
+      for (let guard = 60; guard--;) {
+        const list = [...st.entries()].map(([id, v]) => ({ id, ...v }));
+        const a = list.find(x => list.some(y => y.id !== x.id && ov(x, y)));
+        if (!a) { state = st; render(); return true; }
+        const b = list.find(y => y.id !== a.id && ov(a, y));
+        const pick = pinned.has(a.id) && !pinned.has(b.id) ? b : a;
+        if (pinned.has(pick.id)) return false;
+        const spot = freeSpot(list.filter(t => t.id !== pick.id), pick.w, pick.h, pick);
+        if (!spot) return false;
+        st.set(pick.id, { r: spot.r, c: spot.c, w: pick.w, h: pick.h });
+        pinned.add(pick.id);
+      }
+      return false;
+    };
+    const startDrag = (e, card) => {
+      if (e.pointerType === 'touch') return;
+      if (e.button != null && e.button > 0) return;
+      e.stopPropagation();
+      const sx = e.clientX, sy = e.clientY;
+      let target = null, moved = false;
+      const unhighlight = () => { if (target) { target.el.classList.remove('tile-target'); target = null; } };
+      card.el.classList.add('tile-dragging');
+      document.body.classList.add('is-tile-dragging');
+      const move = ev => {
+        if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return;
+        moved = true;
+        const under = document.elementFromPoint(ev.clientX, ev.clientY);
+        const el = under && under.closest ? under.closest('.page-home .card') : null;
+        const hit = el && cards.find(c => c.el === el && c !== card) || null;
+        if (hit !== target) { unhighlight(); target = hit; if (target) target.el.classList.add('tile-target'); }
+      };
+      const up = ev => {
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', up);
+        document.body.classList.remove('is-tile-dragging');
+        card.el.classList.remove('tile-dragging');
+        if (!moved) { unhighlight(); return; }
+        const a = state.get(card.id);
+        const t = target;
+        let done = false;
+        if (t) {
+          t.el.classList.remove('tile-target');
+          const b = state.get(t.id);
+          if (a.r !== b.r || a.c !== b.c) {
+            done = commit([
+              [card.id, { r: b.r, c: Math.min(b.c, COLS - a.w + 1), w: a.w, h: a.h }],
+              [t.id, { r: a.r, c: a.c, w: b.w, h: b.h }],
+            ]);
+          }
+        } else {
+          const g = gridEl.getBoundingClientRect();
+          if (ev.clientX >= g.left && ev.clientX <= g.right && ev.clientY >= g.top && ev.clientY <= g.bottom) {
+            const c = Math.min(COLS - a.w + 1, Math.max(1, Math.floor((ev.clientX - g.left) / (g.width / COLS)) + 1));
+            const r = Math.max(1, Math.floor((ev.clientY - g.top) / (ROW_H + GAP)) + 1);
+            done = (r !== a.r || c !== a.c) && commit([[card.id, { r, c, w: a.w, h: a.h }]]);
+          }
+        }
+        target = null;
+        if (!done) render();
+      };
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up);
+    };
+    const startResize = (e, card) => {
+      if (e.pointerType === 'touch') return;
+      if (e.button != null && e.button > 0) return;
+      e.stopPropagation();
+      const start = { ...state.get(card.id) };
+      card.el.classList.add('tile-resizing');
+      document.body.classList.add('is-tile-resizing');
+      let next = null;
+      const move = ev => {
+        const g = gridEl.getBoundingClientRect();
+        const w = Math.max(1, Math.min(Math.min(MAXW, COLS - start.c + 1), Math.round((ev.clientX - g.left) / (g.width / COLS)) - start.c + 1));
+        const h = Math.max(1, Math.min(MAXH, Math.round((ev.clientY - g.top) / (ROW_H + GAP)) - start.r + 1));
+        if (!next || next.w !== w || next.h !== h) {
+          next = { w, h };
+          card.el.style.gridArea = start.r + ' / ' + start.c + ' / ' + (start.r + h) + ' / ' + (start.c + w);
+        }
+      };
+      const up = () => {
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', up);
+        document.body.classList.remove('is-tile-resizing');
+        card.el.classList.remove('tile-resizing');
+        if (next && (next.w !== start.w || next.h !== start.h)) {
+          if (!commit([[card.id, { r: start.r, c: start.c, w: next.w, h: next.h }]])) render();
+        } else render();
+      };
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up);
+    };
+    const mount = card => {
+      const handle = document.createElement('button');
+      handle.type = 'button';
+      handle.className = 'tile-handle';
+      handle.title = '拖动换位（可跨行） · 双击重置布局';
+      handle.textContent = '⠿';
+      const grip = document.createElement('button');
+      grip.type = 'button';
+      grip.className = 'tile-resize';
+      grip.title = '拖动调整大小（1/2/3 档）';
+      grip.textContent = '◢';
+      [handle, grip].forEach(el => {
+        el.addEventListener('pointerdown', ev => ev.stopPropagation());
+        el.addEventListener('click', ev => ev.stopPropagation());
+      });
+      handle.addEventListener('pointerdown', e => startDrag(e, card));
+      grip.addEventListener('pointerdown', e => startResize(e, card));
+      handle.addEventListener('dblclick', () => {
+        DEFS.forEach(d => { if (state.has(d.id)) state.set(d.id, { r: d.r, c: d.c, w: d.w, h: d.h }); });
+        render();
+      });
+      card.el.append(handle, grip);
+    };
+    cards.forEach(mount);
+    const apply = () => {
+      const on = enabled();
+      document.body.classList.toggle('tile-mode', on);
+      if (on) render();
+      else cards.forEach(c => { c.el.style.gridArea = ''; });
+    };
+    apply();
+    if (mq.addEventListener) mq.addEventListener('change', apply); else mq.addListener(apply);
+  })();
 })();

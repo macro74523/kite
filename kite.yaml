@@ -22,7 +22,7 @@ menus:
       url: /
     - name: 作品集
       url: /categories/视频作品/
-    - name: 瞬间
+    - name: 一瞬
       url: /categories/瞬间/
 
 theme:
