@@ -809,6 +809,11 @@ body.tile-mode.page-home .music-card .player-controls{margin-top:6px;gap:8px}
 body.tile-mode.page-home .music-card .player-play{width:36px;height:36px}
 body.tile-mode.page-home .music-card .player-vu{margin-top:6px;padding-top:6px}
 body.tile-mode.page-home .music-card .social-links{margin-top:6px;padding-top:6px}
+/* ===== Stats card: never spills its 1×1 tile ===== */
+body.tile-mode.page-home .stats-big{overflow:hidden}
+body.tile-mode.page-home .stats-big #stats-status{display:none}
+body.tile-mode.page-home .stats-big .trend-chart{display:flex;flex-direction:column;min-height:0}
+body.tile-mode.page-home .stats-big .trend-chart svg{flex:1 1 auto;min-height:0;max-height:72px}
 .page-home .bookmarks-card .link-stack a,.page-home .recent-item{border-color:var(--line)}
 /* ===== Archive map: site as a map ===== */
 .page-home .archive-map{flex:1;min-height:0;margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:4px;background:linear-gradient(var(--line) 1px,transparent 1px) 0 0/100% 26px,linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/26px 100%;-webkit-mask:radial-gradient(130% 130% at 50% 45%,#000 55%,transparent 98%);mask:radial-gradient(130% 130% at 50% 45%,#000 55%,transparent 98%)}

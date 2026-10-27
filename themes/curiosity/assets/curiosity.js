@@ -1054,14 +1054,14 @@
     const COLS = 3, MAXW = 3, MAXH = 3, ROW_H = 280, GAP = 12;
     const DEFS = [
       { id: 'works', sel: '.work-big', r: 1, c: 1, w: 2, h: 2 },
-      { id: 'cal', sel: '.calendar-card', r: 5, c: 2, w: 1, h: 2 },
       { id: 'hero', sel: '.hero-big', r: 1, c: 3, w: 1, h: 2 },
-      { id: 'stats', sel: '.stats-big', r: 3, c: 1, w: 1, h: 1 },
-      { id: 'plan', sel: '.plan-card', r: 3, c: 2, w: 1, h: 1 },
-      { id: 'bookmarks', sel: '.bookmarks-card', r: 3, c: 3, w: 1, h: 1 },
-      { id: 'moments', sel: '.moments-big', r: 4, c: 1, w: 1, h: 1 },
-      { id: 'archive', sel: '.archive-map-card', r: 4, c: 2, w: 1, h: 1 },
-      { id: 'music', sel: '.music-card', r: 4, c: 3, w: 1, h: 1 },
+      { id: 'plan', sel: '.plan-card', r: 3, c: 1, w: 1, h: 1 },
+      { id: 'moments', sel: '.moments-big', r: 3, c: 2, w: 2, h: 1 },
+      { id: 'stats', sel: '.stats-big', r: 4, c: 1, w: 2, h: 1 },
+      { id: 'archive', sel: '.archive-map-card', r: 4, c: 3, w: 1, h: 1 },
+      { id: 'cal', sel: '.calendar-card', r: 5, c: 1, w: 1, h: 1 },
+      { id: 'bookmarks', sel: '.bookmarks-card', r: 5, c: 2, w: 1, h: 1 },
+      { id: 'music', sel: '.music-card', r: 5, c: 3, w: 1, h: 1 },
     ];
     const cards = [];
     let state = new Map();
