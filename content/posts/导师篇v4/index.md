@@ -4,9 +4,8 @@ title: 导师篇V4
 slug: 导师篇v4
 status: published
 created_at: 2026-10-20T01:40:37Z
-cover: https://jpg.macro.wang/20261020131117499.jpg
+cover: 07c82ea03ae337de39f6fcbf55f08f9b.png
 tags:
-  - 长视频
   - 学校宣传片
 categories:
   - 视频作品
