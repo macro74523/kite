@@ -4,9 +4,8 @@ title: 小学篇
 slug: 小学篇
 status: published
 created_at: 2026-10-20T01:41:52Z
-cover: https://jpg.macro.wang/20261020131117499.jpg
+cover: f0736e7cb95ad582d3c86cafc1de8a8a.png
 tags:
-  - 长视频
   - 学校宣传片
 categories:
   - 视频作品
