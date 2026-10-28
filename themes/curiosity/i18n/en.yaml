@@ -90,14 +90,40 @@ theme:
   menus:
     main: {label: Main navigation}
   settings:
+    branding: {label: Branding}
+    logo: {label: Light logo, help: Upload or drag in an image; the site name shows when empty.}
+    logo_dark: {label: Dark logo, help: Used automatically in dark mode; leave empty to reuse the light logo.}
+    logo_size: {label: Desktop logo height, help: In pixels; 36–60 reads well.}
+    logo_size_mobile: {label: Mobile logo height, help: In pixels; 32–48 reads well.}
+    favicon: {label: Site icon, help: Shown in browser tabs and bookmarks. A square picture of at least 64 pixels suits it best.}
     profile: {label: Profile}
     intro: {label: Home introduction}
     avatar: {label: Avatar}
     contact: {label: Contact URL}
-    photography: {label: Everyday photography}
+    email: {label: Email, help: Shown in the contact dialog; the disclaimer falls back to it when it has no address of its own.}
+    qq: {label: QQ}
+    disclaimer: {label: Disclaimer}
+    disclaimer_email: {label: Contact email, help: Shown in the disclaimer on posts and previews; leave empty to use the profile email.}
+    homepage: {label: Home content}
     photo: {label: Photo, help: Leave empty for a generated seaside photograph.}
     photo_caption: {label: Photo caption}
-    work: {label: Selected work}
+    plan_goals:
+      label: Plans
+      fields:
+        title: {label: Goal}
+        progress: {label: Progress}
+        tag: {label: Tag}
+        status: {label: Status}
+    plan_footer_text: {label: Closing note}
+    timezone: {label: IANA timezone, help: For example Asia/Shanghai or Europe/London.}
+    collections: {label: Bookmarks}
+    bookmarks:
+      label: Bookmarks
+      fields:
+        name: {label: Name}
+        description: {label: Description}
+        url: {label: URL}
+    pages: {label: Standalone pages}
     projects:
       label: Projects
       fields:
@@ -105,15 +131,6 @@ theme:
         description: {label: Description}
         url: {label: URL}
         image: {label: Image}
-    everyday: {label: Everyday and timezone}
-    timezone: {label: IANA timezone, help: For example Asia/Shanghai or Europe/London.}
-    collections: {label: Bookmarks and friends}
-    bookmarks:
-      label: Bookmarks
-      fields:
-        name: {label: Name}
-        description: {label: Description}
-        url: {label: URL}
     links:
       label: Friends and links
       fields:
@@ -121,6 +138,7 @@ theme:
         description: {label: Description}
         url: {label: URL}
     listening: {label: Music and social links}
+    audio_file: {label: Audio file, help: An uploaded file wins over the audio URL below.}
     audio_url: {label: Audio URL}
     audio_title: {label: Audio title}
     audio_author: {label: Audio artist}
@@ -132,5 +150,3 @@ theme:
     appearance: {label: Reading and appearance}
     accent: {label: Accent color}
     show_toc: {label: Show table of contents}
-    footer_text: {label: Footer text}
-    favicon: {label: Site icon, help: Shown in browser tabs and bookmarks. A square picture of at least 64 pixels suits it best.}

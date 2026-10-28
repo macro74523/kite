@@ -26,6 +26,7 @@ settings:
   - key: branding
     type: section
     label: 品牌标识
+    preview: home
     fields:
       - {key: logo, type: image, label: 亮色 Logo, help: 上传或拖入图片；未设置时显示站点名称}
       - {key: logo_dark, type: image, label: 暗色 Logo, help: 暗色模式自动使用此图片，留空沿用亮色 Logo}
@@ -35,26 +36,26 @@ settings:
   - key: profile
     type: section
     label: 个人资料
+    preview: home
     fields:
       - {key: intro, type: text, label: 首页介绍, help: 显示在首页头像卡片的自我介绍}
       - {key: avatar, type: image, label: 头像, help: 用于首页头像和“聊聊”弹窗，留空显示首字母}
       - {key: contact, type: url, label: 个人网站, help: 显示在“聊聊”弹窗}
-      - {key: email, type: string, label: 邮箱, help: 显示在“聊聊”弹窗，留空则不显示}
+      - {key: email, type: string, label: 邮箱, help: 显示在“聊聊”弹窗；免责声明没有单独填写邮箱时，也会回退到这里}
       - {key: qq, type: string, label: QQ号, help: 显示在“聊聊”弹窗，留空则不显示}
+  - key: disclaimer
+    type: section
+    label: 免责声明
+    preview: post
+    fields:
+      - {key: disclaimer_email, type: string, label: 联系邮箱, help: 显示在文章页和预览弹窗的免责声明里，用于接收侵权下架通知；留空则沿用“个人资料”的邮箱}
   - key: homepage
     type: section
     label: 首页内容
+    preview: home
     fields:
       - {key: photo, type: image, label: 回退照片, help: 首页“日常切片”卡片优先随机展示“瞬间”分类文章，仅当没有任何瞬间时才显示此照片；留空使用生成的海边照片}
       - {key: photo_caption, type: string, label: 照片说明, help: 回退照片下方显示的文字}
-      - key: projects
-        type: repeat
-        label: 项目
-        fields:
-          - {key: name, type: string, label: 项目名称}
-          - {key: description, type: text, label: 简介}
-          - {key: url, type: url, label: 链接}
-          - {key: image, type: image, label: 图片}
       - key: plan_goals
         type: repeat
         label: 计划预期
@@ -68,18 +69,35 @@ settings:
       - {key: timezone, type: string, label: IANA 时区, default: Asia/Shanghai, help: 用于签到、统计与日历的时区，例如 Asia/Shanghai 或 Europe/London}
   - key: collections
     type: section
-    label: 链接
+    label: 收藏夹
+    preview: home
     fields:
       - key: bookmarks
         type: repeat
         label: 收藏链接
+        help: 首页“收藏夹”卡片展示的快捷链接
         fields:
           - {key: name, type: string, label: 名称}
           - {key: description, type: string, label: 说明}
           - {key: url, type: url, label: 链接}
+  - key: pages
+    type: section
+    label: 独立页面
+    preview: page
+    fields:
+      - key: projects
+        type: repeat
+        label: 项目列表
+        help: 使用「项目展示」页面模板时展示的项目，页面自身的项目字段优先
+        fields:
+          - {key: name, type: string, label: 项目名称}
+          - {key: description, type: text, label: 简介}
+          - {key: url, type: url, label: 链接}
+          - {key: image, type: image, label: 图片}
       - key: links
         type: repeat
         label: 友情链接
+        help: 使用「友情链接」页面模板时展示的站点，页面自身的链接字段优先
         fields:
           - {key: name, type: string, label: 名称}
           - {key: description, type: string, label: 说明}
@@ -87,6 +105,7 @@ settings:
   - key: listening
     type: section
     label: 音乐
+    preview: home
     fields:
       - {key: audio_file, type: image, label: 上传音乐, help: 上传本地音乐文件（支持 mp3 等格式），优先于下方的音频 URL}
       - {key: audio_url, type: url, label: 音频 URL, help: 音乐文件外链地址，未上传音乐时使用此字段}
@@ -101,6 +120,7 @@ settings:
   - key: appearance
     type: section
     label: 外观
+    preview: home
     fields:
       - {key: accent, type: color, label: 强调色, default: '#6366f1'}
       - {key: bg_color, type: color, label: 背景色, default: '#f8fafc', help: 页面整体背景颜色（渐变为空时使用）}
@@ -111,4 +131,3 @@ settings:
       - {key: card_color, type: color, label: 卡片色, default: '#ffffff', help: 卡片和模块的背景颜色}
       - {key: line_color, type: color, label: 边框色, default: '#e2e8f0', help: 边框和分隔线的颜色}
       - {key: show_toc, type: boolean, label: 显示目录, default: true}
-      - {key: footer_text, type: string, label: 页脚文字}
