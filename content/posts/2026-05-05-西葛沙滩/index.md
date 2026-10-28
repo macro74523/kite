@@ -9,8 +9,9 @@ published_at: 2026-05-06T00:00:00Z
 slug: 2026-05-05-西葛沙滩
 status: published
 tags:
-    - 长视频
+  - 文旅系列
 title: 西葛沙滩
-updated_at: 2026-05-05T00:00:00Z
+updated_at: 2026-10-28T03:46:26Z
 ---
+
 &lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=658881477&bvid=BV1vh4y1y7qd&cid=1210862238&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=658881477&bvid=BV1vh4y1y7qd&cid=1210862238&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
