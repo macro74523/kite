@@ -9,8 +9,9 @@ published_at: 2026-05-09T00:00:00Z
 slug: 2026-05-08-传承600多年历史的年例习俗-走将军
 status: published
 tags:
-    - 长视频
+  - 文旅系列
 title: '传承600多年历史的年例习俗—走将军 '
-updated_at: 2026-05-08T00:00:00Z
+updated_at: 2026-10-28T03:46:39Z
 ---
+
 &lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=1051156521&bvid=BV1SH4y1777F&cid=1451711209&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=1051156521&bvid=BV1SH4y1777F&cid=1451711209&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
