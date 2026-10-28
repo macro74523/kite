@@ -7,9 +7,8 @@ created_at: 2026-10-20T01:40:03Z
 categories:
   - 未分类
   - 视频作品
-cover: https://jpg.macro.wang/20261020131117499.jpg
+cover: b5bbcf747462286d61b7544e44d24ad9.png
 tags:
-  - 长视频
   - 学校宣传片
 published_at: 2023-08-07T09:00:00Z
 ---
