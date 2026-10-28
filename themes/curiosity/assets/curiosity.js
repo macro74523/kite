@@ -851,11 +851,19 @@
     const sheetCommentConfig = (doc) => {
       const s = [...doc.querySelectorAll('script')].find(x => x.textContent.includes('window.KiteComments'));
       if (!s) return null;
-      try { return (new Function(s.textContent + ';return window.KiteComments;'))(); }
+      // Evaluate against a throwaway global: the script assigns
+      // window.KiteComments, and on a listing page that global would make the
+      // lazily loaded comments plugin auto-init the sheet container as well —
+      // mounting a second copy next to the one we start by hand.
+      try { return (new Function('window', s.textContent + ';return window.KiteComments;'))({}); }
       catch (_) { return null; }
     };
     const mountThread = (cfg) => {
-      const run = () => { if (window.KiteCommentsInit) window.KiteCommentsInit(sThread, cfg); };
+      const run = () => {
+        if (!window.KiteCommentsInit) return;
+        sThread.innerHTML = ''; // never stack a widget from a previous preview
+        window.KiteCommentsInit(sThread, cfg);
+      };
       if (window.KiteCommentsInit) { run(); return; }
       const s = document.createElement('script');
       s.src = '/plugins/comments/comments.js?v=' + Date.now();
@@ -863,9 +871,11 @@
       document.head.appendChild(s);
     };
 
+    let fetchToken = 0;
     function openSheet(anchor) {
       lastFocus = anchor;
       fill(anchor);
+      const token = ++fetchToken;
       backdrop.style.display = 'block';
       sheet.classList.add('is-open');
       shell.classList.add('is-behind');
@@ -873,6 +883,7 @@
       document.documentElement.style.overflow = 'hidden';
       requestAnimationFrame(() => { scroller.scrollTop = 0; sheet.focus({ preventScroll: true }); });
       fetch(anchor.href).then(r => r.text()).then(html => {
+        if (token !== fetchToken) return; // another card was opened meanwhile
         const doc = new DOMParser().parseFromString(html, 'text/html');
         sTitle.textContent = doc.querySelector('.article-heading h1')?.textContent || sTitle.textContent;
         sMeta.innerHTML = doc.querySelector('.post-meta')?.innerHTML || '';
@@ -886,6 +897,7 @@
         pendingComments = sheetCommentConfig(doc);
         if (pendingComments) sComments.hidden = false;
       }).catch(() => {
+        if (token !== fetchToken) return;
         sContent.innerHTML = '<p class="quiet">内容加载失败，点击下方链接查看完整文章。</p>';
       });
     }
