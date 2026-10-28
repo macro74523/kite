@@ -4,11 +4,10 @@ title: "后勤篇V4"
 slug: untitled-2
 status: published
 created_at: 2026-10-20T01:44:05Z
-cover: https://jpg.macro.wang/20261020131117499.jpg
+cover: eefee36e931c0a6f5131eaf8a30ae338.png
 categories:
   - 视频作品
 tags:
-  - 长视频
   - 学校宣传片
 published_at: 2023-08-03T09:00:00Z
 ---
