@@ -882,7 +882,7 @@
       backdrop.classList.add('is-on');
       document.documentElement.style.overflow = 'hidden';
       requestAnimationFrame(() => { scroller.scrollTop = 0; sheet.focus({ preventScroll: true }); });
-      fetch(anchor.href).then(r => r.text()).then(html => {
+      fetch(anchor.href, { cache: 'no-store' }).then(r => r.text()).then(html => {
         if (token !== fetchToken) return; // another card was opened meanwhile
         const doc = new DOMParser().parseFromString(html, 'text/html');
         sTitle.textContent = doc.querySelector('.article-heading h1')?.textContent || sTitle.textContent;
@@ -893,7 +893,27 @@
         scroller.scrollTop = 0;
         enhanceSheet();
         const disc = doc.querySelector('aside.disclaimer');
-        if (disc) { sDisc.innerHTML = disc.innerHTML; sDisc.hidden = false; }
+        if (disc) {
+          sDisc.innerHTML = disc.innerHTML;
+          // The preview always carries a reachable address: if the fetched
+          // markup has none, reuse the one already printed in the contact dialog.
+          if (!sDisc.querySelector('a[href^="mailto:"]')) {
+            const mail = document.querySelector('#contact-dialog a[href^="mailto:"]');
+            const list = sDisc.querySelector('ul');
+            if (mail && list) {
+              const li = document.createElement('li');
+              const label = document.createElement('span');
+              const link = document.createElement('a');
+              link.href = mail.getAttribute('href');
+              link.textContent = mail.textContent;
+              label.append('反馈邮箱：', link);
+              li.innerHTML = '<span aria-hidden="true">📮</span>';
+              li.append(label);
+              list.append(li);
+            }
+          }
+          sDisc.hidden = false;
+        }
         pendingComments = sheetCommentConfig(doc);
         if (pendingComments) sComments.hidden = false;
       }).catch(() => {
@@ -1052,254 +1072,57 @@
     glassProbe();
   }
 
-  // Archive map: the site drawn as a real map — one continent holding every
-  // stop, roads from the capital (home) to cities (categories), trail dots
-  // for posts, plus graticule, compass, scale bar and a named sea.
+  // Archive: a quiet index instead of a map — one row per category with a
+  // weight bar and a count, so the whole archive reads at a glance.
   const mapHost = document.getElementById('archive-map');
   if (mapHost) {
     const dataEl = mapHost.parentElement.querySelector('.archive-data');
     if (dataEl) {
-      const NS = 'http://www.w3.org/2000/svg';
       const posts = [...dataEl.querySelectorAll('a[data-t]')].map(a => ({
         t: a.dataset.t, u: a.dataset.u, c: (a.dataset.c || '').split('|').filter(Boolean)
       }));
       const catUrls = {};
-      dataEl.querySelectorAll('b[data-n]').forEach(b => { if (!catUrls[b.dataset.n]) catUrls[b.dataset.n] = b.dataset.u; });
+      dataEl.querySelectorAll('b[data-n]').forEach(b => {
+        if (!catUrls[b.dataset.n]) catUrls[b.dataset.n] = b.dataset.u;
+      });
       const cats = Object.keys(catUrls).map(n => ({
-        name: n, url: catUrls[n], posts: posts.filter(p => p.c.includes(n)).slice(0, 4)
-      })).sort((a, b) => b.posts.length - a.posts.length || a.name.localeCompare(b.name, 'zh'));
+        name: n, url: catUrls[n], count: posts.filter(p => p.c.includes(n)).length
+      })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'zh'));
+      const zh = locale.startsWith('zh');
 
       if (cats.length) {
-        const W = 360, H = 300, CX = W / 2, CY = H / 2 + 6;
-        const svg = document.createElementNS(NS, 'svg');
-        svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-        svg.setAttribute('role', 'img');
-        const el = (tag, attrs, parent) => {
-          const node = document.createElementNS(NS, tag);
-          for (const k in attrs) node.setAttribute(k, attrs[k]);
-          (parent || svg).appendChild(node);
-          return node;
-        };
-        // Deterministic pseudo-random so the coastline stays stable between loads.
-        let seed = 11;
-        const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-        const f = v => Math.round(v * 10) / 10;
-        // Coastline: layered harmonics make natural bays and headlands.
-        // One harmonic set per landmass, so the inner coastline matches.
-        const makeCoast = (cx, cy, squash) => {
-          const harms = [0, 1, 2].map(o => ({
-            k: 2 + o * 2 + Math.floor(rnd() * 2),
-            amp: [.07, .035, .018][o],
-            ph: rnd() * Math.PI * 2
-          }));
-          return r => {
-            let d = '';
-            for (let i = 0; i < 90; i++) {
-              const a = i / 90 * Math.PI * 2;
-              let rr = 1;
-              for (const h of harms) rr += h.amp * Math.sin(h.k * a + h.ph);
-              d += (i ? 'L' : 'M') + f(cx + Math.cos(a) * r * rr) + ',' + f(cy + Math.sin(a) * r * rr * squash);
-            }
-            return d + 'Z';
-          };
-        };
-        // Winding footpath between two points — bends like a real trail.
-        const trail = (x1, y1, x2, y2) => {
-          const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
-          const nx = -dy / len, ny = dx / len;
-          let d = `M${f(x1)},${f(y1)}`;
-          let lx = x1, ly = y1;
-          for (let s = 1; s <= 3; s++) {
-            const t = s / 3;
-            const off = s === 3 ? 0 : (rnd() - .5) * len * .36;
-            const ex = x1 + dx * t + nx * off, ey = y1 + dy * t + ny * off;
-            const cxm = (lx + ex) / 2 + nx * (rnd() - .5) * len * .14;
-            const cym = (ly + ey) / 2 + ny * (rnd() - .5) * len * .14;
-            d += `Q${f(cxm)},${f(cym)} ${f(ex)},${f(ey)}`;
-            lx = ex; ly = ey;
-          }
-          return d;
-        };
-        // Five-point star for the capital.
-        const star = (cx, cy, rO, rI) => {
-          let d = '';
-          for (let i = 0; i < 10; i++) {
-            const rr = i % 2 ? rI : rO, a = -Math.PI / 2 + i * Math.PI / 5;
-            d += (i ? 'L' : 'M') + f(cx + Math.cos(a) * rr) + ',' + f(cy + Math.sin(a) * rr);
-          }
-          return d + 'Z';
-        };
-
-        const gratLayer = el('g', { class: 'map-grats' });
-        const landLayer = el('g', { class: 'map-lands' });
-        const decoLayer = el('g', { class: 'map-deco' });
-        const lineLayer = el('g', { class: 'map-lines' });
-        const nodeLayer = el('g', { class: 'map-nodes' });
-
-        // Graticule — gently curved meridians and parallels across the sea.
-        for (let i = 1; i < 6; i++) {
-          const gx = W * i / 6;
-          el('path', { d: `M${f(gx)},-12 Q${f(gx + 9)},${f(H / 2)} ${f(gx)},${H + 12}`, class: 'map-grat' }, gratLayer);
-        }
-        for (let i = 1; i < 5; i++) {
-          const gy = H * i / 5;
-          el('path', { d: `M-12,${f(gy)} Q${f(W / 2)},${f(gy + 7)} ${W + 12},${f(gy)}`, class: 'map-grat' }, gratLayer);
-        }
-
-        const n = cats.length;
-        const R = n <= 3 ? 88 : 100;
-        const PR = 40;
-
-        // One continent holding every stop, plus a vintage inner coastline.
-        const landR = R + PR + 26;
-        const coast = makeCoast(CX, CY, .86);
-        el('path', { d: coast(landR), class: 'map-land' }, landLayer);
-        el('path', { d: coast(landR * .9), class: 'map-coast-inner' }, landLayer);
-        // Satellite islets out in the ocean.
-        el('path', { d: makeCoast(34, 44, .8)(15), class: 'map-islet' }, landLayer);
-        el('path', { d: makeCoast(W - 30, H - 52, .85)(11), class: 'map-islet' }, landLayer);
-
-        // Wave marks scattered on open water.
-        const inLand = (px, py) => {
-          const dx = (px - CX) / (landR * 1.02), dy = (py - CY) / (landR * .9);
-          return dx * dx + dy * dy < 1;
-        };
-        for (let i = 0; i < 26; i++) {
-          const px = 14 + rnd() * (W - 28), py = 12 + rnd() * (H - 24);
-          if (inLand(px, py)) continue;
-          el('path', { d: `M${f(px)},${f(py)} q3,-3.5 6,0 q3,3.5 6,0`, class: 'map-wave' }, decoLayer);
-        }
-
-        // Capital: star in a ring, hub of every road.
-        const hub = el('a', { href: '/', class: 'map-hub' }, nodeLayer);
-        const hubLabel = el('text', { x: CX, y: CY - 17, class: 'map-hub-label', 'text-anchor': 'middle' }, hub);
-        hubLabel.textContent = mapHost.dataset.homeLabel || 'HOME';
-        el('circle', { cx: CX, cy: CY, r: 10.5, class: 'map-hub-ring' }, hub);
-        el('path', { d: star(CX, CY, 7, 2.9), class: 'map-hub-star' }, hub);
-
+        const list = document.createElement('div');
+        list.className = 'archive-list';
+        const max = Math.max(...cats.map(c => c.count)) || 1;
         cats.forEach((cat, i) => {
-          const ang = -Math.PI / 2 + i * 2 * Math.PI / n;
-          const x = CX + Math.cos(ang) * R, y = CY + Math.sin(ang) * R;
-          // Road: gently curved like a real route, casing underneath.
-          const dx = x - CX, dy = y - CY, len = Math.hypot(dx, dy) || 1;
-          const mx = (CX + x) / 2 - dy / len * 13, my = (CY + y) / 2 + dx / len * 13;
-          const d = `M${f(CX)},${f(CY)} Q${f(mx)},${f(my)} ${f(x)},${f(y)}`;
-          el('path', { d, class: 'map-road-case' }, lineLayer).dataset.cat = cat.name;
-          el('path', { d, class: 'map-road' }, lineLayer).dataset.cat = cat.name;
-          // City: ringed circle sized by how many posts it holds.
-          const g = el('a', { href: cat.url, class: 'map-cat' }, nodeLayer);
-          g.dataset.cat = cat.name;
-          const cr = 6 + Math.min(cat.posts.length, 5) * .8;
-          el('circle', { cx: f(x), cy: f(y), r: f(cr), class: 'map-cat-dot' }, g);
-          el('circle', { cx: f(x), cy: f(y), r: f(cr * .38), class: 'map-cat-core' }, g);
-          const lx = CX + Math.cos(ang) * (R + 19), ly = CY + Math.sin(ang) * (R + 19);
-          const label = el('text', {
-            x: f(lx), y: f(ly), class: 'map-cat-label',
-            'text-anchor': Math.cos(ang) > .35 ? 'start' : Math.cos(ang) < -.35 ? 'end' : 'middle',
-            'dominant-baseline': Math.sin(ang) > .35 ? 'hanging' : Math.sin(ang) < -.35 ? 'auto' : 'middle'
-          }, g);
-          label.textContent = cat.name;
-          // Posts: trail dots on dashed footpaths off each city.
-          const m = cat.posts.length;
-          cat.posts.forEach((p, j) => {
-            const pa = ang + (m === 1 ? 0 : (j / (m - 1) - .5) * .46);
-            const px = x + Math.cos(pa) * PR, py = y + Math.sin(pa) * PR;
-            el('path', { d: trail(x, y, px, py), class: 'map-thread' }, lineLayer).dataset.cat = cat.name;
-            const dot = el('a', { href: p.u, class: 'map-post-dot' }, nodeLayer);
-            dot.dataset.cat = cat.name;
-            el('circle', { cx: f(px), cy: f(py), r: 4.2, class: 'map-post-circle' }, dot);
-            const tip = document.createElementNS(NS, 'title');
-            tip.textContent = p.t;
-            dot.appendChild(tip);
-          });
-          g.addEventListener('mouseenter', () => {
-            svg.querySelectorAll('[data-cat]').forEach(e2 => e2.classList.toggle('is-hl', e2.dataset.cat === cat.name));
-          });
-          g.addEventListener('mouseleave', () => {
-            svg.querySelectorAll('.is-hl').forEach(e2 => e2.classList.remove('is-hl'));
-          });
+          const row = document.createElement('a');
+          row.className = 'archive-row';
+          row.href = cat.url;
+          const idx = document.createElement('span');
+          idx.className = 'archive-idx';
+          idx.textContent = String(i + 1).padStart(2, '0');
+          const name = document.createElement('span');
+          name.className = 'archive-name';
+          name.textContent = cat.name;
+          const bar = document.createElement('span');
+          bar.className = 'archive-bar';
+          const fill = document.createElement('i');
+          fill.style.width = Math.round(cat.count / max * 100) + '%';
+          bar.append(fill);
+          const count = document.createElement('span');
+          count.className = 'archive-count';
+          count.textContent = String(cat.count);
+          row.append(idx, name, bar, count);
+          list.append(row);
         });
-
-        // Cartography dressing: compass rose, scale bar and the sea's name.
-        const cmpX = W - 40, cmpY = 40;
-        el('circle', { cx: cmpX, cy: cmpY, r: 12, class: 'map-compass-ring' }, decoLayer);
-        el('path', { d: `M${cmpX},${cmpY - 8.5} L${f(cmpX + 3)},${f(cmpY + 3)} L${cmpX},${f(cmpY + .8)} L${f(cmpX - 3)},${f(cmpY + 3)} Z`, class: 'map-compass-n' }, decoLayer);
-        const nLbl = el('text', { x: cmpX, y: cmpY - 16, class: 'map-compass-label', 'text-anchor': 'middle' }, decoLayer);
-        nLbl.textContent = 'N';
-        for (let si = 0; si < 4; si++) {
-          el('rect', { x: 18 + si * 12, y: H - 18, width: 12, height: 3.4, class: 'map-scale' + (si % 2 ? ' is-alt' : '') }, decoLayer);
-        }
-        const sea = el('text', { x: 56, y: 30, class: 'map-sea', 'text-anchor': 'start' }, decoLayer);
-        sea.textContent = locale.startsWith('zh') ? '归 档 之 海' : 'THE ARCHIVE SEA';
-
-        mapHost.appendChild(svg);
-        // Fit the viewBox tightly around everything that was drawn —
-        // labels poke past the nominal 360×300 canvas — so the map
-        // always scales to fit its card instead of spilling out.
-        try {
-          const bb = svg.getBBox();
-          const pad = 6;
-          svg.setAttribute('viewBox', (bb.x - pad) + ' ' + (bb.y - pad) + ' ' + (bb.width + pad * 2) + ' ' + (bb.height + pad * 2));
-        } catch (e) {}
-        // Wheel zoom (cursor-anchored) + drag to pan. Accounts for the
-        // letterboxing that preserveAspectRatio="meet" adds inside the host.
-        const base = svg.getAttribute('viewBox').split(/\s+/).map(Number);
-        const vb = { x: base[0], y: base[1], w: base[2], h: base[3] };
-        const draw = () => svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
-        const clamp = () => {
-          const mX = base[2] * .25, mY = base[3] * .25;
-          vb.x = Math.min(Math.max(vb.x, base[0] - mX), base[0] + base[2] - vb.w + mX);
-          vb.y = Math.min(Math.max(vb.y, base[1] - mY), base[1] + base[3] - vb.h + mY);
-        };
-        // Start zoomed in on the continent centre — the default view reads
-        // better close-up, and the wheel/drag gestures take it from there.
-        vb.w = base[2] / 1.5; vb.h = base[3] / 1.5;
-        vb.x = CX - vb.w / 2; vb.y = CY - vb.h / 2;
-        clamp(); draw();
-        svg.addEventListener('wheel', e => {
-          e.preventDefault();
-          const rect = svg.getBoundingClientRect();
-          const scale = Math.min(rect.width / vb.w, rect.height / vb.h);
-          const mx = vb.x + (e.clientX - rect.left - (rect.width - vb.w * scale) / 2) / scale;
-          const my = vb.y + (e.clientY - rect.top - (rect.height - vb.h * scale) / 2) / scale;
-          let nw = vb.w * (e.deltaY < 0 ? .82 : 1.22);
-          nw = Math.max(base[2] / 5, Math.min(base[2], nw));
-          const nh = nw * base[3] / base[2];
-          vb.x = mx - (mx - vb.x) * (nw / vb.w);
-          vb.y = my - (my - vb.y) * (nh / vb.h);
-          vb.w = nw; vb.h = nh;
-          clamp(); draw();
-        }, { passive: false });
-        let drag = null;
-        svg.addEventListener('pointerdown', e => {
-          if (e.button !== 0) return;
-          drag = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y, moved: false };
-          svg.setPointerCapture(e.pointerId);
-        });
-        svg.addEventListener('pointermove', e => {
-          if (!drag) return;
-          const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
-          if (!drag.moved && Math.hypot(dx, dy) < 4) return;
-          drag.moved = true;
-          svg.classList.add('is-dragging');
-          const rect = svg.getBoundingClientRect();
-          const scale = Math.min(rect.width / vb.w, rect.height / vb.h);
-          vb.x = drag.vx - dx / scale;
-          vb.y = drag.vy - dy / scale;
-          clamp(); draw();
-        });
-        const endDrag = () => {
-          if (drag && drag.moved) {
-            // Swallow the click that follows a drag so map links don't fire.
-            svg.addEventListener('click', ev => { ev.stopPropagation(); ev.preventDefault(); }, { capture: true, once: true });
-          }
-          drag = null;
-          svg.classList.remove('is-dragging');
-        };
-        svg.addEventListener('pointerup', endDrag);
-        svg.addEventListener('pointercancel', endDrag);
+        const meta = document.createElement('p');
+        meta.className = 'archive-meta';
+        meta.textContent = zh
+          ? `${posts.length} 篇 · ${cats.length} 个分类`
+          : `${posts.length} posts · ${cats.length} categories`;
+        mapHost.append(list, meta);
       } else {
-        mapHost.insertAdjacentHTML('beforeend', '<p class="quiet">No posts yet.</p>');
+        mapHost.insertAdjacentHTML('beforeend', '<p class="quiet">' + (zh ? '还没有文章' : 'No posts yet.') + '</p>');
       }
     }
   }
