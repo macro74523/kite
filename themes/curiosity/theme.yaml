@@ -41,14 +41,8 @@ settings:
       - {key: intro, type: text, label: 首页介绍, help: 显示在首页头像卡片的自我介绍}
       - {key: avatar, type: image, label: 头像, help: 用于首页头像和“聊聊”弹窗，留空显示首字母}
       - {key: contact, type: url, label: 个人网站, help: 显示在“聊聊”弹窗}
-      - {key: email, type: string, label: 邮箱, help: 显示在“聊聊”弹窗；免责声明没有单独填写邮箱时，也会回退到这里}
+      - {key: email, type: string, label: 邮箱, help: 显示在“聊聊”弹窗}
       - {key: qq, type: string, label: QQ号, help: 显示在“聊聊”弹窗，留空则不显示}
-  - key: disclaimer
-    type: section
-    label: 免责声明
-    preview: post
-    fields:
-      - {key: disclaimer_email, type: string, label: 联系邮箱, help: 显示在文章页和预览弹窗的免责声明里，用于接收侵权下架通知；留空则沿用“个人资料”的邮箱}
   - key: homepage
     type: section
     label: 首页内容

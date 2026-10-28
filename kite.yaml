@@ -62,7 +62,6 @@ theme:
         status: 进行中
         tag: 学习
         title: 识别、修复 AI 缺陷
-    disclaimer_email: admin@macro.wang
 plugins:
   settings:
     comments:

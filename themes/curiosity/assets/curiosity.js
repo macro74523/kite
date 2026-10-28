@@ -895,23 +895,6 @@
         const disc = doc.querySelector('aside.disclaimer');
         if (disc) {
           sDisc.innerHTML = disc.innerHTML;
-          // The preview always carries a reachable address: if the fetched
-          // markup has none, reuse the one already printed in the contact dialog.
-          if (!sDisc.querySelector('a[href^="mailto:"]')) {
-            const mail = document.querySelector('#contact-dialog a[href^="mailto:"]');
-            const list = sDisc.querySelector('ul');
-            if (mail && list) {
-              const li = document.createElement('li');
-              const label = document.createElement('span');
-              const link = document.createElement('a');
-              link.href = mail.getAttribute('href');
-              link.textContent = mail.textContent;
-              label.append('反馈邮箱：', link);
-              li.innerHTML = '<span aria-hidden="true">📮</span>';
-              li.append(label);
-              list.append(li);
-            }
-          }
           sDisc.hidden = false;
         }
         pendingComments = sheetCommentConfig(doc);

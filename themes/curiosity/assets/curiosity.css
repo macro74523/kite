@@ -11,26 +11,27 @@
 
 .clock-card{background:#23261f;color:#fbfbf5;border-color:#23261f;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;min-height:330px;padding:25px}.clock-card .card-heading{width:100%;color:#dddfd4;margin:0}.clock-card .eyebrow{font-size:9px}.clock-face{width:142px;height:142px;border:1px solid #454840;border-radius:50%;position:relative;background:repeating-conic-gradient(from -1deg,#454840 0deg 1deg,transparent 1deg 30deg);margin:0 auto 14px}.clock-face:before{content:'';position:absolute;inset:7px;border-radius:50%;background:#23261f}.clock-face i{display:block;position:absolute;left:50%;bottom:50%;transform-origin:50% 100%;border-radius:3px;z-index:1}.clock-hour,.clock-minute{background:#c6c9be}.clock-hour{width:4px;height:36px;margin-left:-2px}.clock-minute{width:3px;height:53px;margin-left:-1.5px}.clock-second{width:1px;height:58px;background:var(--accent)}.clock-face b{position:absolute;top:calc(50% - 4px);left:calc(50% - 4px);width:8px;height:8px;background:var(--accent);border-radius:50%;z-index:2}#clock-time{font-size:72px;line-height:1.05;font-variant-numeric:tabular-nums;margin:auto 0 18px;white-space:nowrap;font-weight:500;display:flex;align-items:center;gap:2px}#clock-time span{color:var(--lime)}#clock-date{font-size:14px;margin-bottom:auto}.clock-footer{margin-top:22px;border-top:1px solid #53564b;padding-top:18px;width:100%;display:flex;justify-content:flex-start;align-items:center;gap:10px;color:#d9ddd0;font-size:12px}.live-dot{background:var(--lime);width:7px;height:7px;border-radius:50%;display:inline-block}
 
-/* Plan card — quiet goal list: title, thin progress bar, percent */
+/* Plan card — minimal checklist: status dot, goal, segmented meter, percent */
 .plan-card{display:flex;flex-direction:column;position:relative;background:var(--card);border-color:var(--line);box-shadow:0 1px 2px #20221e0a,0 6px 18px #20221e0d}
 .plan-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;position:relative;z-index:2}
 .plan-header .eyebrow{color:var(--muted);letter-spacing:2px}
 .plan-stamp{font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);padding:3px 10px;border-radius:999px;letter-spacing:.04em;font-variant-numeric:tabular-nums}
-/* 计划清单 - 标题、细进度条、百分比，一行一条 */
+/* 计划清单 - 状态点、目标、分段进度、百分比，行间细线分隔 */
 .plan-list{list-style:none;margin:0;padding:0;flex:1;display:flex;flex-direction:column;justify-content:space-evenly;position:relative;z-index:1}
-.plan-item{display:grid;grid-template-columns:minmax(0,1fr) 62px 34px;align-items:center;gap:12px;padding:7px 6px;border-radius:8px;transition:background .18s ease}
-.plan-item:hover{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.plan-item{display:grid;grid-template-columns:15px minmax(0,1fr) 54px 34px;align-items:center;gap:11px;padding:7px 2px}
+.plan-item+.plan-item{border-top:1px solid var(--line)}
+.plan-dot{width:9px;height:9px;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--ink) 30%,transparent);justify-self:center;transition:background .18s ease,border-color .18s ease}
+.plan-item.is-done .plan-dot{background:var(--accent);border-color:var(--accent)}
 .plan-text{min-width:0;display:flex;flex-direction:column;gap:1px}
-.plan-text h3{margin:0;font-size:13.5px;font-weight:550;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+.plan-text h3{margin:0;font-size:13.5px;font-weight:550;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35;transition:color .18s ease}
 .plan-meta{font-family:var(--mono,ui-monospace,monospace);font-size:9.5px;letter-spacing:.06em;color:var(--muted);opacity:.75}
-.plan-bar{height:3px;border-radius:99px;background:var(--line);overflow:hidden}
-.plan-bar i{display:block;height:100%;border-radius:99px;background:color-mix(in srgb,var(--ink) 24%,transparent);transition:background .18s ease}
-.plan-num{font-family:var(--mono,ui-monospace,monospace);font-size:12px;font-weight:600;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
-.plan-item:hover .plan-num{color:var(--ink)}
-.plan-item:hover .plan-bar i{background:var(--accent)}
+.plan-meter{position:relative;height:4px;background:repeating-linear-gradient(90deg,var(--line) 0 8px,transparent 8px 11px)}
+.plan-meter i{position:absolute;top:0;bottom:0;left:0;background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--ink) 58%,transparent) 0 8px,transparent 8px 11px);transition:background .18s ease}
+.plan-num{font-family:var(--mono,ui-monospace,monospace);font-size:12.5px;font-weight:650;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.plan-item:hover .plan-text h3{color:var(--accent)}
+.plan-item:hover .plan-meter i,.plan-item.is-done .plan-meter i{background:repeating-linear-gradient(90deg,var(--accent) 0 8px,transparent 8px 11px)}
 .plan-item.is-done .plan-text h3{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--muted) 45%,transparent)}
 .plan-item.is-done .plan-num{color:var(--accent)}
-.plan-item.is-done .plan-bar i{background:var(--accent)}
 .plan-footer{margin-top:auto;padding-top:11px;border-top:1px solid var(--line);position:relative;z-index:2}
 .plan-quote{font-family:var(--mono,ui-monospace,monospace);font-size:11px;color:var(--muted);letter-spacing:.04em;opacity:.85}
 /* Empty state */
@@ -855,7 +856,7 @@ body.tile-mode.page-home .work-big .moment-dots span.is-current,body.tile-mode.p
 /* Plan card (tiles): tighter rows so the list fits a 1x1 tier */
 body.tile-mode.page-home .plan-card{padding:14px 16px 12px;overflow:hidden}
 body.tile-mode.page-home .plan-card .plan-header{margin-bottom:2px}
-body.tile-mode.page-home .plan-card .plan-item{padding:4px 6px;gap:10px;grid-template-columns:minmax(0,1fr) 52px 32px}
+body.tile-mode.page-home .plan-card .plan-item{padding:4px 2px;gap:9px;grid-template-columns:15px minmax(0,1fr) 52px 30px}
 body.tile-mode.page-home .plan-card .plan-item h3{font-size:13px}
 body.tile-mode.page-home .plan-card .plan-footer{padding-top:8px}
 .tile-handle,.tile-resize{display:none}

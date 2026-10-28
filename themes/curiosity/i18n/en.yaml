@@ -100,10 +100,8 @@ theme:
     intro: {label: Home introduction}
     avatar: {label: Avatar}
     contact: {label: Contact URL}
-    email: {label: Email, help: Shown in the contact dialog; the disclaimer falls back to it when it has no address of its own.}
+    email: {label: Email, help: Shown in the contact dialog.}
     qq: {label: QQ}
-    disclaimer: {label: Disclaimer}
-    disclaimer_email: {label: Contact email, help: Shown in the disclaimer on posts and previews; leave empty to use the profile email.}
     homepage: {label: Home content}
     photo: {label: Photo, help: Leave empty for a generated seaside photograph.}
     photo_caption: {label: Photo caption}
