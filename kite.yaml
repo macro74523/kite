@@ -11,6 +11,8 @@ content:
 
 build:
   output: public
+  pagination:
+    term: 0
 
 publish:
   ping:

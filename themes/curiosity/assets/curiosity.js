@@ -397,29 +397,28 @@
     window.addEventListener('resize', fitWorks);
   }
 
-  // Video works: wrap cover, detect aspect ratio (16:9 landscape, 3:4 portrait)
+  // Video works: wrap every cover in a fixed 16:9 landscape frame so the grid
+  // stays uniform — portrait sources are cropped by object-fit instead.
   document.querySelectorAll('.video-listing .video-card').forEach(card => {
     const img = card.querySelector('img.post-cover');
     if (!img) { card.classList.add('is-loaded'); return; }
     // wrap image
     const wrap = document.createElement('div');
-    wrap.className = 'video-cover-wrap';
+    wrap.className = 'video-cover-wrap is-landscape';
     img.parentNode.insertBefore(wrap, img);
     wrap.appendChild(img);
     let finished = false;
-    const done = (isError) => {
+    const done = () => {
       if (finished) return;
       finished = true;
-      const ratio = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 1.78;
-      wrap.classList.add(ratio > 1 ? 'is-landscape' : 'is-portrait');
       card.classList.add('is-loaded');
     };
-    if (img.complete && img.naturalWidth) done(false);
+    if (img.complete && img.naturalWidth) done();
     else {
-      img.addEventListener('load', () => done(false), { once: true });
-      img.addEventListener('error', () => done(true), { once: true });
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', done, { once: true });
       // Fallback: show content after 3s even if image is still loading
-      setTimeout(() => done(false), 3000);
+      setTimeout(done, 3000);
     }
   });
 
@@ -463,6 +462,98 @@
         });
     }
   }
+
+  // Listing filters: pills are derived from the cards themselves, so any new
+  // tag (or month) shows up automatically on the next build. Filtering is
+  // client-side, and the choice is cached in the URL hash for reload/sharing.
+  (() => {
+    const setup = ({ hostId, gridSel, cardSel, keysOf, labelOf, newestFirst, hashKey, emptyText, allLabel }) => {
+      const host = document.getElementById(hostId);
+      const grid = document.querySelector(gridSel);
+      if (!host || !grid) return;
+      const cards = [...grid.querySelectorAll(cardSel)];
+      const counts = new Map();
+      cards.forEach(c => keysOf(c).forEach(k => counts.set(k, (counts.get(k) || 0) + 1)));
+      if (!counts.size) { host.remove(); return; }
+      const ALL = '__all';
+      const keys = [...counts.keys()].sort((a, b) => newestFirst
+        ? String(b).localeCompare(String(a))
+        : counts.get(b) - counts.get(a) || String(a).localeCompare(String(b), 'zh'));
+      const mk = (key, label, n) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'filter-pill';
+        b.dataset.filter = key;
+        b.innerHTML = '<span></span><em></em>';
+        b.firstChild.textContent = label;
+        b.lastChild.textContent = n;
+        b.setAttribute('aria-pressed', 'false');
+        return b;
+      };
+      host.appendChild(mk(ALL, allLabel || '全部', cards.length));
+      keys.forEach(k => host.appendChild(mk(k, labelOf ? labelOf(k) : k, counts.get(k))));
+      const pills = [...host.children];
+      const empty = document.createElement('p');
+      empty.className = 'filter-empty';
+      empty.textContent = emptyText || '暂无内容';
+      empty.hidden = true;
+      grid.after(empty);
+      const apply = key => {
+        let shown = 0;
+        cards.forEach(c => {
+          const match = key === ALL || keysOf(c).includes(key);
+          c.classList.toggle('is-filtered-out', !match);
+          if (match) shown++;
+        });
+        pills.forEach(p => {
+          const on = p.dataset.filter === key;
+          p.classList.toggle('is-active', on);
+          p.setAttribute('aria-pressed', String(on));
+        });
+        empty.hidden = shown > 0;
+        grid.classList.toggle('is-empty', shown === 0);
+      };
+      let initial = ALL;
+      const m = new RegExp('(?:#|&)' + hashKey + '=([^&]+)').exec(location.hash);
+      if (m) {
+        const wanted = decodeURIComponent(m[1]);
+        if (counts.has(wanted)) initial = wanted;
+      }
+      apply(initial);
+      host.addEventListener('click', e => {
+        const pill = e.target.closest('.filter-pill');
+        if (!pill) return;
+        const key = pill.dataset.filter;
+        apply(key);
+        history.replaceState(null, '', location.pathname + location.search
+          + (key === ALL ? '' : '#' + hashKey + '=' + encodeURIComponent(key)));
+      });
+    };
+
+    // Works: one pill per tag, ordered by how many pieces carry it.
+    setup({
+      hostId: 'video-filter',
+      gridSel: '.video-listing .video-masonry',
+      cardSel: '.video-card',
+      keysOf: c => (c.dataset.tags || '').split('|').filter(Boolean),
+      hashKey: 'tag',
+      allLabel: '全部',
+      emptyText: '该分类暂无作品'
+    });
+
+    // Moments: one pill per month, newest month first.
+    setup({
+      hostId: 'moments-filter',
+      gridSel: '.moments-stream',
+      cardSel: '.moment-card',
+      keysOf: c => (c.dataset.date ? [c.dataset.date] : []),
+      labelOf: k => k.replace('-', '.'),
+      newestFirst: true,
+      hashKey: 'month',
+      allLabel: '全部',
+      emptyText: '该时间暂无瞬间'
+    });
+  })();
 
   // Product-card press feedback on the works grid: the card tilts toward
   // the pressed corner (max 8deg), a faint sheen tracks the finger, and
@@ -949,8 +1040,9 @@
     glassProbe();
   }
 
-  // Archive map: the site drawn as a map — a hub for the whole site, big
-  // stops for categories, small dots for posts, spokes linking it together.
+  // Archive map: the site drawn as a real map — one continent holding every
+  // stop, roads from the capital (home) to cities (categories), trail dots
+  // for posts, plus graticule, compass, scale bar and a named sea.
   const mapHost = document.getElementById('archive-map');
   if (mapHost) {
     const dataEl = mapHost.parentElement.querySelector('.archive-data');
@@ -971,45 +1063,139 @@
         svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
         svg.setAttribute('role', 'img');
         const el = (tag, attrs, parent) => {
-          const n = document.createElementNS(NS, tag);
-          for (const k in attrs) n.setAttribute(k, attrs[k]);
-          (parent || svg).appendChild(n);
-          return n;
+          const node = document.createElementNS(NS, tag);
+          for (const k in attrs) node.setAttribute(k, attrs[k]);
+          (parent || svg).appendChild(node);
+          return node;
         };
+        // Deterministic pseudo-random so the coastline stays stable between loads.
+        let seed = 11;
+        const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+        const f = v => Math.round(v * 10) / 10;
+        // Coastline: layered harmonics make natural bays and headlands.
+        // One harmonic set per landmass, so the inner coastline matches.
+        const makeCoast = (cx, cy, squash) => {
+          const harms = [0, 1, 2].map(o => ({
+            k: 2 + o * 2 + Math.floor(rnd() * 2),
+            amp: [.07, .035, .018][o],
+            ph: rnd() * Math.PI * 2
+          }));
+          return r => {
+            let d = '';
+            for (let i = 0; i < 90; i++) {
+              const a = i / 90 * Math.PI * 2;
+              let rr = 1;
+              for (const h of harms) rr += h.amp * Math.sin(h.k * a + h.ph);
+              d += (i ? 'L' : 'M') + f(cx + Math.cos(a) * r * rr) + ',' + f(cy + Math.sin(a) * r * rr * squash);
+            }
+            return d + 'Z';
+          };
+        };
+        // Winding footpath between two points — bends like a real trail.
+        const trail = (x1, y1, x2, y2) => {
+          const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+          const nx = -dy / len, ny = dx / len;
+          let d = `M${f(x1)},${f(y1)}`;
+          let lx = x1, ly = y1;
+          for (let s = 1; s <= 3; s++) {
+            const t = s / 3;
+            const off = s === 3 ? 0 : (rnd() - .5) * len * .36;
+            const ex = x1 + dx * t + nx * off, ey = y1 + dy * t + ny * off;
+            const cxm = (lx + ex) / 2 + nx * (rnd() - .5) * len * .14;
+            const cym = (ly + ey) / 2 + ny * (rnd() - .5) * len * .14;
+            d += `Q${f(cxm)},${f(cym)} ${f(ex)},${f(ey)}`;
+            lx = ex; ly = ey;
+          }
+          return d;
+        };
+        // Five-point star for the capital.
+        const star = (cx, cy, rO, rI) => {
+          let d = '';
+          for (let i = 0; i < 10; i++) {
+            const rr = i % 2 ? rI : rO, a = -Math.PI / 2 + i * Math.PI / 5;
+            d += (i ? 'L' : 'M') + f(cx + Math.cos(a) * rr) + ',' + f(cy + Math.sin(a) * rr);
+          }
+          return d + 'Z';
+        };
+
+        const gratLayer = el('g', { class: 'map-grats' });
+        const landLayer = el('g', { class: 'map-lands' });
+        const decoLayer = el('g', { class: 'map-deco' });
         const lineLayer = el('g', { class: 'map-lines' });
         const nodeLayer = el('g', { class: 'map-nodes' });
 
-        // Hub for the whole site.
-        const hub = el('a', { href: '/', class: 'map-hub' }, nodeLayer);
-        const hubLabel = el('text', { x: CX, y: CY - 16, class: 'map-hub-label', 'text-anchor': 'middle' }, hub);
-        hubLabel.textContent = mapHost.dataset.homeLabel || 'HOME';
-        el('circle', { cx: CX, cy: CY, r: 8, class: 'map-hub-dot' }, hub);
+        // Graticule — gently curved meridians and parallels across the sea.
+        for (let i = 1; i < 6; i++) {
+          const gx = W * i / 6;
+          el('path', { d: `M${f(gx)},-12 Q${f(gx + 9)},${f(H / 2)} ${f(gx)},${H + 12}`, class: 'map-grat' }, gratLayer);
+        }
+        for (let i = 1; i < 5; i++) {
+          const gy = H * i / 5;
+          el('path', { d: `M-12,${f(gy)} Q${f(W / 2)},${f(gy + 7)} ${W + 12},${f(gy)}`, class: 'map-grat' }, gratLayer);
+        }
 
         const n = cats.length;
         const R = n <= 3 ? 88 : 100;
         const PR = 40;
+
+        // One continent holding every stop, plus a vintage inner coastline.
+        const landR = R + PR + 26;
+        const coast = makeCoast(CX, CY, .86);
+        el('path', { d: coast(landR), class: 'map-land' }, landLayer);
+        el('path', { d: coast(landR * .9), class: 'map-coast-inner' }, landLayer);
+        // Satellite islets out in the ocean.
+        el('path', { d: makeCoast(34, 44, .8)(15), class: 'map-islet' }, landLayer);
+        el('path', { d: makeCoast(W - 30, H - 52, .85)(11), class: 'map-islet' }, landLayer);
+
+        // Wave marks scattered on open water.
+        const inLand = (px, py) => {
+          const dx = (px - CX) / (landR * 1.02), dy = (py - CY) / (landR * .9);
+          return dx * dx + dy * dy < 1;
+        };
+        for (let i = 0; i < 26; i++) {
+          const px = 14 + rnd() * (W - 28), py = 12 + rnd() * (H - 24);
+          if (inLand(px, py)) continue;
+          el('path', { d: `M${f(px)},${f(py)} q3,-3.5 6,0 q3,3.5 6,0`, class: 'map-wave' }, decoLayer);
+        }
+
+        // Capital: star in a ring, hub of every road.
+        const hub = el('a', { href: '/', class: 'map-hub' }, nodeLayer);
+        const hubLabel = el('text', { x: CX, y: CY - 17, class: 'map-hub-label', 'text-anchor': 'middle' }, hub);
+        hubLabel.textContent = mapHost.dataset.homeLabel || 'HOME';
+        el('circle', { cx: CX, cy: CY, r: 10.5, class: 'map-hub-ring' }, hub);
+        el('path', { d: star(CX, CY, 7, 2.9), class: 'map-hub-star' }, hub);
+
         cats.forEach((cat, i) => {
           const ang = -Math.PI / 2 + i * 2 * Math.PI / n;
           const x = CX + Math.cos(ang) * R, y = CY + Math.sin(ang) * R;
-          el('line', { x1: CX, y1: CY, x2: x, y2: y, class: 'map-line' }, lineLayer);
+          // Road: gently curved like a real route, casing underneath.
+          const dx = x - CX, dy = y - CY, len = Math.hypot(dx, dy) || 1;
+          const mx = (CX + x) / 2 - dy / len * 13, my = (CY + y) / 2 + dx / len * 13;
+          const d = `M${f(CX)},${f(CY)} Q${f(mx)},${f(my)} ${f(x)},${f(y)}`;
+          el('path', { d, class: 'map-road-case' }, lineLayer).dataset.cat = cat.name;
+          el('path', { d, class: 'map-road' }, lineLayer).dataset.cat = cat.name;
+          // City: ringed circle sized by how many posts it holds.
           const g = el('a', { href: cat.url, class: 'map-cat' }, nodeLayer);
           g.dataset.cat = cat.name;
-          el('circle', { cx: x, cy: y, r: 5.5 + Math.min(cat.posts.length, 5) * 0.9, class: 'map-cat-dot' }, g);
-          const lx = CX + Math.cos(ang) * (R + 18), ly = CY + Math.sin(ang) * (R + 18);
+          const cr = 6 + Math.min(cat.posts.length, 5) * .8;
+          el('circle', { cx: f(x), cy: f(y), r: f(cr), class: 'map-cat-dot' }, g);
+          el('circle', { cx: f(x), cy: f(y), r: f(cr * .38), class: 'map-cat-core' }, g);
+          const lx = CX + Math.cos(ang) * (R + 19), ly = CY + Math.sin(ang) * (R + 19);
           const label = el('text', {
-            x: lx, y: ly, class: 'map-cat-label',
+            x: f(lx), y: f(ly), class: 'map-cat-label',
             'text-anchor': Math.cos(ang) > .35 ? 'start' : Math.cos(ang) < -.35 ? 'end' : 'middle',
             'dominant-baseline': Math.sin(ang) > .35 ? 'hanging' : Math.sin(ang) < -.35 ? 'auto' : 'middle'
           }, g);
           label.textContent = cat.name;
+          // Posts: trail dots on dashed footpaths off each city.
           const m = cat.posts.length;
           cat.posts.forEach((p, j) => {
             const pa = ang + (m === 1 ? 0 : (j / (m - 1) - .5) * .46);
             const px = x + Math.cos(pa) * PR, py = y + Math.sin(pa) * PR;
-            el('line', { x1: x, y1: y, x2: px, y2: py, class: 'map-thread' }, lineLayer).dataset.cat = cat.name;
+            el('path', { d: trail(x, y, px, py), class: 'map-thread' }, lineLayer).dataset.cat = cat.name;
             const dot = el('a', { href: p.u, class: 'map-post-dot' }, nodeLayer);
             dot.dataset.cat = cat.name;
-            el('circle', { cx: px, cy: py, r: 3, class: 'map-post-circle' }, dot);
+            el('circle', { cx: f(px), cy: f(py), r: 4.2, class: 'map-post-circle' }, dot);
             const tip = document.createElementNS(NS, 'title');
             tip.textContent = p.t;
             dot.appendChild(tip);
@@ -1021,6 +1207,19 @@
             svg.querySelectorAll('.is-hl').forEach(e2 => e2.classList.remove('is-hl'));
           });
         });
+
+        // Cartography dressing: compass rose, scale bar and the sea's name.
+        const cmpX = W - 40, cmpY = 40;
+        el('circle', { cx: cmpX, cy: cmpY, r: 12, class: 'map-compass-ring' }, decoLayer);
+        el('path', { d: `M${cmpX},${cmpY - 8.5} L${f(cmpX + 3)},${f(cmpY + 3)} L${cmpX},${f(cmpY + .8)} L${f(cmpX - 3)},${f(cmpY + 3)} Z`, class: 'map-compass-n' }, decoLayer);
+        const nLbl = el('text', { x: cmpX, y: cmpY - 16, class: 'map-compass-label', 'text-anchor': 'middle' }, decoLayer);
+        nLbl.textContent = 'N';
+        for (let si = 0; si < 4; si++) {
+          el('rect', { x: 18 + si * 12, y: H - 18, width: 12, height: 3.4, class: 'map-scale' + (si % 2 ? ' is-alt' : '') }, decoLayer);
+        }
+        const sea = el('text', { x: 56, y: 30, class: 'map-sea', 'text-anchor': 'start' }, decoLayer);
+        sea.textContent = locale.startsWith('zh') ? '归 档 之 海' : 'THE ARCHIVE SEA';
+
         mapHost.appendChild(svg);
         // Fit the viewBox tightly around everything that was drawn —
         // labels poke past the nominal 360×300 canvas — so the map
@@ -1030,6 +1229,63 @@
           const pad = 6;
           svg.setAttribute('viewBox', (bb.x - pad) + ' ' + (bb.y - pad) + ' ' + (bb.width + pad * 2) + ' ' + (bb.height + pad * 2));
         } catch (e) {}
+        // Wheel zoom (cursor-anchored) + drag to pan. Accounts for the
+        // letterboxing that preserveAspectRatio="meet" adds inside the host.
+        const base = svg.getAttribute('viewBox').split(/\s+/).map(Number);
+        const vb = { x: base[0], y: base[1], w: base[2], h: base[3] };
+        const draw = () => svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+        const clamp = () => {
+          const mX = base[2] * .25, mY = base[3] * .25;
+          vb.x = Math.min(Math.max(vb.x, base[0] - mX), base[0] + base[2] - vb.w + mX);
+          vb.y = Math.min(Math.max(vb.y, base[1] - mY), base[1] + base[3] - vb.h + mY);
+        };
+        // Start zoomed in on the continent centre — the default view reads
+        // better close-up, and the wheel/drag gestures take it from there.
+        vb.w = base[2] / 1.5; vb.h = base[3] / 1.5;
+        vb.x = CX - vb.w / 2; vb.y = CY - vb.h / 2;
+        clamp(); draw();
+        svg.addEventListener('wheel', e => {
+          e.preventDefault();
+          const rect = svg.getBoundingClientRect();
+          const scale = Math.min(rect.width / vb.w, rect.height / vb.h);
+          const mx = vb.x + (e.clientX - rect.left - (rect.width - vb.w * scale) / 2) / scale;
+          const my = vb.y + (e.clientY - rect.top - (rect.height - vb.h * scale) / 2) / scale;
+          let nw = vb.w * (e.deltaY < 0 ? .82 : 1.22);
+          nw = Math.max(base[2] / 5, Math.min(base[2], nw));
+          const nh = nw * base[3] / base[2];
+          vb.x = mx - (mx - vb.x) * (nw / vb.w);
+          vb.y = my - (my - vb.y) * (nh / vb.h);
+          vb.w = nw; vb.h = nh;
+          clamp(); draw();
+        }, { passive: false });
+        let drag = null;
+        svg.addEventListener('pointerdown', e => {
+          if (e.button !== 0) return;
+          drag = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y, moved: false };
+          svg.setPointerCapture(e.pointerId);
+        });
+        svg.addEventListener('pointermove', e => {
+          if (!drag) return;
+          const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+          if (!drag.moved && Math.hypot(dx, dy) < 4) return;
+          drag.moved = true;
+          svg.classList.add('is-dragging');
+          const rect = svg.getBoundingClientRect();
+          const scale = Math.min(rect.width / vb.w, rect.height / vb.h);
+          vb.x = drag.vx - dx / scale;
+          vb.y = drag.vy - dy / scale;
+          clamp(); draw();
+        });
+        const endDrag = () => {
+          if (drag && drag.moved) {
+            // Swallow the click that follows a drag so map links don't fire.
+            svg.addEventListener('click', ev => { ev.stopPropagation(); ev.preventDefault(); }, { capture: true, once: true });
+          }
+          drag = null;
+          svg.classList.remove('is-dragging');
+        };
+        svg.addEventListener('pointerup', endDrag);
+        svg.addEventListener('pointercancel', endDrag);
       } else {
         mapHost.insertAdjacentHTML('beforeend', '<p class="quiet">No posts yet.</p>');
       }

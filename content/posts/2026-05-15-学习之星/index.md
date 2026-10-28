@@ -8,10 +8,8 @@ og_image: https://jpg.macro.wang/20261011113219730.jpg
 published_at: 2026-05-16T00:00:00Z
 slug: 2026-05-15-学习之星
 status: published
-tags:
-    - 长视频
 title: 学习之星
-updated_at: 2026-10-12T00:47:15Z
+updated_at: 2026-10-28T03:52:30Z
 pinned: true
 ---
 

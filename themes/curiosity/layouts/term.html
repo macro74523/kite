@@ -1,10 +1,11 @@
 {{ define "main" }}{{ if and (eq .Page.Type "categories") (eq .Page.Title "瞬间") }}
 <section class="listing moments-listing">
   <header class="moments-heading"><span class="eyebrow">MOMENTS / 瞬间</span><h1>{{ .Page.Title }}</h1></header>
+  <div class="filter-bar" id="moments-filter" role="group" aria-label="按时间筛选"></div>
   <div class="moments-two-col">
   <div class="moments-stream">
     {{ $mi := 0 }}{{ range .Pages }}
-    <article class="moment-card" id="moment-{{ $mi }}">
+    <article class="moment-card" id="moment-{{ $mi }}" data-date="{{ if not (time.IsZero .PublishDate) }}{{ time.Format "2006-01" .PublishDate }}{{ end }}">
       <header class="moment-header">{{ with $.Site.ThemeSettings.avatar }}<span class="moment-avatar"><img src="{{ url.Rel . }}" alt="{{ default $.Site.Title $.Site.Author }}"></span>{{ else }}<span class="moment-avatar">{{ str.Truncate 1 (default $.Site.Title $.Site.Author) }}</span>{{ end }}<div><strong>{{ default $.Site.Title $.Site.Author }}</strong><a class="moment-date" href="{{ .RelPermalink }}"><time datetime="{{ time.Format "2006-01-02" .PublishDate }}">{{ if not (time.IsZero .PublishDate) }}{{ time.Format "2006.01.02 15:04" .PublishDate }}{{ end }}</time></a></div></header>
       <div class="moment-body"><h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2><div class="moment-content">{{ .Content }}</div>{{ partial "cover.html" . }}</div>
       {{ $mtags := .Terms "tags" }}{{ if $mtags }}<footer class="moment-footer">{{ range $mtags }}<a href="{{ .RelPermalink }}">#{{ .Name }}</a>{{ end }}</footer>{{ end }}
@@ -21,9 +22,10 @@
 {{ else if and (eq .Page.Type "categories") (eq .Page.Title "视频作品") }}
 <section class="listing video-listing">
   <header class="listing-heading"><span class="eyebrow">{{ T "explore" }}</span><h1>{{ .Page.Title }}</h1>{{ with .Page.Description }}<p>{{ . }}</p>{{ end }}<div class="content">{{ .Page.Content }}</div></header>
+  <div class="filter-bar" id="video-filter" role="group" aria-label="筛选分类"></div>
   <div class="video-masonry">
-    {{ $i := 0 }}{{ range .Pages }}{{ if .Params.pinned }}<article class="video-card" style="--i:{{ $i }}"><a class="video-card-link" href="{{ .RelPermalink }}"><span class="pin-badge" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" focusable="false"><path d="M12 2l2.9 6.26 6.85.72-5.09 4.57 1.43 6.73L12 16.9l-6.09 3.38 1.43-6.73L2.25 8.98l6.85-.72L12 2z"/></svg></span>{{ partial "cover.html" . }}<div class="video-card-body"><h2>{{ .Title }}</h2><div class="video-card-meta">{{ if not (time.IsZero .PublishDate) }}<time datetime="{{ time.Format "2006-01-02" .PublishDate }}">{{ time.Format "2006.01.02" .PublishDate }}</time>{{ end }}{{ range .Terms "tags" }}<span class="video-card-tag">{{ .Name }}</span>{{ end }}</div></div></a></article>{{ $i = math.Add $i 1 }}{{ end }}{{ end }}
-    {{ range .Pages }}{{ if not .Params.pinned }}<article class="video-card" style="--i:{{ $i }}"><a class="video-card-link" href="{{ .RelPermalink }}">{{ partial "cover.html" . }}<div class="video-card-body"><h2>{{ .Title }}</h2><div class="video-card-meta">{{ if not (time.IsZero .PublishDate) }}<time datetime="{{ time.Format "2006-01-02" .PublishDate }}">{{ time.Format "2006.01.02" .PublishDate }}</time>{{ end }}{{ range .Terms "tags" }}<span class="video-card-tag">{{ .Name }}</span>{{ end }}</div></div></a></article>{{ $i = math.Add $i 1 }}{{ end }}{{ end }}
+    {{ $i := 0 }}{{ range .Pages }}{{ if .Params.pinned }}<article class="video-card" style="--i:{{ $i }}" data-tags="{{ range .Terms "tags" }}{{ .Name }}|{{ end }}"><a class="video-card-link" href="{{ .RelPermalink }}"><span class="pin-badge" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" focusable="false"><path d="M12 2l2.9 6.26 6.85.72-5.09 4.57 1.43 6.73L12 16.9l-6.09 3.38 1.43-6.73L2.25 8.98l6.85-.72L12 2z"/></svg></span>{{ partial "cover.html" . }}<div class="video-card-body"><h2>{{ .Title }}</h2><div class="video-card-meta">{{ if not (time.IsZero .PublishDate) }}<time datetime="{{ time.Format "2006-01-02" .PublishDate }}">{{ time.Format "2006.01.02" .PublishDate }}</time>{{ end }}{{ range .Terms "tags" }}<span class="video-card-tag">{{ .Name }}</span>{{ end }}</div></div></a></article>{{ $i = math.Add $i 1 }}{{ end }}{{ end }}
+    {{ range .Pages }}{{ if not .Params.pinned }}<article class="video-card" style="--i:{{ $i }}" data-tags="{{ range .Terms "tags" }}{{ .Name }}|{{ end }}"><a class="video-card-link" href="{{ .RelPermalink }}">{{ partial "cover.html" . }}<div class="video-card-body"><h2>{{ .Title }}</h2><div class="video-card-meta">{{ if not (time.IsZero .PublishDate) }}<time datetime="{{ time.Format "2006-01-02" .PublishDate }}">{{ time.Format "2006.01.02" .PublishDate }}</time>{{ end }}{{ range .Terms "tags" }}<span class="video-card-tag">{{ .Name }}</span>{{ end }}</div></div></a></article>{{ $i = math.Add $i 1 }}{{ end }}{{ end }}
     {{ if eq (len .Pages) 0 }}<p>{{ T "empty" }}</p>{{ end }}
   </div>
   {{ partial "pagination.html" . }}
