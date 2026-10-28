@@ -4,11 +4,10 @@ title: 住之篇
 slug: 0住之篇
 status: published
 created_at: 2026-10-20T01:43:35Z
-cover: https://jpg.macro.wang/20261020131117499.jpg
+cover: 8e831287ce95a91fbeee11f3451fc5d3.png
 categories:
   - 视频作品
 tags:
-  - 长视频
   - 学校宣传片
 published_at: 2023-08-01T09:00:00Z
 ---
