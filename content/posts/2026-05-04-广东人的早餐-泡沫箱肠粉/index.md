@@ -9,8 +9,9 @@ published_at: 2026-05-05T00:00:00Z
 slug: 2026-05-04-广东人的早餐-泡沫箱肠粉
 status: published
 tags:
-    - 长视频
+  - 文旅系列
 title: 广东人的早餐：泡沫箱肠粉
-updated_at: 2026-05-04T00:00:00Z
+updated_at: 2026-10-28T03:47:39Z
 ---
+
 &lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=407149708&bvid=BV1QG41117Uu&cid=1301228541&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=407149708&bvid=BV1QG41117Uu&cid=1301228541&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
