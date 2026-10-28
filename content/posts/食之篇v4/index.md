@@ -4,9 +4,8 @@ title: 食之篇V4
 slug: 食之篇v4
 status: published
 created_at: 2026-10-20T01:43:10Z
-cover: https://jpg.macro.wang/20261020131117499.jpg
+cover: ecfb62cf8e2102b82497ef6622c10242.png
 tags:
-  - 长视频
   - 学校宣传片
 categories:
   - 视频作品
