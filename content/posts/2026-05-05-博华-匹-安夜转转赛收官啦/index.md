@@ -9,9 +9,9 @@ published_at: 2026-05-06T00:00:00Z
 slug: 2026-05-05-博华-匹-安夜转转赛收官啦
 status: published
 tags:
-    - 短视频
+  - 活动快剪
 title: 博华 “匹” 安夜转转赛收官啦！
-updated_at: 2026-10-12T00:37:20Z
+updated_at: 2026-10-28T03:47:28Z
 pinned: true
 ---
 
