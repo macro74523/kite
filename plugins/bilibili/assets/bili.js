@@ -8,6 +8,15 @@
   var bvidRe = /[?&]bvid=([A-Za-z0-9]+)/i;
   var CACHE_KEY = 'bili-video-dims';
 
+  // 强制把 B 站播放器 URL 升级到 https。
+  // https 主站嵌入 http iframe 会被浏览器当成 Mixed Content 直接拦截
+  // （不同浏览器/扩展策略不同，所以用户体感是"有概率播放不了"）。
+  // player.bilibili.com 完全支持 https，不需要降级。
+  function upgradeHttps(u) {
+    if (!u || typeof u !== 'string') return u;
+    return u.replace(/^(?:https?:)?\/\//i, 'https://');
+  }
+
   function readCache() {
     try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch (e) { return {}; }
   }
@@ -79,12 +88,12 @@
 
       // 优先从 <a> 标签拿干净 URL
       var a = el.querySelector('a[href*="player.bilibili.com"]');
-      var url = a ? a.href : null;
+      var url = a ? upgradeHttps(a.href) : null;
 
       // 兜底：从文本里提取
       if (!url) {
         var m = text.match(urlRe);
-        if (m) url = m[0].startsWith('//') ? 'https:' + m[0] : m[0];
+        if (m) url = upgradeHttps(m[0]);
       }
       if (!url) return;
 
@@ -96,7 +105,7 @@
         var u = new URL(url);
         if (!u.searchParams.has('high_quality')) u.searchParams.set('high_quality', '1');
         if (!u.searchParams.has('autoplay')) u.searchParams.set('autoplay', '0');
-        url = u.toString();
+        url = upgradeHttps(u.toString());
       } catch (_) { /* URL 解析失败就原样用 */ }
 
       var box = doc.createElement('div');
@@ -170,10 +179,14 @@
   }
 
   // 对构建阶段已生成的 .bili-player 也加上 ready 状态控制
+  // 同时把服务端可能硬编码的 http://player.bilibili.com src 升级到 https
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.bili-player iframe').forEach(function (frame) {
       var box = frame.parentElement;
       if (!box || !box.classList.contains('bili-player')) return;
+      if (/^http:\/\/player\.bilibili\.com\//i.test(frame.src)) {
+        frame.src = upgradeHttps(frame.src);
+      }
       if (frame.complete) { box.classList.add('is-ready'); return; }
       var readyFired = false;
       frame.addEventListener('load', function () { readyFired = true; box.classList.add('is-ready'); });
