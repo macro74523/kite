@@ -1,5 +1,5 @@
 ---
-categories: []
+categories: [Example]
 cover: https://jpg.macro.wang/20260812122404861.jpg
 created_at: 2026-10-05T10:00:00Z
 description: 一篇完整展示 Markdown 排版能力的示例文章，包含标题、列表、引用、代码、表格等常用元素。
@@ -11,7 +11,7 @@ status: published
 tags:
     - 示例
 title: Markdown 排版完全指南
-updated_at: 2026-10-05T10:00:00Z
+updated_at: 2026-10-29T14:05:04Z
 ---
 
 ## 标题层级
