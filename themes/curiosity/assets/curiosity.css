@@ -1002,12 +1002,19 @@ html[data-theme=dark] .header-actions .tt-lever{transform:translateX(28px)}
 
 /* ===== 一瞬页：顶部统计 / 满宽 / 三列追番 / 点赞条 ===== */
 .listing.moments-listing{max-width:none}
-.moments-stats{display:flex;gap:12px;margin:0 0 22px;flex-wrap:wrap}
-.mstat{flex:1 1 0;min-width:120px;padding:14px 18px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card)}
+.moments-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:0 0 22px}
+.mstat{position:relative;min-width:0;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);overflow:hidden}
+.mstat-ico{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin-bottom:10px;border-radius:9px;background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--muted)}
 .mstat b{display:block;font-size:26px;font-weight:850;letter-spacing:-.6px;line-height:1.05;color:var(--ink);font-variant-numeric:tabular-nums;transition:opacity .3s}
 .mstat b.is-pending{opacity:.35;animation:mstatPulse 1.4s ease-in-out infinite}
 @keyframes mstatPulse{0%,100%{opacity:.22}50%{opacity:.55}}
-.mstat span{display:block;margin-top:7px;font-size:10.5px;letter-spacing:.12em;color:var(--muted)}
+.mstat-k{display:block;margin-top:8px;font-size:10.5px;letter-spacing:.12em;color:var(--muted)}
+.mstat-k .tz{display:inline-block;margin-left:5px;padding:1px 5px;border:1px solid var(--line);border-radius:999px;font-style:normal;font-size:9px;letter-spacing:.06em;line-height:1.4;color:color-mix(in srgb,var(--muted) 82%,transparent);vertical-align:1px}
+.mstat-time b{display:flex;align-items:baseline;gap:7px;font-size:19px;letter-spacing:-.2px;white-space:nowrap}
+.mstat-time b .last-day{font-weight:850}
+.mstat-time b .last-clock{font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--muted)}
+@media(max-width:1180px){.moments-stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:620px){.moments-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(min-width:1001px){.moments-two-col{grid-template-columns:minmax(0,1fr) 380px}}
 .moments-listing .bangumi-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .moments-listing .bangumi-item{padding:5px;gap:5px;flex-direction:column;align-items:stretch}
@@ -1021,10 +1028,34 @@ html[data-theme=dark] .header-actions .tt-lever{transform:translateX(28px)}
 .moment-act-end{margin-left:auto}
 .moment-act[data-act=like].is-liked{color:#ef4444;transform:scale(1.06)}
 .moment-act[data-act=like].is-liked svg{fill:#ef4444;stroke:#ef4444}
+.moment-header time{display:flex;align-items:center;gap:6px;margin-top:3px;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.moment-header time .md-date{font-weight:700;letter-spacing:.02em;color:color-mix(in srgb,var(--ink) 74%,transparent)}
+.moment-header time .md-clock{letter-spacing:.02em}
+.moment-header time .md-tz{padding:1px 5px;border:1px solid var(--line);border-radius:999px;font-size:9px;letter-spacing:.06em;line-height:1.5;color:color-mix(in srgb,var(--muted) 78%,transparent)}
+
+/* ===== 一瞬页皮肤：跟随导航拉杆的皮肤（purple / halloween / mono） ===== */
+.moments-listing{--ms-accent:var(--accent);--ms-tint:color-mix(in srgb,var(--accent) 10%,transparent);--ms-ring:color-mix(in srgb,var(--accent) 45%,transparent)}
+[data-page-skin=halloween] .moments-listing{--ms-accent:#ff8a2b;--ms-tint:color-mix(in srgb,#ff8a2b 12%,transparent);--ms-ring:color-mix(in srgb,#ff8a2b 48%,transparent)}
+[data-page-skin=mono] .moments-listing{--ms-accent:var(--ink);--ms-tint:color-mix(in srgb,var(--ink) 6%,transparent);--ms-ring:color-mix(in srgb,var(--ink) 30%,transparent)}
+.moments-listing .moments-heading .eyebrow{color:var(--ms-accent)}
+.moments-listing .moments-heading h1::after{content:'';display:block;width:46px;height:2px;margin-top:12px;border-radius:2px;background:linear-gradient(90deg,var(--ms-accent),transparent)}
+[data-page-skin=halloween] .moments-listing .moments-heading .eyebrow::before{content:'🎃 '}
+.moments-listing .mstat{transition:transform .25s,border-color .25s,box-shadow .25s}
+.moments-listing .mstat:hover{transform:translateY(-1px);border-color:var(--ms-ring);box-shadow:0 8px 20px color-mix(in srgb,var(--ms-accent) 10%,transparent)}
+.moments-listing .mstat-ico{background:var(--ms-tint);color:var(--ms-accent)}
+.moments-listing .mstat b.is-pending{color:var(--ms-accent)}
+.moments-listing .moment-card{transition:border-color .25s,box-shadow .25s}
+.moments-listing .moment-card:hover{border-color:var(--ms-ring);box-shadow:0 12px 30px color-mix(in srgb,var(--ms-accent) 10%,transparent)}
+.moments-listing .moment-avatar{box-shadow:0 0 0 2px var(--ms-tint)}
+.moments-listing .moment-date .md-tz{border-color:var(--ms-ring);color:var(--ms-accent)}
+.moments-listing .moment-act[data-act=like].is-liked{color:var(--ms-accent)}
+.moments-listing .moment-act[data-act=like].is-liked svg{stroke:var(--ms-accent);fill:var(--ms-accent)}
+.moments-listing .memo-open:hover{border-color:var(--ms-accent);color:var(--ms-accent);background:var(--ms-tint)}
 @media(max-width:1000px){
 .moments-listing .bangumi-list{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
 .mstat{padding:12px 14px}
 .mstat b{font-size:22px}
+.mstat-time b{font-size:16px}
 }
 
 /* ===== 一瞬页留言板：弹窗编辑 + 右栏列表 ===== */

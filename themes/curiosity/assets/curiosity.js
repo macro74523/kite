@@ -32,7 +32,9 @@
     const halloween = now >= new Date(y, 9, 26) && now < new Date(y, 10, 5);
     const forced = new URLSearchParams(location.search).get('skin');
     const skins = ['purple', 'halloween', 'mono'];
-    btn.dataset.skin = skins.includes(forced) ? forced : (halloween ? 'halloween' : 'purple');
+    const skin = skins.includes(forced) ? forced : (halloween ? 'halloween' : 'purple');
+    btn.dataset.skin = skin;
+    root.setAttribute('data-page-skin', skin);
   })();
 
   // 留言条目渲染：列表页与「阅读原文」抽屉共用，所以放在模块外
@@ -90,11 +92,13 @@
     const countEl = document.getElementById('memo-count');
 
     const say = (text, kind) => { if (statusEl) { statusEl.textContent = text; statusEl.dataset.kind = kind || ''; } };
+    const settled = (el) => { if (el) el.classList.remove('is-pending'); };
 
     function render(items, count) {
       if (countEl) countEl.textContent = count ? `${count} 条` : '';
       const statMsg = document.getElementById('stat-messages');
-      if (statMsg) { statMsg.textContent = String(count || 0); statMsg.classList.remove('is-pending'); }
+      if (statMsg) { statMsg.textContent = String(count || 0); settled(statMsg); }
+      paintLast();
       if (!items.length) { listEl.innerHTML = ''; listEl.append(memoEmpty()); return; }
       listEl.innerHTML = '';
       items.forEach((c) => listEl.append(memoRow(c)));
@@ -159,7 +163,35 @@
     }
 
     // 统计数据懒加载：滚动到统计卡附近再拉接口，避免首屏就发跨域请求
-    const settled = (el) => { if (el) el.classList.remove('is-pending'); };
+    const moments = () => Array.from(document.querySelectorAll('.moment-card'));
+    const TZ = 'Asia/Shanghai';
+    const TZ_PARTS = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+    const stamp = (ms) => {
+      const p = {};
+      TZ_PARTS.formatToParts(new Date(ms)).forEach((x) => { p[x.type] = x.value; });
+      return { y: p.year, m: p.month, d: p.day, h: p.hour, mi: p.minute, key: Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day)) };
+    };
+    const momentStamps = () => moments()
+      .map((c) => (c.dataset.time ? Date.parse(c.dataset.time.replace(' ', 'T') + ':00+08:00') : 0))
+      .filter((n) => n);
+    function paintLast() {
+      const stamps = momentStamps();
+      const last = stamps.length ? Math.max(...stamps) : 0;
+      const el = document.getElementById('stat-last');
+      if (el && last) {
+        const s = stamp(last);
+        el.innerHTML = '<span class="last-day">' + s.y + '.' + s.m + '.' + s.d + '</span><span class="last-clock">' + s.h + ':' + s.mi + '</span>';
+        settled(el);
+      }
+      const daysEl = document.getElementById('stat-days');
+      if (!daysEl) return;
+      if (stamps.length) {
+        const start = stamp(Math.min(...stamps)).key;
+        const today = stamp(Date.now()).key;
+        daysEl.textContent = String(Math.max(1, Math.round((today - start) / 86400000) + 1));
+      }
+      settled(daysEl);
+    }
     const loadVisitors = () => {
       const el = document.getElementById('stat-visitors');
       const S = window.curiosityStats;
@@ -182,6 +214,7 @@
     const boot = () => {
       if (booted) return;
       booted = true;
+      paintLast();
       load();
       loadVisitors();
     };
