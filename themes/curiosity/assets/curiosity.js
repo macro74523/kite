@@ -21,6 +21,20 @@
   }
   mq.addEventListener('change', () => { if (!stored) root.setAttribute('data-theme', effective()); });
 
+  // Theme-toggle skins. A seasonal Halloween skin takes over for ten days
+  // (Oct 26 - Nov 4), then the default purple skin comes back on its own.
+  // Append ?skin=purple|halloween|mono to any URL to preview a skin.
+  (() => {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    const now = new Date();
+    const y = now.getFullYear();
+    const halloween = now >= new Date(y, 9, 26) && now < new Date(y, 10, 5);
+    const forced = new URLSearchParams(location.search).get('skin');
+    const skins = ['purple', 'halloween', 'mono'];
+    btn.dataset.skin = skins.includes(forced) ? forced : (halloween ? 'halloween' : 'purple');
+  })();
+
   // Delegated dialog handler: catch any future dialog-open/close triggers too
   document.addEventListener('click', e => {
     // Back button on article pages: return to where the reader came from
