@@ -1,5 +1,5 @@
 ---
-categories: []
+categories: [Example]
 cover: https://jpg.macro.wang/20260812122404861.jpg
 created_at: 2026-10-01T10:00:00Z
 description: Curiosity 是一款专为内容创作者打造的 Bento 风格博客主题，支持视频作品、瞬间、项目展示等多种内容形态。
@@ -11,7 +11,7 @@ status: published
 tags:
     - 示例
 title: 你好，Curiosity — 一款充满好奇心的博客主题
-updated_at: 2026-10-01T10:00:00Z
+updated_at: 2026-10-29T14:05:12Z
 ---
 
 ## 关于 Curiosity
