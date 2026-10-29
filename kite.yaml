@@ -75,6 +75,5 @@ plugins:
       umami_script: https://umami777.macro.wang/script.js
       count_previews: true
   enabled:
-    - comments
     - bilibili
     - analytics

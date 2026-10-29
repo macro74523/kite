@@ -35,6 +35,48 @@
     btn.dataset.skin = skins.includes(forced) ? forced : (halloween ? 'halloween' : 'purple');
   })();
 
+  // 留言条目渲染：列表页与「阅读原文」抽屉共用，所以放在模块外
+  const memoPad = (n) => String(n).padStart(2, '0');
+  const memoStamp = (ms) => { const d = new Date(ms); return `${d.getFullYear()}.${memoPad(d.getMonth() + 1)}.${memoPad(d.getDate())} ${memoPad(d.getHours())}:${memoPad(d.getMinutes())}`; };
+  const memoSource = (c) => {
+    if (c.orig) return c.orig;
+    const box = document.createElement('div');
+    box.innerHTML = c.comment || '';
+    return box.textContent || '';
+  };
+  function memoRow(c) {
+    const row = document.createElement('article');
+    row.className = 'memo-item';
+    const who = document.createElement('span');
+    who.className = 'memo-avatar';
+    if (c.avatar) { const img = document.createElement('img'); img.src = c.avatar; img.alt = ''; img.loading = 'lazy'; who.append(img); }
+    else who.textContent = (c.nick || '?').trim().charAt(0).toUpperCase();
+    const body = document.createElement('div');
+    body.className = 'memo-body';
+    const head = document.createElement('header');
+    const nick = document.createElement('strong');
+    const rawNick = (c.nick || '匿名').trim();
+    nick.textContent = rawNick.length > 5 ? rawNick.slice(0, 5) + '…' : rawNick;
+    if (c.link) { const a = document.createElement('a'); a.href = c.link; a.target = '_blank'; a.rel = 'noopener nofollow'; a.append(nick); head.append(a); }
+    else head.append(nick);
+    const ms = Number(c.insertedAtMs) || Number(c.time) || Date.parse(String(c.insertedAt || '').replace(' ', 'T')) || 0;
+    if (ms) { const time = document.createElement('time'); time.dateTime = new Date(ms).toISOString(); time.textContent = memoStamp(ms); head.append(time); }
+    const p = document.createElement('p');
+    p.className = 'memo-text';
+    p.textContent = memoSource(c);
+    body.append(head, p);
+    row.append(who, body);
+    return row;
+  }
+  window.kiteMemoRow = memoRow;
+  function memoEmpty() {
+    const box = document.createElement('p');
+    box.className = 'quiet memo-empty';
+    box.innerHTML = '<svg viewBox="0 0 28 22" width="30" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="3.5" width="16" height="7" rx="2.6"/><rect x="2.5" y="10.8" width="23" height="6.4" rx="2.6"/><path d="M5.4 17.2v2.4M22.6 17.2v2.4"/></svg><span>还没有人留言，还不快来抢沙发</span>';
+    return box;
+  }
+  window.kiteMemoEmpty = memoEmpty;
+
   // 一瞬页留言板：直接读 Waline 的 REST 接口，编辑框在页头、列表在右栏。
   (() => {
     const host = document.getElementById('memo-board');
@@ -48,42 +90,14 @@
     const countEl = document.getElementById('memo-count');
 
     const say = (text, kind) => { if (statusEl) { statusEl.textContent = text; statusEl.dataset.kind = kind || ''; } };
-    const pad = (n) => String(n).padStart(2, '0');
-    const stamp = (ms) => { const d = new Date(ms); return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
-    const source = (c) => {
-      if (c.orig) return c.orig;
-      const box = document.createElement('div');
-      box.innerHTML = c.comment || '';
-      return box.textContent || '';
-    };
 
     function render(items, count) {
       if (countEl) countEl.textContent = count ? `${count} 条` : '';
-      if (!items.length) { listEl.innerHTML = '<p class="quiet memo-empty">还没有留言，来做第一个</p>'; return; }
+      const statMsg = document.getElementById('stat-messages');
+      if (statMsg) { statMsg.textContent = String(count || 0); statMsg.classList.remove('is-pending'); }
+      if (!items.length) { listEl.innerHTML = ''; listEl.append(memoEmpty()); return; }
       listEl.innerHTML = '';
-      items.forEach((c) => {
-        const row = document.createElement('article');
-        row.className = 'memo-item';
-        const who = document.createElement('span');
-        who.className = 'memo-avatar';
-        if (c.avatar) { const img = document.createElement('img'); img.src = c.avatar; img.alt = ''; img.loading = 'lazy'; who.append(img); }
-        else who.textContent = (c.nick || '?').trim().charAt(0).toUpperCase();
-        const body = document.createElement('div');
-        body.className = 'memo-body';
-        const head = document.createElement('header');
-        const nick = document.createElement('strong');
-        nick.textContent = c.nick || '匿名';
-        if (c.link) { const a = document.createElement('a'); a.href = c.link; a.target = '_blank'; a.rel = 'noopener nofollow'; a.append(nick); head.append(a); }
-        else head.append(nick);
-        const ms = Number(c.insertedAtMs) || Number(c.time) || Date.parse(String(c.insertedAt || '').replace(' ', 'T')) || 0;
-        if (ms) { const time = document.createElement('time'); time.dateTime = new Date(ms).toISOString(); time.textContent = stamp(ms); head.append(time); }
-        const p = document.createElement('p');
-        p.className = 'memo-text';
-        p.textContent = source(c);
-        body.append(head, p);
-        row.append(who, body);
-        listEl.append(row);
-      });
+      items.forEach((c) => listEl.append(memoRow(c)));
     }
 
     async function load() {
@@ -144,8 +158,59 @@
       });
     }
 
-    load();
+    // 统计数据懒加载：滚动到统计卡附近再拉接口，避免首屏就发跨域请求
+    const settled = (el) => { if (el) el.classList.remove('is-pending'); };
+    const loadVisitors = () => {
+      const el = document.getElementById('stat-visitors');
+      const S = window.curiosityStats;
+      if (!el || !S) { settled(el); return; }
+      const q = `${S.base}/api/websites/${S.website}/stats?startAt=0&endAt=${Date.now()}&url=${encodeURIComponent(path)}`;
+      fetch(q, { headers: { 'x-umami-share-token': S.token } })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j) => {
+          settled(el);
+          if (!j) return;
+          const pv = j.pageviews;
+          const total = Array.isArray(pv)
+            ? pv.reduce((sum, p) => sum + (Number(p.y) || 0), 0)
+            : (pv && typeof pv === 'object' ? Number(pv.value) || 0 : 0);
+          el.textContent = String(total);
+        })
+        .catch(() => { settled(el); });
+    };
+    let booted = false;
+    const boot = () => {
+      if (booted) return;
+      booted = true;
+      load();
+      loadVisitors();
+    };
+    const statsEl = document.querySelector('.moments-stats');
+    if (statsEl && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) { io.disconnect(); boot(); }
+      }, { rootMargin: '200px' });
+      io.observe(statsEl);
+    } else boot();
   })();
+
+  // 一瞬卡片底部操作：点赞只做本地视觉反馈，分享复制当前条目链接
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest ? e.target.closest('.moment-act') : null;
+    if (!btn) return;
+    const act = btn.dataset.act;
+    if (act === 'like') {
+      const on = btn.classList.toggle('is-liked');
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      const n = btn.querySelector('.moment-like');
+      if (n) n.textContent = on ? String((Number(n.textContent) || 0) + 1) : '0';
+    } else if (act === 'share') {
+      const card = btn.closest('.moment-card');
+      const url = location.origin + location.pathname + (card && card.id ? '#' + card.id : '');
+      if (navigator.share) navigator.share({ url }).catch(() => { });
+      else if (navigator.clipboard) navigator.clipboard.writeText(url).catch(() => { });
+    }
+  });
 
   // Delegated dialog handler: catch any future dialog-open/close triggers too
   document.addEventListener('click', e => {
@@ -892,8 +957,8 @@
       + '<div class="sheet-meta"></div><div class="sheet-tags"></div>'
       + '<div class="content sheet-content"></div>'
       + '<aside class="disclaimer sheet-disclaimer" aria-label="免责声明" hidden></aside>'
-      + '<details class="comments-collapse sheet-comments" hidden><summary><span class="comments-toggle">评论<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary>'
-      + '<section class="kite-comments sheet-thread" data-kite-comments></section></details>'
+      + '<section class="sheet-memo" hidden><header class="memo-head"><span class="eyebrow">COMMENTS<span class="eyebrow-sub">/ 评论</span></span><span class="memo-count sheet-memo-count"></span></header>'
+      + '<div class="memo-list sheet-memo-list"><p class="quiet memo-empty">载入中…</p></div></section>'
       + '<a class="sheet-open" href="#">阅读原文 ↗</a></div></div>';
     document.body.append(backdrop, sheet);
     const scroller = sheet.querySelector('.sheet-scroll');
@@ -902,17 +967,10 @@
     const sTags = sheet.querySelector('.sheet-tags');
     const sContent = sheet.querySelector('.sheet-content');
     const sDisc = sheet.querySelector('.sheet-disclaimer');
-    const sComments = sheet.querySelector('.sheet-comments');
-    const sThread = sheet.querySelector('.sheet-thread');
+    const sMemo = sheet.querySelector('.sheet-memo');
+    const sMemoList = sheet.querySelector('.sheet-memo-list');
+    const sMemoCount = sheet.querySelector('.sheet-memo-count');
     const sOpen = sheet.querySelector('.sheet-open');
-    // Comments mount lazily: only when the reader expands the collapsed
-    // block, since waline measures layout and a hidden container mis-renders.
-    let pendingComments = null;
-    sComments.addEventListener('toggle', () => {
-      if (!sComments.open || sThread.dataset.mounted) return;
-      sThread.dataset.mounted = '1';
-      if (pendingComments) mountThread(pendingComments);
-    });
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let lastFocus = null;
 
@@ -951,9 +1009,7 @@
       sMeta.textContent = '';
       sTags.textContent = '';
       sDisc.hidden = true; sDisc.innerHTML = '';
-      sComments.hidden = true; sComments.open = false; sThread.innerHTML = '';
-      delete sThread.dataset.mounted;
-      pendingComments = null;
+      sMemo.hidden = true; sMemoCount.textContent = ''; sMemoList.innerHTML = '';
       sContent.innerHTML = '<div class="sheet-skeleton"><span style="width:92%"></span><span style="width:84%"></span><span style="width:88%"></span><span style="width:60%"></span></div>';
       sOpen.href = a.href;
     };
@@ -971,39 +1027,37 @@
         backdrop.style.display = '';
         // Tear down the previewed article: embedded videos (bilibili
         // iframes) keep playing otherwise, and the fetched DOM is dead weight.
-        sContent.innerHTML = ''; sDisc.innerHTML = ''; sThread.innerHTML = '';
+        sContent.innerHTML = ''; sDisc.innerHTML = ''; sMemoList.innerHTML = '';
         sMeta.innerHTML = ''; sTags.innerHTML = '';
-        sDisc.hidden = true; sComments.hidden = true; sComments.open = false;
-        delete sThread.dataset.mounted;
-        pendingComments = null;
+        sDisc.hidden = true; sMemo.hidden = true; sMemoCount.textContent = '';
         if (lastFocus) { lastFocus.focus({ preventScroll: true }); lastFocus = null; }
       }, reduce ? 0 : 380);
     }
 
-    // Sheet comments: pull the article's KiteComments config out of the
-    // fetched page and mount a per-article thread into the sheet.
-    const sheetCommentConfig = (doc) => {
-      const s = [...doc.querySelectorAll('script')].find(x => x.textContent.includes('window.KiteComments'));
-      if (!s) return null;
-      // Evaluate against a throwaway global: the script assigns
-      // window.KiteComments, and on a listing page that global would make the
-      // lazily loaded comments plugin auto-init the sheet container as well —
-      // mounting a second copy next to the one we start by hand.
-      try { return (new Function('window', s.textContent + ';return window.KiteComments;'))({}); }
-      catch (_) { return null; }
-    };
-    const mountThread = (cfg) => {
-      const run = () => {
-        if (!window.KiteCommentsInit) return;
-        sThread.innerHTML = ''; // never stack a widget from a previous preview
-        window.KiteCommentsInit(sThread, cfg);
-      };
-      if (window.KiteCommentsInit) { run(); return; }
-      const s = document.createElement('script');
-      s.src = '/plugins/comments/comments.js?v=' + Date.now();
-      s.onload = run;
-      document.head.appendChild(s);
-    };
+    // 抽屉里的评论：直接读文章页那套 Waline 接口，只读展示列表
+    async function loadSheetMemo(doc, fallback) {
+      const board = doc.querySelector('#memo-board') || doc.querySelector('.memo-card');
+      const server = board && board.dataset.server;
+      const path = (board && board.dataset.path) || fallback;
+      if (!server || !window.kiteMemoRow) { sMemo.hidden = true; return; }
+      sMemo.hidden = false;
+      sMemoCount.textContent = '';
+      sMemoList.innerHTML = '<p class="quiet memo-empty">载入中…</p>';
+      try {
+        const q = '?type=comment&path=' + encodeURIComponent(path) + '&page=1&pageSize=20&sortBy=insertedAt_desc';
+        const res = await fetch(server + '/api/comment' + q, { headers: { Accept: 'application/json' } });
+        const json = await res.json();
+        if (!res.ok || json.errno) throw new Error(json.errmsg || 'http ' + res.status);
+        const data = json.data || {};
+        const items = data.data || [];
+        if (data.count) sMemoCount.textContent = data.count + ' 条';
+        sMemoList.innerHTML = '';
+        if (!items.length) { sMemoList.innerHTML = ''; if (window.kiteMemoEmpty) sMemoList.append(window.kiteMemoEmpty()); return; }
+        items.forEach((c) => sMemoList.append(window.kiteMemoRow(c)));
+      } catch (e) {
+        sMemoList.innerHTML = '<p class="quiet memo-empty">留言暂时读不到</p>';
+      }
+    }
 
     let fetchToken = 0;
     function openSheet(anchor) {
@@ -1037,8 +1091,7 @@
           sDisc.innerHTML = disc.innerHTML;
           sDisc.hidden = false;
         }
-        pendingComments = sheetCommentConfig(doc);
-        if (pendingComments) sComments.hidden = false;
+        loadSheetMemo(doc, anchor.href);
       }).catch(() => {
         if (token !== fetchToken) return;
         sContent.innerHTML = '<p class="quiet">内容加载失败，点击下方链接查看完整文章。</p>';
