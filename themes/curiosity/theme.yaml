@@ -61,6 +61,7 @@ settings:
           - {key: status, type: string, label: 状态, default: '进行中', help: '如：未开始 / 进行中 / 已完成'}
       - {key: plan_footer_text, type: string, label: 底部寄语, default: '日拱一卒，功不唐捐', help: '组件底部显示的鼓励文字'}
       - {key: timezone, type: string, label: IANA 时区, default: Asia/Shanghai, help: 用于签到、统计与日历的时区，例如 Asia/Shanghai 或 Europe/London}
+      - {key: memo_server, type: url, label: 留言板服务端, help: 「一瞬」页面的留言板地址，填 Waline 服务端根地址（如 https://waline.example.com）；留空则不显示留言板，与评论插件共用同一个服务端即可}
   - key: collections
     type: section
     label: 收藏夹

@@ -1,5 +1,5 @@
 ---
-categories: [视频作品]
+categories: [video]
 cover: https://jpg.macro.wang/20261011112659071.jpg
 created_at: 2026-05-04T00:00:00Z
 description: 这是一篇有意思的文章
@@ -11,7 +11,7 @@ status: published
 tags:
   - 文旅系列
 title: 广东人的早餐：泡沫箱肠粉
-updated_at: 2026-10-28T03:47:39Z
+updated_at: 2026-10-29T13:52:04Z
 ---
 
 &lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=407149708&bvid=BV1QG41117Uu&cid=1301228541&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=407149708&bvid=BV1QG41117Uu&cid=1301228541&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;

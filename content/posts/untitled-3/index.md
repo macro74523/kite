@@ -5,7 +5,7 @@ slug: untitled-3
 status: published
 created_at: 2026-10-28T03:42:10Z
 categories:
-  - 视频作品
+  - video
 tags:
   - 产品类
 cover: 10月26日 LUZZ疯狂计划新品试打会-封面.jpg

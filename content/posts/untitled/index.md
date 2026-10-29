@@ -6,9 +6,9 @@ status: published
 created_at: 2026-10-20T01:36:01Z
 cover: 958816e48f12ac70164fabb8fc6be4e7.png
 tags:
-  - 学校宣传片
+  - 学校短片
 categories:
-  - 视频作品
+  - video
 published_at: 2023-08-02T09:00:00Z
 ---
 

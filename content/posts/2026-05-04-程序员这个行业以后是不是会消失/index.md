@@ -1,5 +1,5 @@
 ---
-categories: [瞬间]
+categories: [Instantly]
 cover: https://jpg.macro.wang/20260812122054194.jpg
 created_at: 2026-05-04T00:00:00Z
 description: 程序员行业不会消失，但会被 AI 彻底重构：淘汰的是 "纯码农"，崛起的是 "懂业务、会驾驭 AI 的工程决策者"。
@@ -11,7 +11,7 @@ status: published
 tags:
     - 随笔
 title: 程序员这个行业以后是不是会消失？
-updated_at: 2026-10-10T09:32:03Z
+updated_at: 2026-10-29T13:54:09Z
 ---
 
 ## 程序员这个行业以后是不是会消失？

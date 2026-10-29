@@ -1,5 +1,5 @@
 ---
-categories: [瞬间]
+categories: [Instantly]
 cover: https://jpg.macro.wang/20261011113128610.jpg
 created_at: 2026-05-05T00:00:00Z
 description: 这是一篇有意思的文章
@@ -11,7 +11,7 @@ status: published
 tags:
     - 随想
 title: 允许一切发生
-updated_at: 2026-10-10T09:31:28Z
+updated_at: 2026-10-29T13:54:09Z
 ---
 
 ## “允许一切发生”

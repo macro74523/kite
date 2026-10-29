@@ -6,9 +6,9 @@ status: published
 created_at: 2026-10-20T01:42:29Z
 cover: https://jpg.macro.wang/20261020094646720.jpg
 categories:
-  - 视频作品
+  - video
 tags:
-  - 学校宣传片
+  - 学校短片
 published_at: 2023-08-08T09:00:00Z
 pinned: true
 ---

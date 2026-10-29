@@ -1,5 +1,5 @@
 ---
-categories: [视频作品]
+categories: [video]
 cover: https://jpg.macro.wang/20261011113152228.jpg
 created_at: 2026-05-08T00:00:00Z
 description: 这是一篇有意思的文章
@@ -11,7 +11,7 @@ status: published
 tags:
   - 文旅系列
 title: '传承600多年历史的年例习俗—走将军 '
-updated_at: 2026-10-28T03:46:39Z
+updated_at: 2026-10-29T13:52:04Z
 ---
 
 &lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=1051156521&bvid=BV1SH4y1777F&cid=1451711209&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=1051156521&bvid=BV1SH4y1777F&cid=1451711209&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;

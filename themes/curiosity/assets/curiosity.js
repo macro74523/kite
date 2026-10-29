@@ -35,6 +35,118 @@
     btn.dataset.skin = skins.includes(forced) ? forced : (halloween ? 'halloween' : 'purple');
   })();
 
+  // 一瞬页留言板：直接读 Waline 的 REST 接口，编辑框在页头、列表在右栏。
+  (() => {
+    const host = document.getElementById('memo-board');
+    const listEl = document.getElementById('memo-list');
+    if (!host || !listEl) return;
+    const server = (host.dataset.server || '').replace(/\/+$/, '');
+    if (!server) return;
+    const path = host.dataset.path || location.pathname;
+    const form = document.getElementById('memo-form');
+    const statusEl = document.getElementById('memo-status');
+    const countEl = document.getElementById('memo-count');
+
+    const say = (text, kind) => { if (statusEl) { statusEl.textContent = text; statusEl.dataset.kind = kind || ''; } };
+    const pad = (n) => String(n).padStart(2, '0');
+    const stamp = (ms) => { const d = new Date(ms); return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+    const source = (c) => {
+      if (c.orig) return c.orig;
+      const box = document.createElement('div');
+      box.innerHTML = c.comment || '';
+      return box.textContent || '';
+    };
+
+    function render(items, count) {
+      if (countEl) countEl.textContent = count ? `${count} 条` : '';
+      if (!items.length) { listEl.innerHTML = '<p class="quiet memo-empty">还没有留言，来做第一个</p>'; return; }
+      listEl.innerHTML = '';
+      items.forEach((c) => {
+        const row = document.createElement('article');
+        row.className = 'memo-item';
+        const who = document.createElement('span');
+        who.className = 'memo-avatar';
+        if (c.avatar) { const img = document.createElement('img'); img.src = c.avatar; img.alt = ''; img.loading = 'lazy'; who.append(img); }
+        else who.textContent = (c.nick || '?').trim().charAt(0).toUpperCase();
+        const body = document.createElement('div');
+        body.className = 'memo-body';
+        const head = document.createElement('header');
+        const nick = document.createElement('strong');
+        nick.textContent = c.nick || '匿名';
+        if (c.link) { const a = document.createElement('a'); a.href = c.link; a.target = '_blank'; a.rel = 'noopener nofollow'; a.append(nick); head.append(a); }
+        else head.append(nick);
+        const ms = Number(c.insertedAtMs) || Number(c.time) || Date.parse(String(c.insertedAt || '').replace(' ', 'T')) || 0;
+        if (ms) { const time = document.createElement('time'); time.dateTime = new Date(ms).toISOString(); time.textContent = stamp(ms); head.append(time); }
+        const p = document.createElement('p');
+        p.className = 'memo-text';
+        p.textContent = source(c);
+        body.append(head, p);
+        row.append(who, body);
+        listEl.append(row);
+      });
+    }
+
+    async function load() {
+      try {
+        const q = '?type=comment&path=' + encodeURIComponent(path) + '&page=1&pageSize=20&sortBy=insertedAt_desc';
+        const res = await fetch(server + '/api/comment' + q, { headers: { Accept: 'application/json' } });
+        const json = await res.json();
+        if (!res.ok || json.errno) throw new Error(json.errmsg || 'http ' + res.status);
+        const data = json.data || {};
+        render(data.data || [], data.count || 0);
+      } catch (e) {
+        listEl.innerHTML = '<p class="quiet memo-empty">留言暂时读不到，稍后再试</p>';
+      }
+    }
+
+    if (form) {
+      const dlg = document.getElementById('memo-dialog');
+      const openBtn = document.getElementById('memo-open');
+      const closeBtn = document.getElementById('memo-close');
+      const nickInput = form.querySelector('[name="nick"]');
+      const NICK_KEY = 'memo-nick';
+      const storedNick = () => { try { return localStorage.getItem(NICK_KEY) || ''; } catch (e) { return ''; } };
+      const rememberNick = (v) => { try { localStorage.setItem(NICK_KEY, v); } catch (e) { } };
+      if (nickInput && !nickInput.value) nickInput.value = storedNick();
+      if (openBtn && dlg) openBtn.addEventListener('click', () => {
+        say('');
+        if (nickInput && !nickInput.value) nickInput.value = storedNick();
+        dlg.showModal();
+        if (nickInput && !nickInput.value) nickInput.focus();
+        else form.querySelector('textarea').focus();
+      });
+      if (closeBtn && dlg) closeBtn.addEventListener('click', () => dlg.close());
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const field = (name) => { const el = form.querySelector('[name="' + name + '"]'); return el ? (el.value || '').trim() : ''; };
+        const nick = field('nick'), comment = field('comment');
+        if (!nick || !comment) return say('昵称和留言都要填', 'warn');
+        const btn = form.querySelector('.memo-submit');
+        btn.disabled = true;
+        say('发送中…');
+        try {
+          const res = await fetch(server + '/api/comment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nick, mail: host.dataset.mail || 'guest@macro.wang', link: '', comment, url: path })
+          });
+          const json = await res.json();
+          if (!res.ok || json.errno) throw new Error(json.errmsg || 'http ' + res.status);
+          form.querySelector('textarea').value = '';
+          rememberNick(nick);
+          say('留言已送达', 'ok');
+          load();
+          if (dlg) setTimeout(() => dlg.close(), 800);
+        } catch (err) {
+          say('发送失败：' + (err.message || '网络异常'), 'warn');
+        }
+        btn.disabled = false;
+      });
+    }
+
+    load();
+  })();
+
   // Delegated dialog handler: catch any future dialog-open/close triggers too
   document.addEventListener('click', e => {
     // Back button on article pages: return to where the reader came from
@@ -1094,10 +1206,10 @@
       }));
       const catUrls = {};
       dataEl.querySelectorAll('b[data-n]').forEach(b => {
-        if (!catUrls[b.dataset.n]) catUrls[b.dataset.n] = b.dataset.u;
+        if (!catUrls[b.dataset.n]) catUrls[b.dataset.n] = { url: b.dataset.u, label: b.dataset.label || b.dataset.n };
       });
-      const cats = Object.keys(catUrls).map(n => ({
-        name: n, url: catUrls[n], count: posts.filter(p => p.c.includes(n)).length
+      const cats = Object.keys(catUrls).map(k => ({
+        name: catUrls[k].label, url: catUrls[k].url, count: posts.filter(p => p.c.includes(k)).length
       })).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'zh'));
       const zh = locale.startsWith('zh');
 

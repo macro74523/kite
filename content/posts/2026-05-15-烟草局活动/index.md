@@ -1,5 +1,5 @@
 ---
-categories: [视频作品]
+categories: [video]
 cover: https://jpg.macro.wang/20261011113240844.jpg
 created_at: 2026-05-15T00:00:00Z
 description: 这是一篇有意思的文章
@@ -11,7 +11,7 @@ status: published
 tags:
   - 活动快剪
 title: 烟草局活动
-updated_at: 2026-10-28T03:48:20Z
+updated_at: 2026-10-29T13:52:04Z
 ---
 
 &lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=116581535319346&bvid=BV1rn5k6fEmH&cid=38366350010&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=116581535319346&bvid=BV1rn5k6fEmH&cid=38366350010&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;

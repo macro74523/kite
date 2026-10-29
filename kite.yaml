@@ -8,6 +8,7 @@ site:
 content:
   store: file
   dir: content
+  defaultCategory: Untitled
 
 build:
   output: public
@@ -23,9 +24,9 @@ menus:
     - name: 首页
       url: /
     - name: 作品集
-      url: /categories/视频作品/
+      url: /categories/video/
     - name: 一瞬
-      url: /categories/瞬间/
+      url: /categories/instantly/
 
 theme:
   name: curiosity
@@ -45,6 +46,7 @@ theme:
     line_color: '#ede5e5'
     logo_dark: /uploads/logo-dark-240.png
     logo_size_mobile: 62
+    memo_server: https://waline77.macro.wang
     plan_goals:
       - progress: 65
         status: 进行中

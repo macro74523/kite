@@ -1,5 +1,5 @@
 ---
-categories: [视频作品]
+categories: [video]
 cover: https://jpg.macro.wang/20261011113219730.jpg
 created_at: 2026-05-15T00:00:00Z
 description: 这是一篇有意思的文章
@@ -9,7 +9,7 @@ published_at: 2026-05-16T00:00:00Z
 slug: 2026-05-15-学习之星
 status: published
 title: 学习之星
-updated_at: 2026-10-28T03:52:30Z
+updated_at: 2026-10-29T13:52:04Z
 pinned: true
 ---
 

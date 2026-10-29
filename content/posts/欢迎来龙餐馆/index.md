@@ -6,7 +6,7 @@ slug: 欢迎来龙餐馆
 status: published
 created_at: 2026-10-11T03:36:55Z
 categories:
-  - 瞬间
+  - Instantly
 published_at: 2026-10-11T03:38:06Z
 ---
 
