@@ -1,0 +1,1 @@
+{{ $cover := "" }}{{ with .Params.cover }}{{ $cover = . }}{{ else }}{{ if gt (len .Images) 0 }}{{ $cover = index .Images 0 }}{{ end }}{{ end }}{{ $cover }}

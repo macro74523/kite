@@ -1345,3 +1345,51 @@
     if (mq.addEventListener) mq.addEventListener('change', apply); else mq.addListener(apply);
   })();
 })();
+
+/* Moments lightbox: click an image inside the 一瞬 stream to view it full-screen */
+(function () {
+  var root = document.querySelector('.moments-listing');
+  if (!root) return;
+  var box = document.createElement('div');
+  box.className = 'lightbox';
+  box.hidden = true;
+  box.setAttribute('role', 'dialog');
+  box.setAttribute('aria-modal', 'true');
+  box.setAttribute('aria-label', '图片预览');
+  box.innerHTML = '<button class="lightbox-close" type="button" aria-label="关闭">×</button><figure><img alt=""><figcaption></figcaption></figure>';
+  document.body.appendChild(box);
+
+  var img = box.querySelector('img');
+  var cap = box.querySelector('figcaption');
+
+  function open(src, alt) {
+    img.src = src;
+    img.alt = alt || '';
+    cap.textContent = alt || '';
+    box.hidden = false;
+    document.documentElement.classList.add('lightbox-open');
+    box.querySelector('.lightbox-close').focus();
+  }
+
+  function close() {
+    box.hidden = true;
+    img.removeAttribute('src');
+    document.documentElement.classList.remove('lightbox-open');
+  }
+
+  root.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t.tagName === 'IMG' && t.closest('.moment-body')) {
+      e.preventDefault();
+      open(t.currentSrc || t.src, t.alt);
+    }
+  });
+
+  box.addEventListener('click', function (e) {
+    if (e.target === box || e.target.classList.contains('lightbox-close')) close();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !box.hidden) close();
+  });
+})();

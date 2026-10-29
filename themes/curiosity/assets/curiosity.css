@@ -885,3 +885,18 @@ body.is-tile-resizing,body.is-tile-resizing *{cursor:nwse-resize!important;user-
 .page-home .moments-big .moment-flip-close{position:absolute;top:14px;right:14px;flex-shrink:0;width:32px;height:32px;border-radius:999px;background:#24262b;border:1px solid #ffffff1e;color:#f4f4f6;display:grid;place-items:center;font-size:14px;line-height:1;transition:background .2s}
 .page-home .moments-big .moment-flip-close:hover{background:#32353c;color:#fff}
 @media (prefers-reduced-motion:reduce){.page-home .moments-big{transition:none}}
+/* Moments lightbox */
+.moments-listing .moment-body img{cursor:zoom-in}
+.lightbox[hidden]{display:none}
+.lightbox{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:clamp(12px,4vw,56px);background:#0b0c0ed9;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:lb-fade .2s ease}
+.lightbox figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:12px;max-width:100%;max-height:100%}
+.lightbox img{max-width:100%;max-height:calc(100vh - 140px);width:auto;height:auto;object-fit:contain;border-radius:var(--radius);box-shadow:0 24px 80px #00000066;animation:lb-pop .26s cubic-bezier(.22,1,.36,1)}
+.lightbox figcaption{font-size:12px;color:#ffffffa6;line-height:1.5;text-align:center;max-width:60ch}
+.lightbox figcaption:empty{display:none}
+.lightbox-close{position:absolute;top:clamp(12px,2vw,22px);right:clamp(12px,2vw,22px);width:40px;height:40px;border-radius:999px;border:1px solid #ffffff26;background:#ffffff14;color:#fff;font-size:20px;line-height:1;display:grid;place-items:center;cursor:pointer;transition:background .2s,transform .2s}
+.lightbox-close:hover{background:#ffffff2b;transform:scale(1.05)}
+html.lightbox-open{overflow:hidden}
+@keyframes lb-fade{from{opacity:0}to{opacity:1}}
+@keyframes lb-pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.lightbox,.lightbox img{animation:none}}
+@media (max-width:650px){.lightbox img{max-height:calc(100vh - 110px)}}
