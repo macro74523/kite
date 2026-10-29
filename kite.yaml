@@ -32,7 +32,7 @@ theme:
   settings:
     qq: "3097188096"
     photo: /uploads/4f5d1957e91016781c9e729b40bb3e10.webp
-    avatar: /uploads/微信图片_2025-10-28_134011_016.jpg
+    avatar: /uploads/avatar-160.jpg
     email: admin@macro.wang
     intro: 你好，我是 MACRO。喜欢折腾、拍摄跟剪辑。在这里记录思考，也把一些想法慢慢做成作品。
     favicon: /uploads/M-2.png
@@ -40,10 +40,10 @@ theme:
     audio_title: 春和景明
     audio_author: 纯音乐
     audio_file: /uploads/春和景明.mp3
-    logo: /uploads/MACRO.WANG hei.png
+    logo: /uploads/logo-light-240.png
     logo_size: "100"
     line_color: '#ede5e5'
-    logo_dark: /uploads/MACRO.WANG-4.png
+    logo_dark: /uploads/logo-dark-240.png
     logo_size_mobile: 62
     plan_goals:
       - progress: 65
