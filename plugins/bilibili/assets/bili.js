@@ -115,20 +115,29 @@
       var frame = document.createElement('iframe');
       frame.src = url;
       frame.setAttribute('allowfullscreen', '');
-      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
-      frame.setAttribute('loading', 'lazy');
+      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms');
       box.appendChild(frame);
       el.parentNode.replaceChild(box, el);
 
-      // iframe 完全加载（包括播放器 loading 画面）之前保持透明，
-      // 避免"代码片段或黑框突然闪一下"的中间态。
-      // 再给一个 5 秒兜底：B站播放器偶发 load 事件丢失，别让用户一直看到黑块。
+      // iframe 完全加载之前保持透明，避免中间态暴露。
+      // 但如果 4 秒内都没触发 load，强制 reload 一次；再不行就放弃锁，
+      // 显示黑色背景（B站播放器本身带 loading 画面）让用户知道这里是播放器。
+      var readyFired = false;
       frame.addEventListener('load', function () {
+        readyFired = true;
         box.classList.add('is-ready');
       });
       setTimeout(function () {
-        if (!box.classList.contains('is-ready')) box.classList.add('is-ready');
-      }, 5000);
+        if (readyFired) return;
+        // 尝试 reload 一次（某些浏览器对 iframe 初始化加载有 race）
+        try {
+          frame.src = frame.src;
+        } catch (_) {}
+        // 2 秒后还是没 ready，强制解锁
+        setTimeout(function () {
+          if (!box.classList.contains('is-ready')) box.classList.add('is-ready');
+        }, 2000);
+      }, 4000);
 
       // 按视频真实分辨率调整播放器比例
       var bv = (url.match(bvidRe) || [])[1];
@@ -144,12 +153,16 @@
         var frame = document.createElement('iframe');
         frame.src = url;
         frame.setAttribute('allowfullscreen', '');
-        frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
-        frame.setAttribute('loading', 'lazy');
+        frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms');
         box.appendChild(frame);
         box.removeAttribute('data-bili-url');
-        frame.addEventListener('load', function () { box.classList.add('is-ready'); });
-        setTimeout(function () { if (!box.classList.contains('is-ready')) box.classList.add('is-ready'); }, 5000);
+        var readyFired = false;
+        frame.addEventListener('load', function () { readyFired = true; box.classList.add('is-ready'); });
+        setTimeout(function () {
+          if (readyFired) return;
+          try { frame.src = frame.src; } catch (_) {}
+          setTimeout(function () { if (!box.classList.contains('is-ready')) box.classList.add('is-ready'); }, 2000);
+        }, 4000);
         var bv = (url.match(bvidRe) || [])[1];
         if (bv) loadDims(bv, function (d) { applyDims(box, d); });
       });
@@ -161,9 +174,14 @@
     document.querySelectorAll('.bili-player iframe').forEach(function (frame) {
       var box = frame.parentElement;
       if (!box || !box.classList.contains('bili-player')) return;
-      frame.addEventListener('load', function () { box.classList.add('is-ready'); });
-      if (frame.complete) box.classList.add('is-ready');
-      else setTimeout(function () { if (!box.classList.contains('is-ready')) box.classList.add('is-ready'); }, 5000);
+      if (frame.complete) { box.classList.add('is-ready'); return; }
+      var readyFired = false;
+      frame.addEventListener('load', function () { readyFired = true; box.classList.add('is-ready'); });
+      setTimeout(function () {
+        if (readyFired || box.classList.contains('is-ready')) return;
+        try { frame.src = frame.src; } catch (_) {}
+        setTimeout(function () { if (!box.classList.contains('is-ready')) box.classList.add('is-ready'); }, 2000);
+      }, 4000);
     });
   });
 

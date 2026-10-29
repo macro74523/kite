@@ -21,4 +21,13 @@
 <article class="card music-card"><span class="eyebrow music-eyebrow">ON REPEAT<span class="eyebrow-sub">在听</span></span><div class="cassette-player"><div class="cassette-window"><div class="cassette-tape"><span class="reel reel-left"></span><span class="reel reel-right"></span><span class="tape-strip"></span></div><div class="cassette-label"><strong>{{ if or $s.audio_file $s.audio_url }}{{ default (T "listening") $s.audio_title }}{{ else }}{{ T "slow_reading" }}{{ end }}</strong><em>{{ if or $s.audio_file $s.audio_url }}{{ $s.audio_author }}{{ else }}Curiosity FM{{ end }}</em></div></div><div class="player-controls"><button class="player-btn player-prev" aria-label="prev">◄◄</button><button class="player-btn player-play" id="player-play" aria-label="play">▶</button><button class="player-btn player-next" aria-label="next">►►</button><div class="player-knob"><span></span></div></div><div class="player-vu"><div class="vu-bar"><i style="width:35%"></i></div><span class="vu-label">L</span><div class="vu-bar"><i style="width:55%"></i></div><span class="vu-label">R</span></div></div>{{ $audioSrc := default $s.audio_url $s.audio_file }}{{ with $audioSrc }}<audio id="cassette-audio" preload="none" src="{{ url.Rel . }}"></audio>{{ end }}{{ with $s.social }}<div class="social-links">{{ range . }}<a href="{{ url.Rel .url }}">{{ .name }} ↗</a>{{ end }}</div>{{ end }}</article>
 </section>
 </div>
+{{ $layoutJson := default "" $s.card_layout_json }}
+{{ $dv := default "tiles" $s.default_view }}
+{{ $cols := default 3 $s.tile_cols }}
+{{ $rh := default 280 $s.tile_row_height }}
+{{ $hash := print $dv ":" $cols ":" $rh ":" $layoutJson }}
+<script>window.HOME_LAYOUT_CONFIG={defaultView:{{ if eq $dv "tiles" }}'tiles'{{ else }}'bento'{{ end }},cols:{{ $cols }},rowHeight:{{ $rh }},layoutHash:'{{ $hash }}'};</script>
+{{ if $layoutJson }}
+<script>try{window.CARD_LAYOUTS={{ $layoutJson | safeJS }};}catch(e){window.CARD_LAYOUTS={};}</script>
+{{ end }}
 {{ end }}

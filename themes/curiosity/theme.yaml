@@ -124,4 +124,36 @@ settings:
       - {key: gradient_angle, type: string, label: 渐变角度, default: '180deg', help: 渐变方向角度，例如 135deg（对角）、180deg（从上到下）、90deg（从左到右）}
       - {key: card_color, type: color, label: 卡片色, default: '#ffffff', help: 卡片和模块的背景颜色}
       - {key: line_color, type: color, label: 边框色, default: '#e2e8f0', help: 边框和分隔线的颜色}
+      - {key: card_radius, type: number, label: 卡片圆角, default: 7, min: 0, max: 24, step: 1, help: 单位 px，所有卡片和模块的圆角半径}
+      - {key: card_padding, type: number, label: 卡片内边距, default: 22, min: 12, max: 40, step: 1, help: 单位 px，卡片内容与边框的距离}
+      - {key: gap_size, type: number, label: 卡片间距, default: 12, min: 4, max: 28, step: 1, help: 单位 px，各卡片之间的间距}
+      - {key: card_opacity, type: number, label: 卡片背景透明度, default: 100, min: 60, max: 100, step: 5, help: 百分比，数值越小卡片越透（需搭配透明卡片色才有效果）}
+      - {key: card_shadow, type: boolean, label: 显示卡片阴影, default: true}
       - {key: show_toc, type: boolean, label: 显示目录, default: true}
+  - key: layout
+    type: section
+    label: 首页布局
+    preview: home
+    fields:
+      - {key: default_view, type: select, label: 默认视图, default: tiles, options: [{value: bento, label: 经典网格（固定位置）}, {value: tiles, label: 自由拼接（可拖拽）}]}
+      - {key: tile_cols, type: number, label: 拼接列数, default: 3, min: 2, max: 5, step: 1, help: 建议 3 或 4}
+      - {key: tile_row_height, type: number, label: 拼接行高, default: 280, min: 180, max: 420, step: 20, help: 单位 px}
+      - key: card_layout_json
+        type: string
+        label: 卡片默认位置（JSON）
+        help: |
+          自由拼接模式下每张卡片的起始行/列、宽/高。
+          留空使用默认布局；填写后会覆盖默认位置。
+          支持的卡片 key：works、hero、plan、moments、stats、archive、cal、bookmarks、music
+          行列从 1 开始。示例：
+          {
+            "works": {"r":1,"c":1,"w":2,"h":2},
+            "hero": {"r":1,"c":3,"w":1,"h":2},
+            "plan": {"r":3,"c":1,"w":1,"h":1},
+            "moments": {"r":3,"c":2,"w":2,"h":1},
+            "stats": {"r":4,"c":1,"w":2,"h":1},
+            "archive": {"r":4,"c":3,"w":1,"h":1},
+            "cal": {"r":5,"c":1,"w":1,"h":1},
+            "bookmarks": {"r":5,"c":2,"w":1,"h":1},
+            "music": {"r":5,"c":3,"w":1,"h":1}
+          }

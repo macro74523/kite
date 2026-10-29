@@ -814,16 +814,20 @@
 
     // Wait for biliEnhance to be registered, loading bili.js on demand as a
     // deduped promise — so rapid clicks still end up with a ready enhancer.
+    // 8 秒兜底超时：网络抖动或浏览器卡住时别让抽屉一直等。
     let biliPromise = null;
     const waitBiliEnhance = () => {
       if (window.biliEnhance) return Promise.resolve(window.biliEnhance);
       if (biliPromise) return biliPromise;
       biliPromise = new Promise(resolve => {
+        let settled = false;
+        const finish = (v) => { if (!settled) { settled = true; resolve(v); } };
         const script = document.createElement('script');
         script.src = '/plugins/bilibili/bili.js';
-        script.onload = () => { resolve(window.biliEnhance); };
-        script.onerror = () => { resolve(null); };
+        script.onload = () => finish(window.biliEnhance || null);
+        script.onerror = () => finish(null);
         document.head.appendChild(script);
+        setTimeout(() => finish(window.biliEnhance || null), 8000);
       });
       return biliPromise;
     };
@@ -1155,9 +1159,15 @@
     const gridEl = document.querySelector('.home-grid');
     if (!gridEl) return;
     const mq = window.matchMedia('(min-width:1024px)');
-    const enabled = () => mq.matches || /[?&]tiles=1/.test(location.search);
+    const LC = window.HOME_LAYOUT_CONFIG || {};
+    const defaultOn = LC.defaultView !== 'bento';
+    const enabled = () => /[?&]tiles=1/.test(location.search) || (defaultOn && mq.matches);
     const STORE = 'home-tiles-v2';
-    const COLS = 3, MAXW = 3, MAXH = 3, ROW_H = 280, GAP = 12;
+    const COLS = LC.cols || 3;
+    const MAXW = COLS;
+    const MAXH = 3;
+    const ROW_H = LC.rowHeight || 280;
+    const GAP = 12;
     const DEFS = [
       { id: 'works', sel: '.work-big', r: 1, c: 1, w: 2, h: 2 },
       { id: 'hero', sel: '.hero-big', r: 1, c: 3, w: 1, h: 2 },
@@ -1169,6 +1179,9 @@
       { id: 'bookmarks', sel: '.bookmarks-card', r: 5, c: 2, w: 1, h: 1 },
       { id: 'music', sel: '.music-card', r: 5, c: 3, w: 1, h: 1 },
     ];
+    // 主题设置里 card_positions 覆盖默认位置（用户后台配置）
+    const CL = window.CARD_LAYOUTS || {};
+    DEFS.forEach(d => { if (CL[d.id]) { d.r = CL[d.id].r; d.c = CL[d.id].c; d.w = CL[d.id].w; d.h = CL[d.id].h; } });
     const cards = [];
     let state = new Map();
     DEFS.forEach(d => {
@@ -1176,21 +1189,27 @@
       if (el) { cards.push({ id: d.id, el }); state.set(d.id, { r: d.r, c: d.c, w: d.w, h: d.h }); }
     });
     const ov = (a, b) => a.r < b.r + b.h && b.r < a.r + a.h && a.c < b.c + b.w && b.c < a.c + a.w;
+    console.log('[tile] init', { LC, CL_count: Object.keys(CL).length, cardCount: cards.length, mq: mq.matches, defaultOn, enabled: enabled(), MAXW, MAXH, COLS });
     try {
-      const saved = JSON.parse(localStorage.getItem(STORE));
-      const ok = saved && typeof saved === 'object' && cards.length > 0 &&
-        cards.every(c => { const t = saved[c.id]; return t && t.r >= 1 && t.c >= 1 && t.w >= 1 && t.h >= 1 && t.w <= MAXW && t.h <= MAXH && t.c + t.w - 1 <= COLS; }) &&
-        !cards.some((a, i) => cards.some((b, j) => j > i && ov(saved[a.id], saved[b.id])));
-      if (ok) cards.forEach(c => state.set(c.id, { ...saved[c.id] }));
-    } catch (e) {}
+      const savedRaw = localStorage.getItem(STORE);
+      const saved = savedRaw ? JSON.parse(savedRaw) : null;
+      const hashOk = saved && saved.__hash__ === LC.layoutHash;
+      const dimsOk = saved && cards.every(c => { const t = saved[c.id]; return t && t.r >= 1 && t.c >= 1 && t.w >= 1 && t.h >= 1 && t.w <= MAXW && t.h <= MAXH && t.c + t.w - 1 <= COLS; });
+      const noOverlap = saved && !cards.some((a, i) => cards.some((b, j) => j > i && ov(saved[a.id], saved[b.id])));
+      const ok = !saved || (saved && !saved.__hash__) || (hashOk && cards.length > 0 && dimsOk && noOverlap);
+      console.log('[tile] load', { hasSaved: !!saved, savedHash: saved?.__hash__, expectHash: LC.layoutHash, hashOk, dimsOk, noOverlap, ok });
+      if (saved && ok && saved.__hash__) cards.forEach(c => state.set(c.id, { r: saved[c.id].r, c: saved[c.id].c, w: saved[c.id].w, h: saved[c.id].h }));
+      else if (saved && saved.__hash__ && !ok) { console.log('[tile] purging bad LS'); localStorage.removeItem(STORE); }
+    } catch (e) { console.log('[tile] load error', e); }
     const render = () => {
-      const out = {};
+      const out = { __hash__: LC.layoutHash };
       cards.forEach(c => {
         const t = state.get(c.id);
         c.el.style.gridArea = t.r + ' / ' + t.c + ' / ' + (t.r + t.h) + ' / ' + (t.c + t.w);
         out[c.id] = t;
       });
       try { localStorage.setItem(STORE, JSON.stringify(out)); } catch (e) {}
+      console.log('[tile] render saved', out);
     };
     // Nearest free cell for a w×h card among `placed` (Manhattan distance
     // from `near` keeps pushed cards close to where they were).
@@ -1329,9 +1348,18 @@
     cards.forEach(mount);
     const apply = () => {
       const on = enabled();
+      console.log('[tile] apply', { on, mq: mq.matches, searchTiles: /[?&]tiles=1/.test(location.search), defaultOn });
       document.body.classList.toggle('tile-mode', on);
-      if (on) render();
-      else cards.forEach(c => { c.el.style.gridArea = ''; });
+      if (on) {
+        // 根据主题设置动态注入列数和行高（覆盖 CSS 里的硬编码）
+        gridEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+        gridEl.style.gridAutoRows = ROW_H + 'px';
+        render();
+      } else {
+        gridEl.style.gridTemplateColumns = '';
+        gridEl.style.gridAutoRows = '';
+        cards.forEach(c => { c.el.style.gridArea = ''; });
+      }
     };
     apply();
     if (mq.addEventListener) mq.addEventListener('change', apply); else mq.addListener(apply);
