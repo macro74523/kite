@@ -10,7 +10,9 @@ status: published
 tags:
   - 示例
 title: 视频作品功能展示
-updated_at: 2026-10-11T13:06:52Z
+updated_at: 2026-10-29T14:04:55Z
+categories:
+  - Example
 ---
 
 ## 关于视频作品
