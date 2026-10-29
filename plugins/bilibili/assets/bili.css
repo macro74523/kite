@@ -6,7 +6,10 @@
   border-radius: 8px;
   overflow: hidden;
   background: #000;
+  opacity: 0;
+  transition: opacity .35s ease;
 }
+.bili-player.is-ready { opacity: 1; }
 .bili-player iframe {
   position: absolute;
   top: 0;

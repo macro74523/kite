@@ -59,6 +59,17 @@
   let zone = document.body.dataset.timezone || 'Asia/Shanghai';
   try { new Intl.DateTimeFormat(locale, { timeZone: zone }).format(new Date()); }
   catch (_) { zone = 'Asia/Shanghai'; }
+
+  // 预加载 B 站视频增强脚本，避免抽屉首开时那段几百毫秒的
+  // "iframe 代码片段 → 真播放器" 的视觉闪现。biliEnhance 在脚本加载完
+  // 即注册到 window，后续抽屉和正文页都可以同步调用。
+  (function () {
+    if (window.biliEnhance) return;
+    var s = document.createElement('script');
+    s.src = '/plugins/bilibili/bili.js';
+    s.async = true;
+    document.head.appendChild(s);
+  })();
   const zonedParts = (date) => Object.fromEntries(
     new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
       .formatToParts(date).filter(p => p.type !== 'literal').map(p => [p.type, Number(p.value)])
@@ -801,14 +812,29 @@
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let lastFocus = null;
 
-    // Re-run content enhancers (e.g. the bilibili plugin's escaped-iframe
-    // player) on freshly injected sheet content; lazy-load if not present.
-    const enhanceSheet = () => {
-      if (window.biliEnhance) { window.biliEnhance(sContent); return; }
-      const s = document.createElement('script');
-      s.src = '/plugins/bilibili/bili.js';
-      s.onload = () => { if (window.biliEnhance) window.biliEnhance(sContent); };
-      document.head.appendChild(s);
+    // Wait for biliEnhance to be registered, loading bili.js on demand as a
+    // deduped promise — so rapid clicks still end up with a ready enhancer.
+    let biliPromise = null;
+    const waitBiliEnhance = () => {
+      if (window.biliEnhance) return Promise.resolve(window.biliEnhance);
+      if (biliPromise) return biliPromise;
+      biliPromise = new Promise(resolve => {
+        const script = document.createElement('script');
+        script.src = '/plugins/bilibili/bili.js';
+        script.onload = () => { resolve(window.biliEnhance); };
+        script.onerror = () => { resolve(null); };
+        document.head.appendChild(script);
+      });
+      return biliPromise;
+    };
+
+    // Enhance the parsed DOMParser document — not the already-inserted sheet
+    // content — so the user never glimpses the "iframe …" raw HTML.
+    const enhanceSheet = async (doc) => {
+      const target = doc.querySelector('.content');
+      if (!target) return;
+      const enhance = await waitBiliEnhance();
+      if (enhance) enhance(target);
     };
 
     const fill = (a) => {
@@ -882,16 +908,22 @@
       backdrop.classList.add('is-on');
       document.documentElement.style.overflow = 'hidden';
       requestAnimationFrame(() => { scroller.scrollTop = 0; sheet.focus({ preventScroll: true }); });
-      fetch(anchor.href, { cache: 'no-store' }).then(r => r.text()).then(html => {
+      fetch(anchor.href, { cache: 'no-store' }).then(r => r.text()).then(async html => {
         if (token !== fetchToken) return; // another card was opened meanwhile
         const doc = new DOMParser().parseFromString(html, 'text/html');
+        // 在 DOMParser 文档里先把 B 站嵌入换成播放器盒子，再注入抽屉，
+        // 这样不会暴露那段"iframe src=…"的原始文本。
+        await enhanceSheet(doc);
+        if (token !== fetchToken) return;
         sTitle.textContent = doc.querySelector('.article-heading h1')?.textContent || sTitle.textContent;
         sMeta.innerHTML = doc.querySelector('.post-meta')?.innerHTML || '';
         sTags.innerHTML = doc.querySelector('.tags')?.innerHTML || '';
         sContent.innerHTML = doc.querySelector('.content')?.innerHTML
           || '<p class="quiet">内容加载失败，点击下方链接查看完整文章。</p>';
         scroller.scrollTop = 0;
-        enhanceSheet();
+        // DOMParser 里的 enhance 只留了带 data-bili-url 的占位盒子，
+        // 真实 DOM 里再跑一次，补上 iframe + load 监听，opacity 才会在 load 后解锁。
+        if (window.biliEnhance) window.biliEnhance(sContent);
         const disc = doc.querySelector('aside.disclaimer');
         if (disc) {
           sDisc.innerHTML = disc.innerHTML;
