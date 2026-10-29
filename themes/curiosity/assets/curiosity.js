@@ -151,10 +151,8 @@
       const cur = zonedParts(new Date());
       const posts = getMonthPosts(year, month);
 
-      // Update month label (short format: "10月" / "Oct", no year — stamp is compact)
-      const mLabel = locale.startsWith('zh')
-        ? `${month + 1}月`
-        : new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month, 1)));
+      // UPDATES month stamp always uses English short form (e.g. "Oct")
+      const mLabel = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month, 1)));
       document.getElementById('calendar-month').textContent = mLabel;
 
       // Animate count
