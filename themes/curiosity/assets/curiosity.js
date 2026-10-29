@@ -151,9 +151,11 @@
       const cur = zonedParts(new Date());
       const posts = getMonthPosts(year, month);
 
-      // Update month label
-      document.getElementById('calendar-month').textContent =
-        new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month, 1)));
+      // Update month label (short format: "10月" / "Oct", no year — stamp is compact)
+      const mLabel = locale.startsWith('zh')
+        ? `${month + 1}月`
+        : new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month, 1)));
+      document.getElementById('calendar-month').textContent = mLabel;
 
       // Animate count
       animateCount(calCount, posts.length);
@@ -172,26 +174,27 @@
           item.className = 'timeline-item';
           if (post.date === todayStr) item.classList.add('is-today');
           const day = parseInt(post.date.split('-')[2], 10);
-          const weekday = new Date(Date.UTC(year, month, day)).getUTCDay();
-          const weekdayLabel = locale.startsWith('zh')
-            ? ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][weekday]
-            : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][weekday];
 
-          const dateEl = document.createElement('div');
+          const row = document.createElement('div');
+          row.className = 'timeline-row';
+
+          const dateEl = document.createElement('span');
           dateEl.className = 'timeline-date';
-          dateEl.textContent = `${String(month + 1).padStart(2, '0')}.${String(day).padStart(2, '0')} · ${weekdayLabel}`;
+          dateEl.textContent = `${String(month + 1).padStart(2, '0')}.${String(day).padStart(2, '0')}`;
 
           const titleEl = document.createElement('a');
           titleEl.className = 'timeline-title';
           titleEl.href = post.link;
+          titleEl.title = post.title;
           titleEl.textContent = post.title;
 
-          item.appendChild(dateEl);
-          item.appendChild(titleEl);
+          row.appendChild(dateEl);
+          row.appendChild(titleEl);
+          item.appendChild(row);
           timelineItems.appendChild(item);
 
           // Staggered animation
-          setTimeout(() => item.classList.add('is-visible'), idx * 60);
+          setTimeout(() => item.classList.add('is-visible'), idx * 50);
         });
       }
     };
@@ -200,30 +203,7 @@
       const d = new Date(Date.UTC(year, month + amount, 1));
       year = d.getUTCFullYear(); month = d.getUTCMonth(); draw();
     };
-    document.getElementById('month-prev')?.addEventListener('click', () => change(-1));
-    document.getElementById('month-next')?.addEventListener('click', () => change(1));
-    const todayBtn = document.getElementById('calendar-today');
-    if (todayBtn) {
-      todayBtn.addEventListener('click', () => {
-        const original = todayBtn.innerHTML;
-        todayBtn.innerHTML = '<span class="brand-dot" style="background:#22c55e"></span>已收到';
-        todayBtn.style.color = '#22c55e';
-        try {
-          const key = `curiosity-nudge:${new Date().toDateString()}`;
-          const count = parseInt(localStorage.getItem(key) || '0', 10) + 1;
-          localStorage.setItem(key, String(count));
-          if (count > 1) {
-            setTimeout(() => {
-              todayBtn.innerHTML = `<span class="brand-dot" style="background:#22c55e"></span>今天第 ${count} 次啦`;
-            }, 800);
-          }
-        } catch (_) {}
-        setTimeout(() => {
-          todayBtn.innerHTML = original;
-          todayBtn.style.color = '';
-        }, 2000);
-      });
-    }
+    // month prev/next buttons removed — calendar stays on current month
     draw();
   }
 
