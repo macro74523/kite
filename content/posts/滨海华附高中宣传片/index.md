@@ -8,7 +8,7 @@ cover: https://jpg.macro.wang/20261020094646720.jpg
 categories:
   - video
 tags:
-  - 学校短片
+  - 宣传片
 published_at: 2023-08-08T09:00:00Z
 pinned: true
 ---
