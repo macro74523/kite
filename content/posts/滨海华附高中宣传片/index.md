@@ -1,6 +1,6 @@
 ---
 id: 01M5BFJVVD582K3063K7X3V0MS
-title: 滨海华附高中 5分钟宣传片
+title: 高中学校 5分钟宣传片-2023
 slug: 滨海华附高中宣传片
 status: published
 created_at: 2026-10-20T01:42:29Z
