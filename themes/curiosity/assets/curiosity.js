@@ -620,6 +620,8 @@
     wrap.className = 'video-cover-wrap is-landscape';
     img.parentNode.insertBefore(wrap, img);
     wrap.appendChild(img);
+    const chip = card.querySelector('.views-chip');
+    if (chip) wrap.appendChild(chip);
     let finished = false;
     const done = () => {
       if (finished) return;
@@ -634,6 +636,49 @@
       setTimeout(done, 3000);
     }
   });
+
+  // Per-post views: one Umami metrics call per page, keyed by page title so
+  // the count survives a post being moved to a new address.
+  const viewChips = document.querySelectorAll('.views-chip[data-views]');
+  if (viewChips.length && window.curiosityStats) {
+    const S = window.curiosityStats;
+    const VIEWS_KEY = 'curiosity-views:v2';
+    const VIEWS_TTL = 10 * 60 * 1000;
+    const paintViews = (map) => {
+      const rows = Object.entries(map);
+      const countFor = (label) => {
+        let total = map[label] || 0;
+        const prefix = label + ' · ';
+        rows.forEach(([key, value]) => {
+          if (key.startsWith(prefix)) total += value;
+        });
+        return total;
+      };
+      viewChips.forEach(chip => {
+        const total = countFor(chip.dataset.views || '');
+        const label = total >= 1000 ? (total / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(total);
+        const n = chip.querySelector('b');
+        if (n) n.textContent = label;
+        chip.hidden = false;
+      });
+    };
+    let cachedViews = null;
+    try { cachedViews = JSON.parse(localStorage.getItem(VIEWS_KEY) || 'null'); } catch (_) { cachedViews = null; }
+    if (cachedViews && cachedViews.map && Date.now() - cachedViews.t < VIEWS_TTL) {
+      paintViews(cachedViews.map);
+    } else {
+      fetch(`${S.base}/api/websites/${S.website}/metrics?startAt=0&endAt=${Date.now()}&type=title&limit=500`, { headers: { 'x-umami-share-token': S.token } })
+        .then(r => (r.ok ? r.json() : null))
+        .then(rows => {
+          if (!Array.isArray(rows)) return;
+          const map = {};
+          rows.forEach(row => { map[row.x] = (map[row.x] || 0) + (Number(row.y) || 0); });
+          try { localStorage.setItem(VIEWS_KEY, JSON.stringify({ t: Date.now(), map })); } catch (_) {}
+          paintViews(map);
+        })
+        .catch(() => {});
+    }
+  }
 
   // Umami stats（localStorage 缓存：当天 10 分钟内刷新直接读缓存，过期才重新请求）
   const sVis = document.getElementById('stats-visitors');

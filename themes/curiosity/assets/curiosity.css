@@ -1160,3 +1160,11 @@ html[data-theme=dark] .header-actions .tt-lever{transform:translateX(28px)}
 
 /* 阅读原文页：导航栏与正文内容同宽（1120px），其它页面保持原宽度 */
 .site-header.is-article-header{max-width:1120px}
+
+/* Per-post views chip — eyebrow-style metadata */
+.views-chip{display:inline-flex;align-items:center;gap:4px;font:520 8.5px/1 var(--mono);letter-spacing:.05em;color:var(--muted);white-space:nowrap}
+.views-chip[hidden]{display:none}
+.views-chip svg{width:10px;height:10px;flex:0 0 auto}
+.video-cover-wrap{position:relative}
+.video-cover-wrap .views-chip{position:absolute;right:9px;bottom:9px;z-index:2;color:#fff;letter-spacing:.04em;text-shadow:0 1px 3px rgba(0,0,0,.55);pointer-events:none}
+.moment-actions .views-chip{letter-spacing:.04em}
