@@ -8,7 +8,8 @@ categories:
   - video
 tags:
   - 学校短片
-published_at: 2026-11-06T12:30:47.071Z
+published_at: 2026-11-06T12:30:47Z
+cover: https://jpg.macro.wang/20261106205456599.jpg
 ---
 
 &lt;iframe src="//[player.bilibili.com/player.html?isOutside=true&amp;aid=117569444908258&amp;bvid=BV1CX4z6WEAt&amp;cid=43383325804&amp;p=1](http://player.bilibili.com/player.html?isOutside=true&aid=117569444908258&bvid=BV1CX4z6WEAt&cid=43383325804&p=1)" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"&gt;&lt;/iframe&gt;
