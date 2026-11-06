@@ -1,7 +1,8 @@
 ---
 id: 01M609KQS3J4C3FC3XTTPVANQ4
 title: "LUZZ球拍产品视频"
-slug: untitled-3
+slug: 2026-80218
+aliases: ["untitled-3"]
 status: published
 created_at: 2026-10-28T03:42:10Z
 categories:

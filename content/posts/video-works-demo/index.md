@@ -5,7 +5,8 @@ description: Curiosity 主题的视频作品功能展示，支持横屏和竖屏
 id: 1HZF4TGQ82894BR47ZP1BNMR5E
 og_image: https://jpg.macro.wang/20260812122404861.jpg
 published_at: 2026-10-08T10:00:00Z
-slug: video-works-demo
+slug: 2026-72213
+aliases: ["video-works-demo"]
 status: published
 tags:
   - 示例

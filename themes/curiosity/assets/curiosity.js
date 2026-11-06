@@ -119,20 +119,20 @@
 
     if (form) {
       const dlg = document.getElementById('memo-dialog');
-      const openBtn = document.getElementById('memo-open');
+      const openBtns = document.querySelectorAll('.memo-open');
       const closeBtn = document.getElementById('memo-close');
       const nickInput = form.querySelector('[name="nick"]');
       const NICK_KEY = 'memo-nick';
       const storedNick = () => { try { return localStorage.getItem(NICK_KEY) || ''; } catch (e) { return ''; } };
       const rememberNick = (v) => { try { localStorage.setItem(NICK_KEY, v); } catch (e) { } };
       if (nickInput && !nickInput.value) nickInput.value = storedNick();
-      if (openBtn && dlg) openBtn.addEventListener('click', () => {
+      if (openBtns.length && dlg) openBtns.forEach((btn) => btn.addEventListener('click', () => {
         say('');
         if (nickInput && !nickInput.value) nickInput.value = storedNick();
         dlg.showModal();
         if (nickInput && !nickInput.value) nickInput.focus();
         else form.querySelector('textarea').focus();
-      });
+      }));
       if (closeBtn && dlg) closeBtn.addEventListener('click', () => dlg.close());
       form.addEventListener('submit', async (e) => {
         e.preventDefault();

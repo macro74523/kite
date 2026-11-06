@@ -6,7 +6,8 @@ description: 这是一篇有意思的文章
 id: 01KQTPYE000XHKGZCZ7JDY9A92
 og_image: https://jpg.macro.wang/20261011112937966.jpg
 published_at: 2026-05-06T00:00:00Z
-slug: 2026-05-05-匹克球开业转转赛
+slug: 2026-99716
+aliases: ["2026-05-05-匹克球开业转转赛"]
 status: published
 tags:
     - 短视频

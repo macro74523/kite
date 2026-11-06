@@ -1,7 +1,8 @@
 ---
 id: 01M5BF70TY2SGRZ3543PSGKVY3
 title: "小初篇V6"
-slug: untitled
+slug: 2023-67652
+aliases: ["untitled"]
 status: published
 created_at: 2026-10-20T01:36:01Z
 cover: 958816e48f12ac70164fabb8fc6be4e7.png

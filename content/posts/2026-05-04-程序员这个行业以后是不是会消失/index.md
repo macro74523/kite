@@ -6,7 +6,8 @@ description: 程序员行业不会消失，但会被 AI 彻底重构：淘汰的
 id: 01KQR4HQ0025V3GVY53V936AY1
 og_image: ./social-card.avif
 published_at: 2026-05-05T00:00:00Z
-slug: 2026-05-04-程序员这个行业以后是不是会消失
+slug: 2026-19877
+aliases: ["2026-05-04-程序员这个行业以后是不是会消失"]
 status: published
 tags:
     - 随笔

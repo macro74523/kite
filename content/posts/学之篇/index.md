@@ -1,7 +1,8 @@
 ---
 id: 01M5BFKFKW8TGG4WYMYSBKB41M
 title: 学之篇
-slug: 学之篇
+slug: 2023-53016
+aliases: ["学之篇"]
 status: published
 created_at: 2026-10-20T01:42:50Z
 cover: fef38946e1c49c85bd1331771f402ca7.png

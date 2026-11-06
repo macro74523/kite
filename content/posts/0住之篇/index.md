@@ -1,7 +1,8 @@
 ---
 id: 01M5BFMVWJNG6G1TZYRP6WRTVN
 title: 住之篇
-slug: 0住之篇
+slug: 2023-47395
+aliases: ["0住之篇"]
 status: published
 created_at: 2026-10-20T01:43:35Z
 cover: 8e831287ce95a91fbeee11f3451fc5d3.png

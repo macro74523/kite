@@ -1,7 +1,8 @@
 ---
 id: 01M6RCYFHNDSKYZ9NVN0JTD6MN
 title: "体育场馆宣传片-2025"
-slug: untitled-4
+slug: 2026-34420
+aliases: ["untitled-4"]
 status: published
 created_at: 2026-11-06T12:22:14Z
 categories:

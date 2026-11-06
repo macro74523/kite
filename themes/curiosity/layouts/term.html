@@ -1,7 +1,22 @@
 {{ define "main" }}{{ $label := .Page.Title }}{{ if eq .Page.Title "video" }}{{ $label = "视频作品" }}{{ else if eq .Page.Title "Instantly" }}{{ $label = "一瞬" }}{{ end }}{{ if and (eq .Page.Type "categories") (eq .Page.Title "Instantly") }}
 <section class="listing moments-listing">
-  <header class="moments-heading"><span class="eyebrow">MOMENTS / 一瞬</span><h1>{{ $label }}</h1></header>
   {{ $words := 0 }}{{ range .Pages }}{{ $words = math.Add $words .WordCount }}{{ end }}
+  <div class="profile-hero">
+    <div class="profile-banner"{{ with .Site.ThemeSettings.photo }} style="--pf-photo:url('{{ url.Rel . }}')"{{ end }}>
+      <span class="profile-banner-tag">MOMENTS<span>/</span>{{ $label }}</span>
+    </div>
+    <div class="profile-ident">
+      <span class="profile-avatar">{{ with $.Site.ThemeSettings.avatar }}<img src="{{ url.Rel . }}" alt="{{ default $.Site.Title $.Site.Author }}">{{ else }}{{ str.Truncate 1 (default $.Site.Title $.Site.Author) }}{{ end }}</span>
+      <div class="profile-name-wrap">
+        <h1 class="profile-name">{{ default .Site.Title .Site.Author }}</h1>
+        <span class="profile-level">CREATOR<span>/</span>创作者</span>
+      </div>
+      <div class="profile-actions">
+        {{ with .Site.ThemeSettings.memo_server }}<button type="button" class="memo-open profile-action">＋ 写留言</button>{{ end }}
+        <a class="profile-action profile-action-primary" href="/categories/video/">全部作品<span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    {{ with .Site.ThemeSettings.intro }}<p class="profile-intro">{{ . }}</p>{{ end }}
   <div class="moments-stats">
     <div class="mstat"><span class="mstat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.2"/><path d="M3 9.2h18M7.6 4v5.2M16.4 4v5.2"/></svg></span><b>{{ len .Pages }}</b><span class="mstat-k">动态条数 · POSTS</span></div>
     <div class="mstat"><span class="mstat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6.5h14M5 11.5h10.5M5 16.5h7"/></svg></span><b id="stat-words">{{ $words }}</b><span class="mstat-k">总字数 · WORDS</span></div>
@@ -10,7 +25,8 @@
     <div class="mstat mstat-time"><span class="mstat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.4V12l3.1 1.9"/></svg></span><b id="stat-last" class="is-pending">—</b><span class="mstat-k">最后活动 · LAST<i class="tz">GMT+8</i></span></div>
     <div class="mstat"><span class="mstat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.6"/><path d="M3.5 9.6h17M8 3.2v3.8M16 3.2v3.8"/></svg></span><b id="stat-days" class="is-pending">—</b><span class="mstat-k">运行天数 · DAYS</span></div>
   </div>
-  <div class="filter-bar" id="moments-filter" role="group" aria-label="按时间筛选"></div>
+    <div class="profile-tabs"><div class="filter-bar" id="moments-filter" role="group" aria-label="按时间筛选"></div></div>
+  </div>
   <div class="moments-two-col">
   <div class="moments-stream">
     {{ $mi := 0 }}{{ range .Pages }}

@@ -6,7 +6,8 @@ description: 这是一篇有意思的文章
 id: 01KQTPYE00734G63Z83N0M5084
 og_image: https://jpg.macro.wang/20261011112810691.jpg
 published_at: 2026-05-06T00:00:00Z
-slug: 2026-05-05-博华-匹-安夜转转赛收官啦
+slug: 2026-50714
+aliases: ["2026-05-05-博华-匹-安夜转转赛收官啦"]
 status: published
 tags:
   - 活动快剪

@@ -6,7 +6,8 @@ description: 这是一篇有意思的文章
 id: 01KQNJ50002KJHYZ5PB97N4GNC
 og_image: https://jpg.macro.wang/20261011112537288.jpg
 published_at: 2026-05-04T00:00:00Z
-slug: 2026-05-03-你还记得放学最爱去的小吃店么
+slug: 2026-27707
+aliases: ["2026-05-03-你还记得放学最爱去的小吃店么"]
 status: published
 tags:
   - 文旅系列

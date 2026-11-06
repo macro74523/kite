@@ -1,7 +1,8 @@
 ---
 id: 01M5BFHQBK4QQ4081S575Q0WGS
 title: 小学篇
-slug: 小学篇
+slug: 2023-82483
+aliases: ["小学篇"]
 status: published
 created_at: 2026-10-20T01:41:52Z
 cover: f0736e7cb95ad582d3c86cafc1de8a8a.png

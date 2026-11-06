@@ -6,7 +6,8 @@ description: 这是一篇有意思的文章
 id: 01KQTPYE00NGWXHC1RT365S0KM
 og_image: https://jpg.macro.wang/20261011112741463.jpg
 published_at: 2026-05-06T00:00:00Z
-slug: 2026-05-05-滨海华赋30s短视频推广
+slug: 2026-64331
+aliases: ["2026-05-05-滨海华赋30s短视频推广"]
 status: published
 tags:
     - 短视频

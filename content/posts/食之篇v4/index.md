@@ -1,7 +1,8 @@
 ---
 id: 01M5BFM334BGZY3S9Z3CN9Z376
 title: 食之篇V4
-slug: 食之篇v4
+slug: 2023-92121
+aliases: ["食之篇v4"]
 status: published
 created_at: 2026-10-20T01:43:10Z
 cover: ecfb62cf8e2102b82497ef6622c10242.png

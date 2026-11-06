@@ -6,7 +6,8 @@ description: Curiosity 是一款专为内容创作者打造的 Bento 风格博�
 id: 1HZF4SDM24SHQA51QRMGN336HE
 og_image: https://jpg.macro.wang/20260812122404861.jpg
 published_at: 2026-10-01T10:00:00Z
-slug: curiosity-theme-intro
+slug: 2026-52500
+aliases: ["curiosity-theme-intro"]
 status: published
 tags:
     - 示例

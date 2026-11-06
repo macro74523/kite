@@ -6,7 +6,8 @@ description: 这是一篇有意思的文章
 id: 01KRMEXM00QZCNPJB17P9HR328
 og_image: https://jpg.macro.wang/20261011113219730.jpg
 published_at: 2024-10-01T00:00:00Z
-slug: 2026-05-15-学习之星
+slug: 2024-35895
+aliases: ["2026-05-15-学习之星"]
 status: published
 title: 学习之星
 updated_at: 2026-11-06T12:59:09Z

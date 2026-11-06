@@ -6,7 +6,8 @@ description: 这是一篇有意思的文章
 id: 01KQTPYE0068100MTBYMMDN61H
 og_image: https://jpg.macro.wang/20261011113015534.jpg
 published_at: 2026-05-06T00:00:00Z
-slug: 2026-05-05-匹克球擂主挑战赛
+slug: 2026-95760
+aliases: ["2026-05-05-匹克球擂主挑战赛"]
 status: published
 tags:
   - 活动快剪

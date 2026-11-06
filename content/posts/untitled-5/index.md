@@ -1,7 +1,8 @@
 ---
 id: 01M6RD5ZRQKTG1TV9VBVZSF8MH
 title: "饺子手作1106"
-slug: untitled-5
+slug: 2026-21965
+aliases: ["untitled-5"]
 status: published
 created_at: 2026-11-06T12:26:20Z
 categories:

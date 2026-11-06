@@ -6,7 +6,8 @@ description: 一篇完整展示 Markdown 排版能力的示例文章，包含标
 id: 1HZF4SFEPRXJVX90YFV0ZFEM25
 og_image: https://jpg.macro.wang/20260812122404861.jpg
 published_at: 2026-10-05T10:00:00Z
-slug: markdown-showcase
+slug: 2026-41118
+aliases: ["markdown-showcase"]
 status: published
 tags:
     - 示例

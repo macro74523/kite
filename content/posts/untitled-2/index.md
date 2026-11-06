@@ -1,7 +1,8 @@
 ---
 id: 01M5BFNSHETP7V4M0D4SXKCZHN
 title: "后勤篇V4"
-slug: untitled-2
+slug: 2023-15541
+aliases: ["untitled-2"]
 status: published
 created_at: 2026-10-20T01:44:05Z
 cover: eefee36e931c0a6f5131eaf8a30ae338.png

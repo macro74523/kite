@@ -1,7 +1,8 @@
 ---
 id: 01M5BFFDR2CTSW09BQTKH9JGCM
 title: 导师篇V4
-slug: 导师篇v4
+slug: 2023-72631
+aliases: ["导师篇v4"]
 status: published
 created_at: 2026-10-20T01:40:37Z
 cover: 07c82ea03ae337de39f6fcbf55f08f9b.png

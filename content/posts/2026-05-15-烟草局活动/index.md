@@ -6,7 +6,8 @@ description: 这是一篇有意思的文章
 id: 01KRMEXM0035KJMZM30ACJV7YZ
 og_image: https://jpg.macro.wang/20261011113240844.jpg
 published_at: 2026-05-16T00:00:00Z
-slug: 2026-05-15-烟草局活动
+slug: 2026-67964
+aliases: ["2026-05-15-烟草局活动"]
 status: published
 tags:
   - 活动快剪

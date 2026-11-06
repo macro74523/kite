@@ -1,7 +1,8 @@
 ---
 id: 01M5BFECXGMKZ3DRNGRBVBPP8Q
 title: 美之篇V7
-slug: 美之篇v7
+slug: 2023-75176
+aliases: ["美之篇v7"]
 status: published
 created_at: 2026-10-20T01:40:03Z
 categories:
