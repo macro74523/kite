@@ -1,7 +1,8 @@
 ---
 id: 01M6RD7S22TRSNPS36WZQK9AEH
-title: 手作面包1024
-slug: 日常短片
+title: 面包手作1024
+slug: 2026-98963
+aliases: ["日常短片"]
 status: published
 created_at: 2026-11-06T12:27:18Z
 categories:
