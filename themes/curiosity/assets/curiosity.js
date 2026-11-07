@@ -21,6 +21,43 @@
   }
   mq.addEventListener('change', () => { if (!stored) root.setAttribute('data-theme', effective()); });
 
+  // 统计动效：占位呼吸 → 数值按顺序浮现 → 数值增加时右上角弹「新 +N」3 秒
+  const statFx = (() => {
+    const key = 'curiosity:stat-prev:' + (document.body.dataset.storageKey || location.pathname);
+    let prev = null;
+    try { prev = JSON.parse(localStorage.getItem(key) || 'null'); } catch (_) { prev = null; }
+    const next = Object.assign({}, prev || {});
+    const boxOf = (el) => el.closest('.mstat, .stats-row > div') || el.parentElement;
+    return {
+      reveal(el, order) {
+        if (!el) return;
+        el.style.animationDelay = ((order || 0) * 70) + 'ms';
+        el.classList.add('stat-reveal');
+      },
+      stagger(selector) {
+        document.querySelectorAll(selector).forEach((el, i) => this.reveal(el, i));
+      },
+      fill(el, display, raw, field) {
+        if (!el) return;
+        const box = boxOf(el);
+        const num = Number(raw);
+        if (field && Number.isFinite(num)) {
+          if (prev && Number.isFinite(prev[field]) && num > prev[field]) {
+            const tip = document.createElement('span');
+            tip.className = 'stat-delta';
+            tip.textContent = '+' + (num - prev[field]);
+            box.appendChild(tip);
+            setTimeout(() => { tip.classList.add('is-out'); setTimeout(() => tip.remove(), 400); }, 7000);
+          }
+          next[field] = num;
+          try { localStorage.setItem(key, JSON.stringify(next)); } catch (_) { }
+        }
+        el.innerHTML = display;
+        el.classList.remove('is-pending');
+      }
+    };
+  })();
+
   // Theme-toggle skins. Seasonal windows take over for ten days each year:
   // Halloween (Oct 26 - Nov 4) then Lidong / 立冬 (Nov 7 - Nov 16).
   // Append ?skin=purple|halloween|lidong|mono to any URL to preview a skin.
@@ -99,7 +136,7 @@
     function render(items, count) {
       if (countEl) countEl.textContent = count ? `${count} 条` : '';
       const statMsg = document.getElementById('stat-messages');
-      if (statMsg) { statMsg.textContent = String(count || 0); settled(statMsg); }
+      statFx.fill(statMsg, String(count || 0), count || 0, 'messages');
       paintLast();
       if (!items.length) { listEl.innerHTML = ''; listEl.append(memoEmpty()); return; }
       listEl.innerHTML = '';
@@ -182,17 +219,16 @@
       const el = document.getElementById('stat-last');
       if (el && last) {
         const s = stamp(last);
-        el.innerHTML = '<span class="last-day">' + s.y + '.' + s.m + '.' + s.d + '</span><span class="last-clock">' + s.h + ':' + s.mi + '</span>';
-        settled(el);
+        statFx.fill(el, '<span class="last-day">' + s.y + '.' + s.m + '.' + s.d + '</span><span class="last-clock">' + s.h + ':' + s.mi + '</span>');
       }
       const daysEl = document.getElementById('stat-days');
       if (!daysEl) return;
       if (stamps.length) {
         const start = stamp(Math.min(...stamps)).key;
         const today = stamp(Date.now()).key;
-        daysEl.textContent = String(Math.max(1, Math.round((today - start) / 86400000) + 1));
+        const days = Math.max(1, Math.round((today - start) / 86400000) + 1);
+        statFx.fill(daysEl, String(days), days, 'days');
       }
-      settled(daysEl);
     }
     const loadVisitors = () => {
       const el = document.getElementById('stat-visitors');
@@ -202,13 +238,12 @@
       fetch(q, { headers: { 'x-umami-share-token': S.token } })
         .then((r) => (r.ok ? r.json() : null))
         .then((j) => {
-          settled(el);
-          if (!j) return;
+          if (!j) { settled(el); return; }
           const pv = j.pageviews;
           const total = Array.isArray(pv)
             ? pv.reduce((sum, p) => sum + (Number(p.y) || 0), 0)
             : (pv && typeof pv === 'object' ? Number(pv.value) || 0 : 0);
-          el.textContent = String(total);
+          statFx.fill(el, String(total), total, 'views');
         })
         .catch(() => { settled(el); });
     };
@@ -216,6 +251,7 @@
     const boot = () => {
       if (booted) return;
       booted = true;
+      statFx.stagger('.moments-stats .mstat');
       paintLast();
       load();
       loadVisitors();
@@ -713,9 +749,17 @@
     const CACHE_KEY = `curiosity-stats:${document.body.dataset.storageKey || 'home'}`;
     const TTL = 10 * 60 * 1000;
     const apply = (total, today) => {
-      sVis.textContent = formatN(total?.visitors?.value ?? 0);
-      document.getElementById('stats-today').textContent = formatN(today?.visitors?.value ?? 0);
-      document.getElementById('stats-pageviews').textContent = formatN(total?.pageviews?.value ?? 0);
+      const rows = [
+        ['stats-today', Number(today?.visitors?.value ?? 0), 'today'],
+        ['stats-visitors', Number(total?.visitors?.value ?? 0), 'visitors'],
+        ['stats-pageviews', Number(total?.pageviews?.value ?? 0), 'pageviews']
+      ];
+      rows.forEach(([id, raw, field], i) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        statFx.fill(el, formatN(raw), raw, field);
+        statFx.reveal(el, i);
+      });
     };
     let cache = null;
     try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (_) { cache = null; }
@@ -728,7 +772,13 @@
       Promise.all([fetchStats(0), fetchStats(todayStart)])
         .then(([total, today]) => {
           if (!total && !today) {
-            if (!cache) document.getElementById('stats-status').textContent = words.stats_failed || '统计暂不可用';
+            if (!cache) {
+              document.getElementById('stats-status').textContent = words.stats_failed || '统计暂不可用';
+              ['stats-today', 'stats-visitors', 'stats-pageviews'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('is-pending');
+              });
+            }
             return;
           }
           apply(total, today);
