@@ -9,6 +9,15 @@
 {{ with .Site.Author }}<meta name="author" content="{{ . }}">{{ end }}
 {{ if or .Site.NoIndex .Page.Params.noindex }}<meta name="robots" content="noindex, nofollow">{{ end }}
 <link rel="canonical" href="{{ .Page.Permalink }}">
+{{ $ogImage := partial "og-image.html" .Page }}
+<meta property="og:type" content="{{ if eq .Page.Kind "single" }}article{{ else }}website{{ end }}">
+<meta property="og:site_name" content="{{ .Site.Title }}">
+<meta property="og:title" content="{{ if ne .Page.Kind "home" }}{{ .Page.Title }}{{ else }}{{ .Site.Title }}{{ end }}">
+{{ with $description }}<meta property="og:description" content="{{ . }}">{{ end }}
+<meta property="og:url" content="{{ .Page.Permalink }}">
+{{ with $ogImage }}<meta property="og:image" content="{{ . }}"><meta property="og:image:alt" content="{{ $.Page.Title }}">{{ end }}
+<meta name="twitter:card" content="summary_large_image">
+{{ with $ogImage }}<meta name="twitter:image" content="{{ . }}">{{ end }}
 <link rel="alternate" type="application/rss+xml" title="{{ .Site.Title }}" href="{{ url.Rel "rss.xml" }}">
 <link rel="stylesheet" href="{{ url.Rel "assets/curiosity.css" }}?v={{ .Site.BuildTime }}">
 <link rel="preconnect" href="https://umami777.macro.wang" crossorigin>
