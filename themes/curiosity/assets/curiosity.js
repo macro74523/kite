@@ -21,18 +21,20 @@
   }
   mq.addEventListener('change', () => { if (!stored) root.setAttribute('data-theme', effective()); });
 
-  // Theme-toggle skins. A seasonal Halloween skin takes over for ten days
-  // (Oct 26 - Nov 4), then the default purple skin comes back on its own.
-  // Append ?skin=purple|halloween|mono to any URL to preview a skin.
+  // Theme-toggle skins. Seasonal windows take over for ten days each year:
+  // Halloween (Oct 26 - Nov 4) then Lidong / 立冬 (Nov 7 - Nov 16).
+  // Append ?skin=purple|halloween|lidong|mono to any URL to preview a skin.
   (() => {
     const btn = document.getElementById('theme-toggle');
     if (!btn) return;
     const now = new Date();
     const y = now.getFullYear();
     const halloween = now >= new Date(y, 9, 26) && now < new Date(y, 10, 5);
+    const lidong = now >= new Date(y, 10, 7) && now < new Date(y, 10, 17);
     const forced = new URLSearchParams(location.search).get('skin');
-    const skins = ['purple', 'halloween', 'mono'];
-    const skin = skins.includes(forced) ? forced : (halloween ? 'halloween' : 'purple');
+    const skins = ['purple', 'halloween', 'lidong', 'mono'];
+    const seasonal = halloween ? 'halloween' : (lidong ? 'lidong' : 'purple');
+    const skin = skins.includes(forced) ? forced : seasonal;
     btn.dataset.skin = skin;
     root.setAttribute('data-page-skin', skin);
   })();
@@ -662,11 +664,7 @@
         chip.hidden = false;
       });
     };
-    let cachedViews = null;
-    try { cachedViews = JSON.parse(localStorage.getItem(VIEWS_KEY) || 'null'); } catch (_) { cachedViews = null; }
-    if (cachedViews && cachedViews.map && Date.now() - cachedViews.t < VIEWS_TTL) {
-      paintViews(cachedViews.map);
-    } else {
+    const loadViews = () => {
       fetch(`${S.base}/api/websites/${S.website}/metrics?startAt=0&endAt=${Date.now()}&type=title&limit=500`, { headers: { 'x-umami-share-token': S.token } })
         .then(r => (r.ok ? r.json() : null))
         .then(rows => {
@@ -677,6 +675,25 @@
           paintViews(map);
         })
         .catch(() => {});
+    };
+    let cachedViews = null;
+    try { cachedViews = JSON.parse(localStorage.getItem(VIEWS_KEY) || 'null'); } catch (_) { cachedViews = null; }
+    if (cachedViews && cachedViews.map && Date.now() - cachedViews.t < VIEWS_TTL) {
+      paintViews(cachedViews.map);
+    } else if ('IntersectionObserver' in window) {
+      // 懒加载：卡片接近视口时才请求一次，之后复用本次结果
+      // 观察卡片容器而非标签本身（标签初始 display:none，无法触发交叉观察）
+      const viewObserver = new IntersectionObserver(entries => {
+        if (!entries.some(entry => entry.isIntersecting)) return;
+        viewObserver.disconnect();
+        loadViews();
+      }, { rootMargin: '200px' });
+      viewChips.forEach(chip => {
+        const target = chip.closest('.video-card, .moment-card') || chip.parentElement || chip;
+        viewObserver.observe(target);
+      });
+    } else {
+      loadViews();
     }
   }
 
