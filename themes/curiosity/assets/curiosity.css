@@ -1207,3 +1207,4 @@ html[data-page-skin=lidong][data-theme=dark] body.page-home{--accent:#8ec5ff;bac
 html[data-page-skin=lidong][data-theme=light] body.page-home{--accent:#3f7fd6;background:radial-gradient(1100px 460px at 72% -6%,#fbfdff 0%,#e8eef7 62%)!important}
 html[data-page-skin=lidong] body.page-home .text-link{color:#8ec5ff}
 html[data-theme=light][data-page-skin=lidong] body.page-home .text-link{color:#3f7fd6}
+.site-footer .footer-brand strong{text-transform:uppercase}
