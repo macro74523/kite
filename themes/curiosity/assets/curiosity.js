@@ -58,19 +58,17 @@
     };
   })();
 
-  // Theme-toggle skins. Seasonal windows take over for ten days each year:
-  // Halloween (Oct 26 - Nov 4) then Lidong / 立冬 (Nov 7 - Nov 16).
-  // Append ?skin=purple|halloween|lidong|mono to any URL to preview a skin.
+  // Theme-toggle skins. The Halloween skin takes over for ten days each year:
+  // Oct 26 - Nov 4. Append ?skin=purple|halloween|mono to any URL to preview a skin.
   (() => {
     const btn = document.getElementById('theme-toggle');
     if (!btn) return;
     const now = new Date();
     const y = now.getFullYear();
     const halloween = now >= new Date(y, 9, 26) && now < new Date(y, 10, 5);
-    const lidong = now >= new Date(y, 10, 7) && now < new Date(y, 10, 17);
     const forced = new URLSearchParams(location.search).get('skin');
-    const skins = ['purple', 'halloween', 'lidong', 'mono'];
-    const seasonal = halloween ? 'halloween' : (lidong ? 'lidong' : 'purple');
+    const skins = ['purple', 'halloween', 'mono'];
+    const seasonal = halloween ? 'halloween' : 'purple';
     const skin = skins.includes(forced) ? forced : seasonal;
     btn.dataset.skin = skin;
     root.setAttribute('data-page-skin', skin);
@@ -405,19 +403,20 @@
   );
 
   // Long moments stay readable in the feed; full content remains without JS.
-  document.querySelectorAll('.moment-content').forEach((content, index) => {
-    if (content.scrollHeight <= 420) return;
-    content.id = `moment-content-${index}`;
+  document.querySelectorAll('.moment-fold').forEach((fold, index) => {
+    const hasMedia = !!fold.querySelector('img, video, iframe');
+    if (!hasMedia && fold.scrollHeight <= 260) return;
+    fold.id = `moment-content-${index}`;
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'moment-expand';
     const expand = locale.startsWith('zh') ? '展开全文' : 'Read more';
     const collapse = locale.startsWith('zh') ? '收起全文' : 'Show less';
     button.textContent = expand;
-    button.setAttribute('aria-controls', content.id);
+    button.setAttribute('aria-controls', fold.id);
     button.setAttribute('aria-expanded', 'false');
-    content.classList.add('is-collapsed');
-    const syncLinks = collapsed => content.querySelectorAll('a').forEach(link => {
+    fold.classList.add('is-collapsed');
+    const syncLinks = collapsed => fold.querySelectorAll('a').forEach(link => {
       if (collapsed) {
         link.dataset.momentTabindex = link.getAttribute('tabindex') ?? '';
         link.setAttribute('tabindex', '-1');
@@ -430,13 +429,13 @@
     syncLinks(true);
     button.addEventListener('click', () => {
       const opening = button.getAttribute('aria-expanded') !== 'true';
-      content.classList.toggle('is-collapsed', !opening);
+      fold.classList.toggle('is-collapsed', !opening);
       syncLinks(!opening);
       button.setAttribute('aria-expanded', String(opening));
       button.textContent = opening ? collapse : expand;
-      if (!opening) content.closest('.moment-card').scrollIntoView({ block: 'start', behavior: 'instant' });
+      if (!opening) fold.closest('.moment-card').scrollIntoView({ block: 'start', behavior: 'instant' });
     });
-    content.after(button);
+    fold.after(button);
   });
 
   // Calendar — timeline style
@@ -1826,4 +1825,36 @@
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
     else boot();
+  })();
+
+  // 主视觉 3D IP：指针视差 + 点击弹跳
+  (() => {
+    const hero = document.querySelector('.creator-hero');
+    const stage = document.getElementById('creator-stage');
+    if (!hero || !stage) return;
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (window.matchMedia('(pointer:fine)').matches && !calm.matches) {
+      let raf = 0, mx = 0, my = 0;
+      hero.addEventListener('pointermove', (e) => {
+        const r = hero.getBoundingClientRect();
+        mx = ((e.clientX - r.left) / r.width) * 2 - 1;
+        my = ((e.clientY - r.top) / r.height) * 2 - 1;
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          hero.style.setProperty('--mx', mx.toFixed(3));
+          hero.style.setProperty('--my', my.toFixed(3));
+        });
+      });
+      hero.addEventListener('pointerleave', () => {
+        hero.style.setProperty('--mx', '0');
+        hero.style.setProperty('--my', '0');
+      });
+    }
+    stage.addEventListener('click', () => {
+      stage.classList.remove('is-pop');
+      void stage.offsetWidth;
+      stage.classList.add('is-pop');
+      window.setTimeout(() => stage.classList.remove('is-pop'), 800);
+    });
   })();
