@@ -49,7 +49,7 @@
   <dialog class="memo-dialog" id="memo-dialog" aria-label="写留言">
     <form class="memo-form" id="memo-form" novalidate>
       <header class="memo-dialog-head"><span class="eyebrow">MESSAGE<span class="eyebrow-sub">/ 留言</span></span><button type="button" class="memo-close" id="memo-close" aria-label="关闭">✕</button></header>
-      <div class="memo-fields"><label><span>昵称</span><input name="nick" maxlength="24" autocomplete="nickname" required></label></div>
+      <div class="memo-fields"><label><span>昵称 / QQ号</span><div class="memo-nick"><span class="memo-nick-avatar" id="memo-nick-avatar" aria-hidden="true"></span><input name="nick" maxlength="24" autocomplete="nickname" placeholder="昵称或 QQ 号" required></div></label></div>
       <textarea name="comment" rows="4" maxlength="800" placeholder="想说点什么…" required></textarea>
       <div class="memo-actions"><p class="memo-status" id="memo-status" role="status"></p><button type="submit" class="memo-submit">发送<span aria-hidden="true">↗</span></button></div>
     </form>

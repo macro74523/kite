@@ -533,7 +533,7 @@ html[data-theme=dark] .kite-comments .waline{
 @media(min-width:651px){.moment-slide{flex:0 0 90%}}
 
 /* Bottom-sheet article viewer: springs up, page behind steps back */
-.page-shell{display:flex;flex-direction:column;min-height:100dvh;flex:1;background:inherit;transition:filter .42s ease}
+.page-shell{display:flex;flex-direction:column;min-height:100dvh;flex:1;background:inherit;margin-top:-10px;padding-top:10px;transition:filter .42s ease}
 .page-shell.is-behind{filter:brightness(.55)}
 .sheet-backdrop{position:fixed;inset:0;z-index:80;background:#0f172a4d;opacity:0;pointer-events:none;transition:opacity .38s ease}
 .sheet-backdrop.is-on{opacity:1;pointer-events:auto}
@@ -747,6 +747,20 @@ html[data-theme="light"] body.page-home .work-big{background:linear-gradient(165
 html[data-theme="light"] body.page-home .work-big{box-shadow:0 12px 28px #3341550f,0 2px 6px #3341550a}
 .page-home .work-big .moment-slide>a{aspect-ratio:16/9}
 .page-home .work-big .moment-slide{background:transparent}
+/* Full-bleed LATEST WORKS: no heading, no caption, image fills the whole card */
+.page-home .big-card.work-big{padding:0}
+.page-home .work-big .moment-track{flex:1 1 auto;height:100%;padding:0;gap:0;min-height:0}
+.page-home .work-big .moment-slide{flex:0 0 100%;height:100%;border-radius:0;box-shadow:none}
+.page-home .work-big .moment-slide>a{width:100%;height:100%;aspect-ratio:auto}
+.page-home .work-big .moment-dots{position:absolute;left:0;right:0;bottom:14px;z-index:2;margin:0;padding:0}
+.page-home .work-big .moment-dots span{background:#ffffff73;box-shadow:0 1px 3px #00000052}
+.page-home .work-big .moment-dots span.is-current{background:#fff}
+@media(max-width:1023px){
+.page-home .work-big{min-height:0}
+.page-home .work-big .moment-track{height:auto}
+.page-home .work-big .moment-slide{height:auto}
+.page-home .work-big .moment-slide>a{aspect-ratio:16/9;height:auto}
+}
 /* ===== Works first, whole grid tightened ===== */
 .page-home .finesse-grid{gap:12px}
 .page-home .big-card{border-radius:18px;padding:20px 20px 18px}
@@ -1106,6 +1120,10 @@ html[data-theme=dark] .header-actions .tt-lever{transform:translateX(28px)}
 .memo-fields span{font-size:11px;letter-spacing:.12em;color:var(--muted)}
 .memo-fields input,.memo-form textarea{width:100%;box-sizing:border-box;padding:9px 11px;font:inherit;font-size:13px;color:var(--ink);background:color-mix(in srgb,var(--ink) 5%,transparent);border:1px solid var(--line);border-radius:8px;transition:border-color .2s,background .2s}
 .memo-fields input:focus,.memo-form textarea:focus{outline:none;border-color:var(--accent);background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.memo-nick{display:flex;align-items:center;gap:9px}
+.memo-nick input{flex:1 1 auto;width:auto;min-width:0}
+.memo-nick-avatar{flex:0 0 auto;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12px;color:var(--muted);border:1px solid var(--line);background:color-mix(in srgb,var(--ink) 6%,transparent) center/cover no-repeat;overflow:hidden}
+.memo-nick-avatar.is-img{border-color:transparent;background-size:cover}
 .memo-form textarea{min-height:88px;resize:vertical;line-height:1.6}
 .memo-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .memo-status{margin:0;font-size:12px;color:var(--muted)}
@@ -1124,8 +1142,19 @@ html[data-theme=dark] .header-actions .tt-lever{transform:translateX(28px)}
 .memo-body{min-width:0}
 .memo-body header{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
 .memo-body strong{font-size:14.5px;font-weight:700;color:var(--ink);letter-spacing:.01em}
+/* QQ 号中段用贴纸遮住：创可贴 / 爱心贴 / 星星贴，按号码轮换 */
+.qq-patch{display:inline-flex;align-items:center;justify-content:center;gap:2px;vertical-align:middle;width:32px;height:15px;margin:0 3px;border:1px solid;border-radius:9px 4px 9px 4px;box-shadow:0 1px 2px #00000014,inset 0 0 0 2px #ffffff99;font-size:10px;line-height:1;transform:rotate(-4deg);transition:transform .2s ease}
+.qq-patch i{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.75}
+.qq-patch-1{color:#a8694a;background:#f8ddcb;border-color:#ecc3a9}
+.qq-patch-2{color:#cf4177;background:#ffe3ee;border-color:#f5c6da;transform:rotate(3deg)}
+.qq-patch-3{color:#2c7cb3;background:#e2f2fb;border-color:#c2e0f2;transform:rotate(-2deg)}
+.memo-item:hover .qq-patch{transform:rotate(0) scale(1.06)}
 .memo-body a{text-decoration:none}
-.memo-body time{margin-left:auto;font-size:10.5px;letter-spacing:.06em;color:var(--muted)}
+.memo-body time{margin-left:auto;display:inline-flex;align-items:baseline;gap:5px;font-family:var(--mono,ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);font-size:9.5px;letter-spacing:.12em;color:var(--muted);white-space:nowrap}
+.memo-date{font-weight:650;text-transform:uppercase;color:color-mix(in srgb,var(--ink) 62%,transparent);transition:color .2s}
+.memo-sep{opacity:.45}
+.memo-clock{font-variant-numeric:tabular-nums;letter-spacing:.08em;opacity:.82}
+.memo-item:hover .memo-date{color:var(--accent)}
 .memo-text{margin:6px 0 0;font-size:13.5px;line-height:1.7;color:var(--ink);white-space:pre-wrap;word-break:break-word}
 .memo-empty{margin:0;font-size:12.5px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 0 8px;text-align:center}
 .memo-empty svg{color:var(--muted);opacity:.55;transition:color .25s,opacity .25s}
@@ -1208,3 +1237,11 @@ html[data-page-skin=lidong][data-theme=light] body.page-home{--accent:#3f7fd6;ba
 html[data-page-skin=lidong] body.page-home .text-link{color:#8ec5ff}
 html[data-theme=light][data-page-skin=lidong] body.page-home .text-link{color:#3f7fd6}
 .site-footer .footer-brand strong{text-transform:uppercase}
+/* 图片加载占位：未解码完成的封面先显示呼吸流光，完成后淡入 */
+.img-shimmer{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;background:linear-gradient(100deg,var(--line) 30%,color-mix(in srgb,var(--line) 40%,var(--ink)) 50%,var(--line) 70%);background-size:280% 100%;animation:imgShimmer 1.5s ease-in-out infinite,imgShimmerPulse 1.8s ease-in-out infinite}
+.img-shimmer.is-out{opacity:0;transition:opacity .4s ease}
+img.is-img-pending{opacity:0}
+img.is-img-ready{opacity:1;transition:opacity .45s ease}
+@keyframes imgShimmer{0%{background-position:130% 0}100%{background-position:-30% 0}}
+@keyframes imgShimmerPulse{0%,100%{opacity:.65}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.img-shimmer{animation:none}.img-shimmer.is-out{transition:none}img.is-img-ready{transition:none}}

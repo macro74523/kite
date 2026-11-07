@@ -78,30 +78,85 @@
 
   // 留言条目渲染：列表页与「阅读原文」抽屉共用，所以放在模块外
   const memoPad = (n) => String(n).padStart(2, '0');
-  const memoStamp = (ms) => { const d = new Date(ms); return `${d.getFullYear()}.${memoPad(d.getMonth() + 1)}.${memoPad(d.getDate())} ${memoPad(d.getHours())}:${memoPad(d.getMinutes())}`; };
+  const MEMO_MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  // 评论区时间：英文月份 + TODAY / YESTERDAY，保留精确分钟
+  const memoStamp = (ms) => {
+    const d = new Date(ms), now = new Date();
+    const clock = memoPad(d.getHours()) + ':' + memoPad(d.getMinutes());
+    const mins = Math.floor((now - d) / 60000);
+    const sameYear = d.getFullYear() === now.getFullYear();
+    const sameDay = sameYear && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+    const yest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const isYest = d.getFullYear() === yest.getFullYear() && d.getMonth() === yest.getMonth() && d.getDate() === yest.getDate();
+    let label;
+    if (mins >= 0 && mins < 1) label = 'JUST NOW';
+    else if (mins < 60) label = mins + ' MIN AGO';
+    else if (sameDay) label = 'TODAY';
+    else if (isYest) label = 'YESTERDAY';
+    else label = (sameYear ? '' : d.getFullYear() + ' ') + MEMO_MONTHS[d.getMonth()] + ' ' + memoPad(d.getDate());
+    return { label, clock, full: `${d.getFullYear()}.${memoPad(d.getMonth() + 1)}.${memoPad(d.getDate())} ${clock}` };
+  };
   const memoSource = (c) => {
     if (c.orig) return c.orig;
     const box = document.createElement('div');
     box.innerHTML = c.comment || '';
     return box.textContent || '';
   };
+  // 昵称填 QQ 号时用 QQ 头像，其余沿用 Waline 返回的头像
+  const qqOf = (s) => { const v = String(s || '').trim(); return /^\d{5,11}$/.test(v) ? v : ''; };
+  const qqAvatar = (qq) => 'https://q1.qlogo.cn/g?b=qq&nk=' + qq + '&s=100';
+  // 评论列表里用可爱贴纸盖住 QQ 号中段，头像仍用完整号码取图
+  const qqPatchVariant = (qq) => (Number(qq.slice(-1)) % 3) + 1;
+  const maskedNick = (qq) => {
+    const frag = document.createDocumentFragment();
+    const keep = qq.length >= 7 ? 2 : 1;
+    frag.append(qq.slice(0, keep));
+    const patch = document.createElement('span');
+    patch.className = 'qq-patch qq-patch-' + qqPatchVariant(qq);
+    patch.title = 'QQ 号已隐藏';
+    patch.setAttribute('aria-label', 'QQ 号已隐藏');
+    if (patch.classList.contains('qq-patch-2')) patch.textContent = '♥';
+    else if (patch.classList.contains('qq-patch-3')) patch.textContent = '✦';
+    else for (let i = 0; i < 3; i++) patch.append(document.createElement('i'));
+    frag.append(patch, qq.slice(-keep));
+    return frag;
+  };
   function memoRow(c) {
     const row = document.createElement('article');
     row.className = 'memo-item';
     const who = document.createElement('span');
     who.className = 'memo-avatar';
-    if (c.avatar) { const img = document.createElement('img'); img.src = c.avatar; img.alt = ''; img.loading = 'lazy'; who.append(img); }
-    else who.textContent = (c.nick || '?').trim().charAt(0).toUpperCase();
+    const rawNick = (c.nick || '匿名').trim();
+    const qq = qqOf(rawNick);
+    const avatar = qq ? qqAvatar(qq) : c.avatar;
+    if (avatar) { const img = document.createElement('img'); img.src = avatar; img.alt = ''; img.loading = 'lazy'; who.append(img); }
+    else who.textContent = rawNick.charAt(0).toUpperCase();
     const body = document.createElement('div');
     body.className = 'memo-body';
     const head = document.createElement('header');
     const nick = document.createElement('strong');
-    const rawNick = (c.nick || '匿名').trim();
-    nick.textContent = rawNick.length > 5 ? rawNick.slice(0, 5) + '…' : rawNick;
+    if (qq) nick.append(maskedNick(qq));
+    else nick.textContent = rawNick.length > 5 ? rawNick.slice(0, 5) + '…' : rawNick;
     if (c.link) { const a = document.createElement('a'); a.href = c.link; a.target = '_blank'; a.rel = 'noopener nofollow'; a.append(nick); head.append(a); }
     else head.append(nick);
     const ms = Number(c.insertedAtMs) || Number(c.time) || Date.parse(String(c.insertedAt || '').replace(' ', 'T')) || 0;
-    if (ms) { const time = document.createElement('time'); time.dateTime = new Date(ms).toISOString(); time.textContent = memoStamp(ms); head.append(time); }
+    if (ms) {
+      const stamp = memoStamp(ms);
+      const time = document.createElement('time');
+      time.dateTime = new Date(ms).toISOString();
+      time.title = stamp.full;
+      const date = document.createElement('span');
+      date.className = 'memo-date';
+      date.textContent = stamp.label;
+      const sep = document.createElement('span');
+      sep.className = 'memo-sep';
+      sep.textContent = '·';
+      const clock = document.createElement('span');
+      clock.className = 'memo-clock';
+      clock.textContent = stamp.clock;
+      time.append(date, sep, clock);
+      head.append(time);
+    }
     const p = document.createElement('p');
     p.className = 'memo-text';
     p.textContent = memoSource(c);
@@ -161,13 +216,25 @@
       const openBtns = document.querySelectorAll('.memo-open');
       const closeBtn = document.getElementById('memo-close');
       const nickInput = form.querySelector('[name="nick"]');
+      const nickAvatar = document.getElementById('memo-nick-avatar');
+      const paintNickAvatar = () => {
+        if (!nickAvatar) return;
+        const v = nickInput ? (nickInput.value || '').trim() : '';
+        const qq = qqOf(v);
+        nickAvatar.classList.toggle('is-img', !!qq);
+        nickAvatar.style.backgroundImage = qq ? 'url("' + qqAvatar(qq) + '")' : '';
+        nickAvatar.textContent = qq ? '' : v.charAt(0).toUpperCase();
+      };
+      if (nickInput) nickInput.addEventListener('input', paintNickAvatar);
       const NICK_KEY = 'memo-nick';
       const storedNick = () => { try { return localStorage.getItem(NICK_KEY) || ''; } catch (e) { return ''; } };
       const rememberNick = (v) => { try { localStorage.setItem(NICK_KEY, v); } catch (e) { } };
       if (nickInput && !nickInput.value) nickInput.value = storedNick();
+      paintNickAvatar();
       if (openBtns.length && dlg) openBtns.forEach((btn) => btn.addEventListener('click', () => {
         say('');
         if (nickInput && !nickInput.value) nickInput.value = storedNick();
+        paintNickAvatar();
         dlg.showModal();
         if (nickInput && !nickInput.value) nickInput.focus();
         else form.querySelector('textarea').focus();
@@ -1715,3 +1782,48 @@
     if (e.key === 'Escape' && !box.hidden) close();
   });
 })();
+
+  // 封面加载占位：图片解码完成前盖上一层呼吸流光，避免逐行显影
+  (() => {
+    const MIN_W = 120, MIN_H = 60;
+    const attach = (img) => {
+      if (!img || img.tagName !== 'IMG' || img.dataset.imgFx) return;
+      if (img.complete) return; // 缓存命中或已加载，不加占位
+      let host = img.parentElement;
+      while (host && getComputedStyle(host).display === 'contents') host = host.parentElement;
+      if (!host || host === document.body) return;
+      const r = img.getBoundingClientRect();
+      if (r.width < MIN_W || r.height < MIN_H) return;
+      img.dataset.imgFx = '1';
+      if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+      const mask = document.createElement('span');
+      mask.className = 'img-shimmer';
+      mask.setAttribute('aria-hidden', 'true');
+      img.classList.add('is-img-pending');
+      host.insertBefore(mask, img);
+      let done = false;
+      const reveal = () => {
+        if (done) return;
+        done = true;
+        img.classList.remove('is-img-pending');
+        img.classList.add('is-img-ready');
+        mask.classList.add('is-out');
+        setTimeout(() => mask.remove(), 500);
+      };
+      img.addEventListener('load', reveal, { once: true });
+      img.addEventListener('error', reveal, { once: true });
+    };
+    const scan = (root) => {
+      if (root.tagName === 'IMG') attach(root);
+      if (!root.querySelectorAll) return;
+      root.querySelectorAll('img:not([data-img-fx])').forEach(attach);
+    };
+    const boot = () => {
+      scan(document);
+      new MutationObserver((list) => {
+        list.forEach((m) => m.addedNodes.forEach((n) => { if (n.nodeType === 1) scan(n); }));
+      }).observe(document.body, { childList: true, subtree: true });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+    else boot();
+  })();
