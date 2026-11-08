@@ -7,7 +7,7 @@ created_at: 2026-11-08T13:00:08Z
 categories:
   - video
 tags:
-  - 产品类
+  - 图文视频类
 published_at: 2026-11-08T13:00:58Z
 cover: https://jpg.macro.wang/20261108210151570.jpg
 ---

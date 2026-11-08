@@ -21,12 +21,21 @@
   }
   mq.addEventListener('change', () => { if (!stored) root.setAttribute('data-theme', effective()); });
 
-  // 统计动效：占位呼吸 → 数值按顺序浮现 → 数值增加时右上角弹「新 +N」3 秒
+  // 大数字防溢出：全站统计统一紧凑格式 12,345 → 12.3k、1,234,567 → 1.2m
+  const fmtCompact = n => {
+    n = Number(n) || 0;
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'm';
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+    return String(n);
+  };
+
+  // 统计动效：占位呼吸 → 数值按顺序浮现 → 数值增加时数字滚动加上去，落定后右上角弹「+N」
   const statFx = (() => {
     const key = 'curiosity:stat-prev:' + (document.body.dataset.storageKey || location.pathname);
     let prev = null;
     try { prev = JSON.parse(localStorage.getItem(key) || 'null'); } catch (_) { prev = null; }
     const next = Object.assign({}, prev || {});
+    const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
     return {
       reveal(el, order) {
         if (!el) return;
@@ -36,19 +45,39 @@
       stagger(selector) {
         document.querySelectorAll(selector).forEach((el, i) => this.reveal(el, i));
       },
+      // display：字符串（原样填充）或格式化函数（增量时用于逐帧渲染跳动数字）
       fill(el, display, raw, field) {
         if (!el) return;
         const num = Number(raw);
-        el.innerHTML = display;
+        const fmt = typeof display === 'function' ? display : null;
+        const show = v => { if (fmt) el.textContent = fmt(v); else el.innerHTML = display; };
         el.classList.remove('is-pending');
+        cancelAnimationFrame(el._statRaf || 0);
+        el.querySelectorAll('.stat-delta').forEach(t => t.remove());
+        const delta = (field && Number.isFinite(num) && prev && Number.isFinite(prev[field]) && num > prev[field])
+          ? num - prev[field] : 0;
+        const popBadge = () => {
+          const tip = document.createElement('span');
+          tip.className = 'stat-delta';
+          tip.textContent = '+' + delta;
+          el.appendChild(tip);
+          setTimeout(() => { tip.classList.add('is-out'); setTimeout(() => tip.remove(), 400); }, 7000);
+        };
+        if (delta > 0 && fmt && !reduceMotion()) {
+          // 从旧值滚动到新值，读起来就是"加上了 +N"的感觉；落定瞬间弹出角标
+          const from = num - delta, DUR = 900, t0 = performance.now();
+          const tick = t => {
+            const k = Math.min(1, (t - t0) / DUR);
+            show(Math.round(from + delta * (1 - Math.pow(1 - k, 3))));
+            if (k < 1) el._statRaf = requestAnimationFrame(tick);
+            else popBadge();
+          };
+          el._statRaf = requestAnimationFrame(tick);
+        } else {
+          show(num);
+          if (delta > 0) popBadge();
+        }
         if (field && Number.isFinite(num)) {
-          if (prev && Number.isFinite(prev[field]) && num > prev[field]) {
-            const tip = document.createElement('span');
-            tip.className = 'stat-delta';
-            tip.textContent = '+' + (num - prev[field]);
-            el.appendChild(tip);
-            setTimeout(() => { tip.classList.add('is-out'); setTimeout(() => tip.remove(), 400); }, 7000);
-          }
           next[field] = num;
           try { localStorage.setItem(key, JSON.stringify(next)); } catch (_) { }
         }
@@ -185,9 +214,9 @@
     const settled = (el) => { if (el) el.classList.remove('is-pending'); };
 
     function render(items, count) {
-      if (countEl) countEl.textContent = count ? `${count} 条` : '';
+      if (countEl) countEl.textContent = count ? `${fmtCompact(count)} 条` : '';
       const statMsg = document.getElementById('stat-messages');
-      statFx.fill(statMsg, String(count || 0), count || 0, 'messages');
+      statFx.fill(statMsg, fmtCompact, count || 0, 'messages');
       paintLast();
       if (!items.length) { listEl.innerHTML = ''; listEl.append(memoEmpty()); return; }
       listEl.innerHTML = '';
@@ -290,7 +319,7 @@
         const start = stamp(Math.min(...stamps)).key;
         const today = stamp(Date.now()).key;
         const days = Math.max(1, Math.round((today - start) / 86400000) + 1);
-        statFx.fill(daysEl, String(days), days, 'days');
+        statFx.fill(daysEl, fmtCompact, days, 'days');
       }
     }
     const loadVisitors = () => {
@@ -306,7 +335,7 @@
           const total = Array.isArray(pv)
             ? pv.reduce((sum, p) => sum + (Number(p.y) || 0), 0)
             : (pv && typeof pv === 'object' ? Number(pv.value) || 0 : 0);
-          statFx.fill(el, String(total), total, 'views');
+          statFx.fill(el, fmtCompact, total, 'views');
         })
         .catch(() => { settled(el); });
     };
@@ -728,8 +757,11 @@
     window.addEventListener('resize', fitWorks);
   }
 
-  // Video works: wrap every cover in a fixed 16:9 landscape frame so the grid
-  // stays uniform — portrait sources are cropped by object-fit instead.
+  // Video works: wrap every cover in a ratio frame picked from the source
+  // image itself — 16:9 for landscape, 3:4 for portrait — so the waterfall
+  // mixes both like Xiaohongshu. Landscape is the assumed default so the
+  // skeleton has a shape before the image's dimensions are known.
+  const relayoutVideoGrid = () => document.dispatchEvent(new CustomEvent('curiosity:video-relayout'));
   document.querySelectorAll('.video-listing .video-card').forEach(card => {
     const img = card.querySelector('img.post-cover');
     if (!img) { card.classList.add('is-loaded'); return; }
@@ -741,9 +773,18 @@
     const chip = card.querySelector('.views-chip');
     if (chip) wrap.appendChild(chip);
     let finished = false;
+    const orient = () => {
+      if (!img.naturalWidth) return;
+      const cls = img.naturalHeight > img.naturalWidth ? 'is-portrait' : 'is-landscape';
+      if (wrap.classList.contains(cls)) return;
+      wrap.classList.remove('is-portrait', 'is-landscape');
+      wrap.classList.add(cls);
+      if (finished) relayoutVideoGrid(); // frame height changed after layout
+    };
     const done = () => {
       if (finished) return;
       finished = true;
+      orient();
       card.classList.add('is-loaded');
     };
     if (img.complete && img.naturalWidth) done();
@@ -774,7 +815,7 @@
       };
       viewChips.forEach(chip => {
         const total = countFor(chip.dataset.views || '');
-        const label = total >= 1000 ? (total / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(total);
+        const label = fmtCompact(total);
         const n = chip.querySelector('b');
         if (n) n.textContent = label;
         chip.hidden = false;
@@ -817,7 +858,7 @@
   const sVis = document.getElementById('stats-visitors');
   if (sVis && window.curiosityStats) {
     const S = window.curiosityStats;
-    const formatN = n => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);
+    const formatN = fmtCompact;
     const fetchStats = startMs =>
       fetch(`${S.base}/api/websites/${S.website}/stats?startAt=${startMs}&endAt=${Date.now()}`, {
         headers: { 'x-umami-share-token': S.token }
@@ -837,7 +878,7 @@
       rows.forEach(([id, raw, field], i) => {
         const el = document.getElementById(id);
         if (!el) return;
-        statFx.fill(el, formatN(raw), raw, field);
+        statFx.fill(el, formatN, raw, field);
         statFx.reveal(el, i);
       });
     };
@@ -917,6 +958,7 @@
         });
         empty.hidden = shown > 0;
         grid.classList.toggle('is-empty', shown === 0);
+        document.dispatchEvent(new CustomEvent('curiosity:video-relayout'));
       };
       let initial = ALL;
       const m = new RegExp('(?:#|&)' + hashKey + '=([^&]+)').exec(location.hash);
@@ -958,6 +1000,32 @@
       allLabel: '全部',
       emptyText: '该时间暂无瞬间'
     });
+  })();
+
+  // Works waterfall: grid row-span masonry. Cards stay in their original DOM
+  // order (pinned first, then newest first) and fill rows left to right like a
+  // plain grid — but each card spans as many 8px rows as its height needs, so
+  // 16:9 and 3:4 covers mix into uneven columns. Re-runs (rAF-debounced) when
+  // a cover's orientation is detected, a filter changes the visible set, or
+  // the viewport resizes (card widths — and thus ratio-frame heights — change).
+  (() => {
+    const grid = document.querySelector('.video-listing .video-masonry');
+    if (!grid) return;
+    let raf = 0;
+    const layout = () => {
+      raf = 0;
+      const cs = getComputedStyle(grid);
+      const rowH = parseFloat(cs.gridAutoRows) || 8;
+      const gap = parseFloat(cs.rowGap) || 0;
+      grid.querySelectorAll('.video-card').forEach(c => {
+        if (c.classList.contains('is-filtered-out')) { c.style.gridRowEnd = ''; return; }
+        c.style.gridRowEnd = 'span ' + Math.max(1, Math.ceil((c.offsetHeight + gap) / (rowH + gap)));
+      });
+    };
+    const schedule = () => { if (!raf) raf = requestAnimationFrame(layout); };
+    document.addEventListener('curiosity:video-relayout', schedule);
+    window.addEventListener('resize', schedule);
+    layout();
   })();
 
   // Product-card press feedback on the works grid: the card tilts toward
@@ -1275,7 +1343,7 @@
         if (!res.ok || json.errno) throw new Error(json.errmsg || 'http ' + res.status);
         const data = json.data || {};
         const items = data.data || [];
-        if (data.count) sMemoCount.textContent = data.count + ' 条';
+        if (data.count) sMemoCount.textContent = fmtCompact(data.count) + ' 条';
         sMemoList.innerHTML = '';
         if (!items.length) { sMemoList.innerHTML = ''; if (window.kiteMemoEmpty) sMemoList.append(window.kiteMemoEmpty()); return; }
         items.forEach((c) => sMemoList.append(window.kiteMemoRow(c)));

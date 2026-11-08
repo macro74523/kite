@@ -8,7 +8,7 @@ created_at: 2026-10-28T03:42:10Z
 categories:
   - video
 tags:
-  - 产品类
+  - 图文视频类
 cover: 10月26日 LUZZ疯狂计划新品试打会-封面.jpg
 published_at: 2026-10-28T03:43:18.009Z
 ---
