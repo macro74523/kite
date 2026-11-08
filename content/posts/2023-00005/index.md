@@ -5,7 +5,7 @@ slug: 2023-00005
 aliases: ["小学篇", "2023-82483"]
 status: published
 created_at: 2026-10-20T01:41:52Z
-cover: f0736e7cb95ad582d3c86cafc1de8a8a.png
+cover: https://jpg.macro.wang/20261108211345569.jpg
 tags:
   - 学校短片
 categories:
