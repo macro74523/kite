@@ -275,23 +275,13 @@ dialog{border:1px solid var(--line);border-radius:12px;padding:40px;background:v
 .video-listing .video-masonry{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}.video-listing .video-card{width:100%;break-inside:avoid;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);transition:border-color .2s,box-shadow .2s,transform .25s ease;transform:perspective(950px) translate3d(0,var(--lift,0px),0) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) scale(var(--pscale,1));will-change:transform}.video-listing .video-card:hover,.video-listing .video-card:focus-within{border-color:var(--accent);box-shadow:0 8px 24px #20221e12;--lift:-2px}.video-listing .video-card-link{display:block;border-radius:var(--radius);color:var(--ink);padding:10px 10px 0}.video-listing .video-card-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.video-cover-wrap{width:100%;border-radius:8px;overflow:hidden;background:var(--skeleton,#e3e5e8)}
 .video-cover-wrap.is-landscape{aspect-ratio:16/9}.video-cover-wrap .post-cover{width:100%;height:100%;object-fit:cover;display:block}.video-listing .video-card-body{padding:14px 8px 12px}.video-listing .video-card h2{font-size:18px;line-height:1.5;overflow-wrap:anywhere}.video-listing .video-card-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-top:12px;font-size:11px;color:var(--muted)}.video-listing .video-card-tag{padding:2px 8px;border:1px solid var(--line);border-radius:20px;color:var(--accent)}
 
-/* Video works skeleton loading */
+/* Video works loading: soft breathing shimmer inside the cover frame only */
 .video-listing .video-card{background:transparent;border:0;position:relative;overflow:hidden;box-shadow:none}
-.video-listing .video-card:before{content:'';position:absolute;left:10px;right:10px;top:10px;aspect-ratio:16/9;border-radius:8px;z-index:1;
+.video-listing .video-card:not(.is-loaded) .video-cover-wrap{
   background:linear-gradient(105deg,var(--skeleton,#e3e5e8) 40%,var(--skeleton-hl,#eff0f2) 50%,var(--skeleton,#e3e5e8) 60%);
   background-size:200% 100%;animation:skeleton-shimmer 1.6s ease-in-out infinite}
-.video-listing .video-card:after{content:'';position:absolute;left:0;right:0;bottom:0;height:60px;z-index:1;
-  background:
-    linear-gradient(var(--skeleton,#e3e5e8) 100%,transparent 0) 18px 8px / 55% 14px no-repeat,
-    linear-gradient(var(--skeleton,#e3e5e8) 100%,transparent 0) 18px 30px / 35% 12px no-repeat,
-    linear-gradient(var(--skeleton,#e3e5e8) 100%,transparent 0) 18px 50px / 50px 10px no-repeat,
-    linear-gradient(var(--skeleton,#e3e5e8) 100%,transparent 0) right 18px 46px / 36px 14px no-repeat}
-.video-listing .video-card .video-card-link{position:relative;z-index:2}
-.video-listing .video-card.is-loaded:before,.video-listing .video-card.is-loaded:after{display:none}
-.video-listing .post-cover{opacity:0;transition:opacity .35s ease}
+.video-listing .post-cover{opacity:0;transition:opacity .5s ease}
 .video-listing .is-loaded .post-cover{opacity:1}
-.video-listing .video-card-body{opacity:0;transition:opacity .35s ease .05s}
-.video-listing .is-loaded .video-card-body{opacity:1}
 /* Graceful fallback: gradient placeholder when image fails/times out */
 .video-listing .is-loaded .video-cover-wrap{
   background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 15%,var(--line)) 0%,color-mix(in srgb,var(--lime) 20%,var(--line)) 100%);
@@ -1040,8 +1030,8 @@ html[data-theme=dark] .header-actions .tt-lever{transform:translateX(28px)}
 @keyframes statIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .stat-reveal{animation:statIn .5s cubic-bezier(.2,.75,.2,1) both}
 .stats-row>div{position:relative}
-.stat-delta{position:absolute;top:0;right:2px;z-index:3;padding:1px 6px;border-radius:999px;font-size:10px;font-weight:600;line-height:1.55;letter-spacing:.02em;color:#fff;background:var(--accent);box-shadow:0 3px 10px #00000030;pointer-events:none;white-space:nowrap;animation:statDeltaIn .35s cubic-bezier(.2,.8,.2,1) both}
-.mstat .stat-delta{top:8px;right:8px}
+.mstat b,.stats-number{position:relative}
+.stat-delta{position:absolute;top:-4px;left:100%;margin-left:4px;z-index:3;font-size:10px;font-weight:600;line-height:1.55;letter-spacing:.02em;color:var(--accent);pointer-events:none;white-space:nowrap;animation:statDeltaIn .35s cubic-bezier(.2,.8,.2,1) both}
 .stat-delta.is-out{opacity:0;transform:translateY(-3px);transition:opacity .35s ease,transform .35s ease}
 @keyframes statDeltaIn{from{opacity:0;transform:translateY(5px) scale(.94)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.page-home .stats-big .stats-number.is-pending{animation:none}.stat-reveal{animation:none}.stat-delta{animation:none}}

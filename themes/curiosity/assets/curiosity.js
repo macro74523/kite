@@ -27,7 +27,6 @@
     let prev = null;
     try { prev = JSON.parse(localStorage.getItem(key) || 'null'); } catch (_) { prev = null; }
     const next = Object.assign({}, prev || {});
-    const boxOf = (el) => el.closest('.mstat, .stats-row > div') || el.parentElement;
     return {
       reveal(el, order) {
         if (!el) return;
@@ -39,21 +38,20 @@
       },
       fill(el, display, raw, field) {
         if (!el) return;
-        const box = boxOf(el);
         const num = Number(raw);
+        el.innerHTML = display;
+        el.classList.remove('is-pending');
         if (field && Number.isFinite(num)) {
           if (prev && Number.isFinite(prev[field]) && num > prev[field]) {
             const tip = document.createElement('span');
             tip.className = 'stat-delta';
             tip.textContent = '+' + (num - prev[field]);
-            box.appendChild(tip);
+            el.appendChild(tip);
             setTimeout(() => { tip.classList.add('is-out'); setTimeout(() => tip.remove(), 400); }, 7000);
           }
           next[field] = num;
           try { localStorage.setItem(key, JSON.stringify(next)); } catch (_) { }
         }
-        el.innerHTML = display;
-        el.classList.remove('is-pending');
       }
     };
   })();
@@ -402,16 +400,17 @@
       .formatToParts(date).filter(p => p.type !== 'literal').map(p => [p.type, Number(p.value)])
   );
 
-  // Long moments stay readable in the feed; full content remains without JS.
+  // Moments collapse in the feed; 「展开全文」draws the detail body in place,
+  // below the preview, without navigating away.
   document.querySelectorAll('.moment-fold').forEach((fold, index) => {
-    const hasMedia = !!fold.querySelector('img, video, iframe');
-    if (!hasMedia && fold.scrollHeight <= 260) return;
     fold.id = `moment-content-${index}`;
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'moment-expand';
-    const expand = locale.startsWith('zh') ? '展开全文' : 'Read more';
-    const collapse = locale.startsWith('zh') ? '收起全文' : 'Show less';
+    const zh = locale.startsWith('zh');
+    const expand = zh ? '展开全文' : 'Read more';
+    const collapse = zh ? '收起全文' : 'Show less';
+    const loading = zh ? '载入中…' : 'Loading…';
     button.textContent = expand;
     button.setAttribute('aria-controls', fold.id);
     button.setAttribute('aria-expanded', 'false');
@@ -427,8 +426,23 @@
       }
     });
     syncLinks(true);
-    button.addEventListener('click', () => {
+    button.addEventListener('click', async () => {
       const opening = button.getAttribute('aria-expanded') !== 'true';
+      const content = fold.querySelector('.moment-content');
+      if (opening && content && !fold.dataset.loaded) {
+        fold.dataset.loaded = '1';
+        button.textContent = loading;
+        try {
+          const res = await fetch(fold.dataset.src);
+          if (!res.ok) throw new Error('http ' + res.status);
+          const html = await res.text();
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const inner = doc.querySelector('.article .content');
+          if (inner) content.innerHTML = inner.innerHTML;
+        } catch {
+          content.innerHTML = zh ? '<p class="quiet">内容暂时加载不出来</p>' : '<p class="quiet">Could not load.</p>';
+        }
+      }
       fold.classList.toggle('is-collapsed', !opening);
       syncLinks(!opening);
       button.setAttribute('aria-expanded', String(opening));
@@ -1788,6 +1802,7 @@
     const attach = (img) => {
       if (!img || img.tagName !== 'IMG' || img.dataset.imgFx) return;
       if (img.complete) return; // 缓存命中或已加载，不加占位
+      if (img.closest('.video-listing')) return; // 作品集封面由封面框自己的流光负责
       let host = img.parentElement;
       while (host && getComputedStyle(host).display === 'contents') host = host.parentElement;
       if (!host || host === document.body) return;
