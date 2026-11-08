@@ -10,8 +10,9 @@ slug: 2026-00005
 aliases: ["2026-05-05-滨海华赋30s短视频推广", "2026-64331"]
 status: published
 tags:
-    - 短视频
+  - 活动快剪
 title: 滨海华赋30S短视频推广
-updated_at: 2026-10-29T13:52:04Z
+updated_at: 2026-11-08T12:51:30Z
 ---
+
 &lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=116277565721181&bvid=BV1EcQdBDEoj&cid=36910140011&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=116277565721181&bvid=BV1EcQdBDEoj&cid=36910140011&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
