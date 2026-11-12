@@ -3,17 +3,16 @@ title: "这网站到底能干嘛？一篇说清"
 date: 2026-11-12T00:00:00+08:00
 cover: "/uploads/intro-cover.jpg"
 categories:
-  - post
+  - Example
 tags:
-  - 网站
-  - 介绍
+  - 示例
 description: "用大白话聊聊这个站都有啥功能，以及一些细节上的小心思。"
 pinned: false
 id: 01M772EA7ZEQBPG9A47QCWMGEG
 slug: 2026-00031
 status: published
 created_at: 2026-11-11T16:00:00Z
-updated_at: 2026-11-11T16:00:00Z
+updated_at: 2026-11-12T13:33:22Z
 published_at: 2026-11-11T16:00:00Z
 ---
 
