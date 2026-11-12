@@ -1222,8 +1222,10 @@
         const q = '?type=comment&path=' + encodeURIComponent(path) + '&page=1&pageSize=60&sortBy=insertedAt_desc';
         const res = await fetch(server + '/api/comment' + q, { headers: { Accept: 'application/json' } });
         const j = await res.json();
-        const list = (j && j.data) || [];
-        serverItems = list.map((c) => String(c.comment || '')).filter(Boolean);
+        // Waline 返回 { data: { data: [...], count, page, ... } }，取内层数组
+        const list = (j && j.data && j.data.data) || [];
+        // comment 字段可能是 HTML（<p>xxx</p>），剥标签取纯文本
+        serverItems = list.map((c) => String(c.comment || '').replace(/<[^>]+>/g, '').trim()).filter(Boolean);
       } catch (e) { serverItems = []; }
       // 合并本地自发条（Waline 若开启审核，新弹幕需等审，先用本地兜底保证刷新可见）
       const selfItems = readSelf().filter((t) => !serverItems.includes(t));
