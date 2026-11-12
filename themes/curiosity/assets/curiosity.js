@@ -346,13 +346,14 @@
     const momentStamps = () => moments()
       .map((c) => (c.dataset.time ? Date.parse(c.dataset.time.replace(' ', 'T') + ':00+08:00') : 0))
       .filter((n) => n);
+    const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     function paintLast() {
       const stamps = momentStamps();
       const last = stamps.length ? Math.max(...stamps) : 0;
       const el = document.getElementById('stat-last');
       if (el && last) {
         const s = stamp(last);
-        statFx.fill(el, '<span class="last-day">' + s.m + '.' + s.d + '</span><span class="last-clock">' + s.h + ':' + s.mi + '</span>');
+        statFx.fill(el, '<span class="last-day">' + MONTHS_EN[Number(s.m) - 1] + ' ' + Number(s.d) + '</span><span class="last-clock">' + s.h + ':' + s.mi + '</span>');
       }
       const daysEl = document.getElementById('stat-days');
       if (!daysEl) return;
@@ -1040,15 +1041,15 @@
       emptyText: '该分类暂无作品'
     });
 
-    // Moments: one pill per month, newest month first.
+    // Moments: one pill per year, newest year first.
     setup({
       hostId: 'moments-filter',
       gridSel: '.moments-stream',
       cardSel: '.moment-card',
       keysOf: c => (c.dataset.date ? [c.dataset.date] : []),
-      labelOf: k => k.replace('-', '.'),
+      labelOf: k => k + '年',
       newestFirst: true,
-      hashKey: 'month',
+      hashKey: 'year',
       allLabel: '全部',
       emptyText: '该时间暂无瞬间'
     });
@@ -1251,13 +1252,33 @@
     const start = () => { if (!timer && idx < items.length) tick(); };
     const stop = () => { clearTimeout(timer); timer = 0; };
 
-    // 按钮打开发射弹窗
-    btn.addEventListener('click', () => {
+    // 按钮两种形态：单击切换弹幕开关，双击打开发射弹窗
+    let danmakuOn = true;
+    const setOn = (on) => {
+      danmakuOn = on;
+      btn.classList.toggle('is-off', !on);
+      btn.setAttribute('aria-pressed', String(on));
+      layer.style.visibility = on ? '' : 'hidden';
+      if (on) start();
+      else { stop(); layer.replaceChildren(); }
+    };
+    const openCompose = () => {
       say('');
       if (nickInput && !nickInput.value) nickInput.value = storedNick();
       if (textarea) textarea.value = '';
       paintAvatar();
       dlg.showModal();
+    };
+    let clickTimer = 0;
+    btn.addEventListener('click', (e) => {
+      if (e.detail > 1) return; // 双击的第二下由 dblclick 处理
+      clearTimeout(clickTimer);
+      clickTimer = setTimeout(() => setOn(!danmakuOn), 240);
+    });
+    btn.addEventListener('dblclick', () => {
+      clearTimeout(clickTimer);
+      setOn(true);
+      openCompose();
     });
     if (closeBtn) closeBtn.addEventListener('click', () => dlg.close());
     dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
@@ -1540,6 +1561,14 @@
     const sMemoList = sheet.querySelector('.sheet-memo-list');
     const sMemoCount = sheet.querySelector('.sheet-memo-count');
     const sOpen = sheet.querySelector('.sheet-open');
+    // 弹窗右上角展示导航栏 Logo（自动跟随深浅色切换）
+    const brandImages = document.querySelector('.site-header .brand-images');
+    if (brandImages) {
+      const sheetBrand = brandImages.cloneNode(true);
+      sheetBrand.className = 'brand-images sheet-brand';
+      sheetBrand.removeAttribute('style');
+      sheet.querySelector('.sheet-inner').appendChild(sheetBrand);
+    }
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
     let lastFocus = null;
 
@@ -1888,7 +1917,7 @@
     const LC = window.HOME_LAYOUT_CONFIG || {};
     const defaultOn = LC.defaultView !== 'bento';
     const enabled = () => /[?&]tiles=1/.test(location.search) || (defaultOn && mq.matches);
-    const STORE = 'home-tiles-v2';
+    const STORE = 'home-tiles-v3'; // 默认排版变更时递增，避免旧缓存覆盖新布局
     const COLS = LC.cols || 3;
     const MAXW = COLS;
     const MAXH = 3;
@@ -1897,13 +1926,13 @@
     const DEFS = [
       { id: 'works', sel: '.work-big', r: 1, c: 1, w: 2, h: 2 },
       { id: 'hero', sel: '.hero-big', r: 1, c: 3, w: 1, h: 2 },
-      { id: 'plan', sel: '.plan-card', r: 3, c: 1, w: 1, h: 1 },
-      { id: 'moments', sel: '.moments-big', r: 3, c: 2, w: 2, h: 1 },
-      { id: 'stats', sel: '.stats-big', r: 4, c: 1, w: 2, h: 1 },
-      { id: 'archive', sel: '.archive-map-card', r: 4, c: 3, w: 1, h: 1 },
-      { id: 'cal', sel: '.calendar-card', r: 5, c: 1, w: 1, h: 1 },
-      { id: 'bookmarks', sel: '.bookmarks-card', r: 5, c: 2, w: 1, h: 1 },
-      { id: 'music', sel: '.music-card', r: 5, c: 3, w: 1, h: 1 },
+      { id: 'moments', sel: '.moments-big', r: 3, c: 1, w: 1, h: 2 },
+      { id: 'stats', sel: '.stats-big', r: 3, c: 2, w: 2, h: 1 },
+      { id: 'cal', sel: '.calendar-card', r: 4, c: 2, w: 1, h: 1 },
+      { id: 'plan', sel: '.plan-card', r: 4, c: 3, w: 1, h: 1 },
+      { id: 'archive', sel: '.archive-map-card', r: 5, c: 1, w: 1, h: 1 },
+      { id: 'music', sel: '.music-card', r: 5, c: 2, w: 1, h: 1 },
+      { id: 'bookmarks', sel: '.bookmarks-card', r: 5, c: 3, w: 1, h: 1 },
     ];
     // 主题设置里 card_positions 覆盖默认位置（用户后台配置）
     const CL = window.CARD_LAYOUTS || {};
