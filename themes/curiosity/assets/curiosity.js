@@ -1,25 +1,26 @@
 (() => {
   'use strict';
   const root = document.documentElement;
-  const mq = window.matchMedia('(prefers-color-scheme: dark)');
   let stored = null;
   try { stored = localStorage.getItem('curiosity-theme'); } catch (_) {}
-  const effective = () => stored === 'light' ? 'light' : stored === 'dark' ? 'dark' : (mq.matches ? 'dark' : 'light');
+  // 默认暗黑模式，不跟随系统；仅当用户显式选择亮色时才记忆亮色
+  const effective = () => stored === 'light' ? 'light' : 'dark';
   root.setAttribute('data-theme', effective());
   const toggle = document.getElementById('theme-toggle');
   if (toggle) {
     toggle.addEventListener('click', () => {
-      if (stored === 'light' || stored === 'dark') {
+      if (root.getAttribute('data-theme') === 'dark') {
+        // 暗黑 → 亮色，记忆亮色
+        stored = 'light';
+        try { localStorage.setItem('curiosity-theme', 'light'); } catch (_) {}
+      } else {
+        // 亮色 → 暗黑，清除记忆回到默认暗黑
         stored = null;
         try { localStorage.removeItem('curiosity-theme'); } catch (_) {}
-      } else {
-        stored = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        try { localStorage.setItem('curiosity-theme', stored); } catch (_) {}
       }
       root.setAttribute('data-theme', effective());
     });
   }
-  mq.addEventListener('change', () => { if (!stored) root.setAttribute('data-theme', effective()); });
 
   // 大数字防溢出：全站统计统一紧凑格式 12,345 → 12.3k、1,234,567 → 1.2m
   const fmtCompact = n => {
@@ -64,13 +65,27 @@
           setTimeout(() => { tip.classList.add('is-out'); setTimeout(() => tip.remove(), 400); }, 7000);
         };
         if (delta > 0 && fmt && !reduceMotion()) {
-          // 从旧值滚动到新值，读起来就是"加上了 +N"的感觉；落定瞬间弹出角标
-          const from = num - delta, DUR = 900, t0 = performance.now();
+          // 弹簧物理滚动：从旧值弹到新值，带轻微回弹，读起来更"活"
+          const from = num - delta;
+          const STIFFNESS = 80, DAMPING = 11;
+          let y = from, v = 0, last = performance.now();
           const tick = t => {
-            const k = Math.min(1, (t - t0) / DUR);
-            show(Math.round(from + delta * (1 - Math.pow(1 - k, 3))));
-            if (k < 1) el._statRaf = requestAnimationFrame(tick);
-            else popBadge();
+            let dt = Math.min(0.05, (t - last) / 1000);
+            last = t;
+            while (dt > 0) {
+              const s = Math.min(dt, 1 / 120);
+              dt -= s;
+              const a = -STIFFNESS * (y - num) - DAMPING * v;
+              v += a * s;
+              y += v * s;
+            }
+            show(Math.max(from, Math.round(y)));
+            if (Math.abs(y - num) < 0.5 && Math.abs(v) < 0.5) {
+              show(num);
+              popBadge();
+            } else {
+              el._statRaf = requestAnimationFrame(tick);
+            }
           };
           el._statRaf = requestAnimationFrame(tick);
         } else {
@@ -198,6 +213,32 @@
   }
   window.kiteMemoEmpty = memoEmpty;
 
+  // 弹簧物理动画工具：a = -stiffness*(y-target) - damping*v
+  const spring = (opts) => {
+    const { from, to, stiffness = 80, damping = 11, onUpdate, onDone } = opts;
+    let y = from, v = 0, last = performance.now(), raf = 0;
+    const tick = t => {
+      let dt = Math.min(0.05, (t - last) / 1000);
+      last = t;
+      while (dt > 0) {
+        const s = Math.min(dt, 1 / 120);
+        dt -= s;
+        const a = -stiffness * (y - to) - damping * v;
+        v += a * s;
+        y += v * s;
+      }
+      onUpdate(y);
+      if (Math.abs(y - to) < 0.005 && Math.abs(v) < 0.05) {
+        onUpdate(to);
+        if (onDone) onDone();
+      } else {
+        raf = requestAnimationFrame(tick);
+      }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  };
+
   // 一瞬页留言板：直接读 Waline 的 REST 接口，编辑框在页头、列表在右栏。
   (() => {
     const host = document.getElementById('memo-board');
@@ -311,7 +352,7 @@
       const el = document.getElementById('stat-last');
       if (el && last) {
         const s = stamp(last);
-        statFx.fill(el, '<span class="last-day">' + s.y + '.' + s.m + '.' + s.d + '</span><span class="last-clock">' + s.h + ':' + s.mi + '</span>');
+        statFx.fill(el, '<span class="last-day">' + s.m + '.' + s.d + '</span><span class="last-clock">' + s.h + ':' + s.mi + '</span>');
       }
       const daysEl = document.getElementById('stat-days');
       if (!daysEl) return;
@@ -520,18 +561,21 @@
 
     const draw = () => {
       const cur = zonedParts(new Date());
-      const posts = getMonthPosts(year, month);
+      const allPosts = getMonthPosts(year, month);
+      // UPDATES 只展示最新若干条，避免列表过长撑爆卡片
+      const MAX_ITEMS = 5;
+      const posts = allPosts.slice(0, MAX_ITEMS);
 
       // UPDATES month stamp always uses English short form (e.g. "Oct")
       const mLabel = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month, 1)));
       document.getElementById('calendar-month').textContent = mLabel;
 
-      // Animate count
-      animateCount(calCount, posts.length);
+      // Animate count (总条数，不受展示限制影响)
+      animateCount(calCount, allPosts.length);
 
       // Render timeline items
       timelineItems.innerHTML = '';
-      if (posts.length === 0) {
+      if (allPosts.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'timeline-empty';
         empty.textContent = locale.startsWith('zh') ? '本月暂无更新' : 'No posts this month';
@@ -565,6 +609,14 @@
           // Staggered animation
           setTimeout(() => item.classList.add('is-visible'), idx * 50);
         });
+        // 超出限制时显示「更多」入口
+        if (allPosts.length > MAX_ITEMS) {
+          const more = document.createElement('a');
+          more.className = 'timeline-more';
+          more.href = '/posts/';
+          more.textContent = locale.startsWith('zh') ? `查看全部 ${allPosts.length} 篇 →` : `View all ${allPosts.length} →`;
+          timelineItems.appendChild(more);
+        }
       }
     };
 
@@ -1011,6 +1063,7 @@
   (() => {
     const grid = document.querySelector('.video-listing .video-masonry');
     if (!grid) return;
+    const rail = document.querySelector('.timeline-rail');
     let raf = 0;
     const layout = () => {
       raf = 0;
@@ -1021,11 +1074,232 @@
         if (c.classList.contains('is-filtered-out')) { c.style.gridRowEnd = ''; return; }
         c.style.gridRowEnd = 'span ' + Math.max(1, Math.ceil((c.offsetHeight + gap) / (rowH + gap)));
       });
+      updateTimeline();
+    };
+    // 右侧时间尺度：固定在视口纵向居中的当前时间指示器。
+    // 滚动时取离视口中心最近的作品卡片，读取其发布年月显示；
+    // 每当数值变化，齿轮旋转一格、数字跳动一下，像机械齿轮走时。
+    const TICK_COUNT = 51, MAJOR = 5;
+    let indicator = null;
+    let yearEl = null;
+    let monthEl = null;
+    let ticks = [];
+    let lastKey = '';
+    let litAt = -1;
+    const buildIndicator = () => {
+      indicator = document.createElement('div');
+      indicator.className = 'timeline-indicator';
+      indicator.innerHTML = '<span class="tl-year">—</span><span class="tl-month">—</span>';
+      const ruler = document.createElement('div');
+      ruler.className = 'tl-ruler';
+      for (let i = 0; i < TICK_COUNT; i++) {
+        const t = document.createElement('i');
+        if (i % MAJOR === 0) t.className = 'major';
+        t.style.setProperty('--d', (i * 8) + 'ms');
+        ruler.appendChild(t);
+        ticks.push(t);
+      }
+      indicator.appendChild(ruler);
+      rail.appendChild(indicator);
+      yearEl = indicator.querySelector('.tl-year');
+      monthEl = indicator.querySelector('.tl-month');
+      // 触发刻度错峰入场动画
+      requestAnimationFrame(() => { rail.dataset.on = 'true'; });
+    };
+    const updateTimeline = () => {
+      raf = 0;
+      if (!rail) return;
+      if (!indicator) buildIndicator();
+      // 刻度尺：按滚动进度点亮对应刻度
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const prog = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      const near = Math.round(prog * (TICK_COUNT - 1));
+      if (near !== litAt) {
+        for (let i = Math.max(0, Math.min(near, litAt) - 1); i <= Math.min(TICK_COUNT - 1, Math.max(near, litAt) + 1); i++) {
+          ticks[i].classList.toggle('lit', Math.abs(i - near) <= 1);
+        }
+        litAt = near;
+      }
+      const cards = Array.from(grid.querySelectorAll('.video-card:not(.is-filtered-out)'));
+      if (!cards.length) { yearEl.textContent = '—'; monthEl.textContent = ''; return; }
+      const center = window.innerHeight / 2;
+      let best = cards[0], bestDist = Infinity;
+      cards.forEach(card => {
+        const r = card.getBoundingClientRect();
+        const cardCenter = r.top + r.height / 2;
+        const dist = Math.abs(cardCenter - center);
+        if (dist < bestDist) { bestDist = dist; best = card; }
+      });
+      const time = best.querySelector('time[datetime]');
+      if (!time) return;
+      const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+      const dt = time.getAttribute('datetime'); // YYYY-MM-DD
+      const year = dt.slice(0, 4);
+      const month = parseInt(dt.slice(5, 7), 10);
+      const key = year + '-' + month;
+      if (key !== lastKey) {
+        lastKey = key;
+        yearEl.textContent = year;
+        monthEl.textContent = MONTHS[month - 1];
+        // 数字跳动反馈
+        yearEl.animate([{ transform: 'translateY(-3px)', opacity: .4 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 260, easing: 'cubic-bezier(.3,1.45,.45,1)' });
+      }
     };
     const schedule = () => { if (!raf) raf = requestAnimationFrame(layout); };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(updateTimeline); };
     document.addEventListener('curiosity:video-relayout', schedule);
     window.addEventListener('resize', schedule);
+    window.addEventListener('scroll', onScroll, { passive: true });
     layout();
+  })();
+
+  // 作品集弹幕：复用 Waline 评论系统，弹幕以飘屏形式显示在视口顶部 1/3 区域。
+  // 点击"弹幕"按钮打开发射弹窗，提交后实时飘出。
+  (() => {
+    const btn = document.getElementById('danmaku-toggle');
+    if (!btn) return;
+    const server = btn.dataset.server;
+    const path = btn.dataset.path;
+    const layer = document.getElementById('danmaku-layer');
+    const dlg = document.getElementById('danmaku-dialog');
+    const form = document.getElementById('danmaku-form');
+    if (!server || !layer || !dlg || !form) return;
+
+    const NICK_KEY = 'memo-nick';
+    const SELF_KEY = 'danmaku-self:' + path;
+    const storedNick = () => { try { return localStorage.getItem(NICK_KEY) || ''; } catch (e) { return ''; } };
+    const rememberNick = (v) => { try { localStorage.setItem(NICK_KEY, v); } catch (e) { } };
+    const readSelf = () => { try { return JSON.parse(localStorage.getItem(SELF_KEY) || '[]'); } catch (e) { return []; } };
+    const writeSelf = (arr) => { try { localStorage.setItem(SELF_KEY, JSON.stringify(arr.slice(-30))); } catch (e) { } };
+    const qqOf = (v) => /^\s*(\d{5,12})\s*$/.exec(v || '')?.[1] || '';
+    const qqAvatar = (qq) => 'https://q1.qlogo.cn/g?b=qq&nk=' + encodeURIComponent(qq) + '&s=100';
+    const colors = ['#ffffff', '#ffd166', '#06d6a0', '#ef476f', '#118ab2', '#ff9f1c', '#a0c4ff', '#caffbf'];
+
+    const nickInput = form.querySelector('[name="nick"]');
+    const textarea = form.querySelector('textarea[name="comment"]');
+    const nickAvatar = document.getElementById('danmaku-nick-avatar');
+    const statusEl = document.getElementById('danmaku-status');
+    const closeBtn = document.getElementById('danmaku-close');
+
+    const paintAvatar = () => {
+      if (!nickAvatar) return;
+      const v = nickInput ? (nickInput.value || '').trim() : '';
+      const qq = qqOf(v);
+      nickAvatar.classList.toggle('is-img', !!qq);
+      nickAvatar.style.backgroundImage = qq ? 'url("' + qqAvatar(qq) + '")' : '';
+      nickAvatar.textContent = qq ? '' : v.charAt(0).toUpperCase();
+    };
+    if (nickInput) nickInput.addEventListener('input', paintAvatar);
+
+    let items = [];
+    let idx = 0;
+    let timer = 0;
+    const rows = 8; // 弹幕轨道数
+
+    const spawn = (text, isSelf) => {
+      if (!text) return;
+      const el = document.createElement('span');
+      el.className = 'danmaku-item' + (isSelf ? ' is-self' : '');
+      el.textContent = text;
+      const row = Math.floor(Math.random() * rows);
+      el.style.top = 'calc(' + (row * (100 / rows)) + '% + 4px)';
+      el.style.color = colors[Math.floor(Math.random() * colors.length)];
+      const dur = 11 + Math.random() * 9;
+      el.style.animationDuration = dur + 's';
+      layer.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    };
+
+    const say = (msg, ms) => {
+      if (!statusEl) return;
+      statusEl.textContent = msg || '';
+      if (ms) setTimeout(() => { if (statusEl.textContent === msg) statusEl.textContent = ''; }, ms);
+    };
+
+    const load = async () => {
+      let serverItems = [];
+      try {
+        const q = '?type=comment&path=' + encodeURIComponent(path) + '&page=1&pageSize=60&sortBy=insertedAt_desc';
+        const res = await fetch(server + '/api/comment' + q, { headers: { Accept: 'application/json' } });
+        const j = await res.json();
+        const list = (j && j.data) || [];
+        serverItems = list.map((c) => String(c.comment || '')).filter(Boolean);
+      } catch (e) { serverItems = []; }
+      // 合并本地自发条（Waline 若开启审核，新弹幕需等审，先用本地兜底保证刷新可见）
+      const selfItems = readSelf().filter((t) => !serverItems.includes(t));
+      items = [...new Set(serverItems.concat(selfItems))];
+      for (let i = items.length - 1; i > 0; i--) {
+        const r = Math.floor(Math.random() * (i + 1));
+        [items[i], items[r]] = [items[r], items[i]];
+      }
+    };
+
+    const tick = () => {
+      // 每条弹幕只飘一次，不循环重复
+      if (idx < items.length) {
+        spawn(items[idx]);
+        idx++;
+      }
+      if (idx < items.length) {
+        timer = setTimeout(tick, 1800 + Math.random() * 2200);
+      } else {
+        timer = 0;
+      }
+    };
+    const start = () => { if (!timer && idx < items.length) tick(); };
+    const stop = () => { clearTimeout(timer); timer = 0; };
+
+    // 按钮打开发射弹窗
+    btn.addEventListener('click', () => {
+      say('');
+      if (nickInput && !nickInput.value) nickInput.value = storedNick();
+      if (textarea) textarea.value = '';
+      paintAvatar();
+      dlg.showModal();
+    });
+    if (closeBtn) closeBtn.addEventListener('click', () => dlg.close());
+    dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nick = nickInput ? nickInput.value.trim() : '';
+      const comment = textarea ? textarea.value.trim() : '';
+      if (!nick || !comment) { say('昵称和弹幕内容都不能为空', 2200); return; }
+      const submitBtn = form.querySelector('.memo-submit');
+      submitBtn.setAttribute('disabled', 'true');
+      say('发射中…');
+      // 先写入本地，保证刷新后仍可见（即使 Waline 需审核或网络波动）
+      const self = readSelf();
+      self.push(comment);
+      writeSelf(self);
+      if (!items.includes(comment)) items.push(comment);
+      try {
+        await fetch(server + '/api/comment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ nick: nick.slice(0, 24), mail: '', link: '', comment: comment.slice(0, 60), url: location.pathname })
+        });
+        rememberNick(nick);
+        say('发射成功', 1500);
+        spawn(comment, true);
+        if (textarea) textarea.value = '';
+        setTimeout(() => dlg.close(), 600);
+        load();
+        start();
+      } catch (err) {
+        say('发射失败，请稍后重试', 2200);
+        spawn(comment, true);
+        start();
+      } finally {
+        submitBtn.removeAttribute('disabled');
+      }
+    });
+
+    // 启动弹幕飘屏
+    load().then(start);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stop(); else start();
+    });
   })();
 
   // Product-card press feedback on the works grid: the card tilts toward
@@ -1839,6 +2113,11 @@
     box.hidden = false;
     document.documentElement.classList.add('lightbox-open');
     box.querySelector('.lightbox-close').focus();
+    // 弹簧弹出：scale 0.85 → 1，带回弹
+    img.style.animation = 'none';
+    spring({ from: .85, to: 1, stiffness: 120, damping: 12, onUpdate: s => {
+      img.style.transform = 'scale(' + s + ')';
+    }});
   }
 
   function close() {
@@ -1940,4 +2219,79 @@
       stage.classList.add('is-pop');
       window.setTimeout(() => stage.classList.remove('is-pop'), 800);
     });
+  })();
+
+  // ===== Tooltip 组件（延迟显示 + 温暖期 + 智能定位 + 接管 title） =====
+  (function initTooltip() {
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const SHOW_DELAY = 400, WARM_PERIOD = 600;
+    let tt = null, showTimer = 0, warmTimer = 0, warm = false, currentEl = null;
+    const create = () => {
+      tt = document.createElement('div');
+      tt.className = 'tt';
+      document.body.appendChild(tt);
+    };
+    const place = (el) => {
+      const r = el.getBoundingClientRect();
+      const tw = tt.offsetWidth, th = tt.offsetHeight;
+      const pad = 6;
+      let left = r.left + r.width / 2;
+      let top = r.bottom + pad;
+      let place = 'bottom';
+      // 底部空间不足时翻到上方
+      if (top + th > window.innerHeight - pad) {
+        top = r.top - th - pad;
+        place = 'top';
+      }
+      // 水平边界收进视口
+      left = Math.max(tw / 2 + pad, Math.min(window.innerWidth - tw / 2 - pad, left));
+      tt.style.left = left + 'px';
+      tt.style.top = top + 'px';
+      tt.dataset.place = place;
+    };
+    const show = (el) => {
+      const text = el.getAttribute('data-tip') || el.getAttribute('title');
+      if (!text || !text.trim()) return;
+      currentEl = el;
+      if (!tt) create();
+      const kbd = el.getAttribute('data-kbd');
+      tt.innerHTML = text + (kbd ? '<span class="tt-kbd">' + kbd + '</span>' : '');
+      tt.classList.remove('is-show');
+      place(el);
+      requestAnimationFrame(() => tt.classList.add('is-show'));
+      warm = true;
+      clearTimeout(warmTimer);
+    };
+    const hide = () => {
+      if (tt) tt.classList.remove('is-show');
+      currentEl = null;
+      warm = false;
+      clearTimeout(showTimer);
+      warmTimer = setTimeout(() => { warm = false; }, WARM_PERIOD);
+    };
+    document.addEventListener('mouseover', (e) => {
+      const el = e.target.closest('[data-tip],[title]');
+      if (!el || el.closest('.tt')) return;
+      // 接管原生 title，避免浏览器提示叠加
+      if (el.hasAttribute('title') && !el.hasAttribute('data-tip')) {
+        el.setAttribute('data-tip', el.getAttribute('title'));
+        el.removeAttribute('title');
+      }
+      clearTimeout(showTimer);
+      if (warm && currentEl && currentEl !== el) {
+        // 温暖期内直接显示（不等待）
+        show(el);
+      } else {
+        showTimer = setTimeout(() => show(el), SHOW_DELAY);
+      }
+    });
+    document.addEventListener('mouseout', (e) => {
+      const el = e.target.closest('[data-tip]');
+      if (!el) return;
+      const to = e.relatedTarget;
+      if (to && el.contains(to)) return;
+      hide();
+    });
+    window.addEventListener('scroll', hide, true);
+    window.addEventListener('blur', hide);
   })();
