@@ -12,4 +12,4 @@ cover: https://jpg.macro.wang/20261108210506295.jpg
 published_at: 2026-11-08T13:05:25.21Z
 ---
 
-&lt;iframe src="//[player.bilibili.com/player.html?isOutside=true&amp;aid=117580937431612&amp;bvid=BV1smWE64E1a&amp;cid=43439489247&amp;p=1](http://player.bilibili.com/player.html?isOutside=true&aid=117580937431612&bvid=BV1smWE64E1a&cid=43439489247&p=1)" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"&gt;&lt;/iframe&gt;
+https://www.bilibili.com/video/BV1smWE64E1a/?p=1

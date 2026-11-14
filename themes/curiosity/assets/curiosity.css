@@ -409,8 +409,19 @@ html[data-theme=dark]{--bg:#0f0f12;--card:#18181b;--ink:#e4e4e7;--muted:#a1a1aa;
 .bangumi-info i{font-style:normal;font-size:10px;letter-spacing:.08em;color:var(--accent)}
 .rail-foot{font-size:11px;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px}
 @media(max-width:1000px){.moments-two-col{grid-template-columns:1fr}.bangumi-rail{position:static}.bangumi-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));max-height:none;overflow:visible}}.moments-heading{margin-bottom:40px}.moments-heading h1{font-size:46px;letter-spacing:-2px;line-height:1.2;margin:12px 0 20px}.moments-heading p{font-size:15px}@media(max-width:850px){.moments-heading h1{font-size:36px}}
-.moments-stream{gap:16px}.moment-card{padding:22px;border-radius:var(--radius);box-shadow:none;scroll-margin-top:24px;min-width:0}.moment-header{gap:12px}.moment-avatar{width:36px;height:36px}.moment-date{display:inline-block;min-height:24px}.moment-header time{font-size:12px;font-variant-numeric:tabular-nums}.moment-body{margin:16px 0 0}.moment-body>h2{font-size:18px;line-height:1.45;margin-bottom:10px;text-wrap:pretty}.moment-content{font-size:15px;line-height:1.75;overflow-wrap:anywhere}.moment-content>*+*{margin-top:12px}.moment-content ul,.moment-content ol{padding-left:24px}.moment-content li+li{margin-top:8px}.moment-content hr{border:0;border-top:1px solid var(--line);margin:20px 0}.moment-content table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;font-size:14px}.moment-content td,.moment-content th{border:1px solid var(--line);padding:10px 12px;text-align:left;min-width:100px}.moment-content th{background:var(--bg)}.moment-content pre{max-width:100%;font-size:13px}.moment-content iframe,.moment-content video{max-width:100%}.moment-content img,.moment-fold>.post-cover{max-height:400px;width:auto;max-width:100%;margin-top:14px;border-radius:var(--radius);background:var(--bg)}.moment-fold.is-collapsed{max-height:240px;overflow:hidden;position:relative}.moment-fold.is-collapsed:after{content:'';position:absolute;bottom:0;left:0;right:0;height:56px;background:linear-gradient(transparent,var(--card));pointer-events:none}.moment-expand{display:inline-flex;align-items:center;min-height:44px;padding:8px 0;margin-top:6px;color:var(--accent);font-size:14px;font-weight:600}.moment-expand:hover{text-decoration:underline;text-underline-offset:4px}.moment-footer{margin-top:14px;padding-top:8px;gap:4px 16px}.moment-footer a{min-height:44px;display:inline-flex;align-items:center;font-size:13px}.moment-card:target{border-color:var(--accent)}
-@media(max-width:650px){.moments-stream{gap:12px}.moment-card{padding:18px 16px;border-radius:var(--radius)}.moment-body>h2{font-size:17px}.moment-content{font-size:15px;line-height:1.72}.moment-content img,.moment-fold>.post-cover{max-height:320px}.moment-fold.is-collapsed{max-height:220px}.moment-body{margin-top:14px}.moment-header strong{font-size:14px}}
+.moments-stream{gap:16px}.moment-card{padding:22px;border-radius:var(--radius);box-shadow:none;scroll-margin-top:24px;min-width:0}.moment-header{gap:12px}.moment-avatar{width:36px;height:36px}.moment-date{display:inline-block;min-height:24px}.moment-header time{font-size:12px;font-variant-numeric:tabular-nums}.moment-body{margin:16px 0 0}.moment-body>h2{font-size:18px;line-height:1.45;margin-bottom:10px;text-wrap:pretty}.moment-content{font-size:15px;line-height:1.75;overflow-wrap:anywhere}.moment-content>*+*{margin-top:12px}.moment-content ul,.moment-content ol{padding-left:24px}.moment-content li+li{margin-top:8px}.moment-content hr{border:0;border-top:1px solid var(--line);margin:20px 0}.moment-content table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;font-size:14px}.moment-content td,.moment-content th{border:1px solid var(--line);padding:10px 12px;text-align:left;min-width:100px}.moment-content th{background:var(--bg)}.moment-content pre{max-width:100%;font-size:13px}.moment-content iframe,.moment-content video{max-width:100%}.moment-content img,.moment-fold>.post-cover{max-height:400px;width:auto;max-width:100%;margin-top:14px;border-radius:var(--radius);background:var(--bg)}.moment-fold.is-collapsed{max-height:var(--moment-collapsed-h,240px);overflow:hidden;position:relative}.moment-fold.is-collapsed:after{content:'';position:absolute;bottom:0;left:0;right:0;height:56px;background:linear-gradient(transparent,var(--card));pointer-events:none}.moment-expand{display:inline-flex;align-items:center;min-height:44px;padding:8px 0;margin-top:6px;color:var(--accent);font-size:14px;font-weight:600}.moment-expand:hover{text-decoration:underline;text-underline-offset:4px}.moment-footer{margin-top:14px;padding-top:8px;gap:4px 16px}.moment-footer a{min-height:44px;display:inline-flex;align-items:center;font-size:13px}.moment-card:target{border-color:var(--accent)}
+/* 一瞬卡片：左侧文字、右侧照片；照片做成微倾斜的拍立得，用回形针扣住，卡片尺寸不变 */
+.moment-fold{display:flex;align-items:flex-start;gap:24px}
+.moment-fold>.moment-content{flex:1;min-width:0}
+.moment-polaroid{position:relative;--polaroid-pad:46px;flex:0 0 208px;margin:16px 6px 0 0;padding:10px 10px 36px;background:#fdfdf8;border-radius:3px;box-shadow:0 10px 22px rgb(0 0 0/.16),0 2px 5px rgb(0 0 0/.1);transform:rotate(4deg);transform-origin:center}
+.moment-polaroid .post-cover{display:block;width:100%;height:auto;max-height:250px;object-fit:cover;margin:0;border-radius:2px;background:var(--bg)}
+.moment-clip{position:absolute;top:-15px;left:50%;width:16px;height:42px;transform:translateX(-50%) rotate(-7deg);border:2.5px solid #a7adb6;border-radius:9px;box-shadow:0 1px 2px rgb(0 0 0/.18);pointer-events:none}
+.moment-clip:after{content:'';position:absolute;left:2.5px;top:6px;width:6px;height:26px;border:2px solid #a7adb6;border-top:0;border-radius:0 0 6px 6px}
+.moment-fold.is-collapsed .moment-polaroid{max-height:var(--moment-collapsed-h,200px);overflow:hidden}
+.moment-fold.is-collapsed .moment-polaroid .post-cover{max-height:calc(var(--moment-collapsed-h,200px) - var(--polaroid-pad))}
+.moment-expand[hidden]{display:none}
+@media(max-width:650px){.moment-fold{gap:14px}.moment-polaroid{--polaroid-pad:33px;flex-basis:132px;padding:7px 7px 26px;margin-top:12px;transform:rotate(3deg)}.moment-polaroid .post-cover{max-height:180px}.moment-clip{width:12px;height:32px;top:-12px;border-width:2px}.moment-clip:after{height:18px;top:4px;width:4px;left:2px}}
+@media(max-width:650px){.moments-stream{gap:12px}.moment-card{padding:18px 16px;border-radius:var(--radius)}.moment-body>h2{font-size:17px}.moment-content{font-size:15px;line-height:1.72}.moment-content img,.moment-fold>.post-cover{max-height:320px}.moment-fold.is-collapsed{max-height:var(--moment-collapsed-h,220px)}.moment-body{margin-top:14px}.moment-header strong{font-size:14px}}
 /* Phone homepage: content priority, readable titles and touch controls. */
 @media(max-width:650px){
 .home-grid{gap:16px}.home-grid .bento-row{gap:16px}.home-grid .card{padding:22px}
@@ -1452,6 +1463,45 @@ body.moments-page .moment-body>h2{cursor:default}
 @media(max-width:650px){
 body.moments-page .moments-listing .moment-card{padding:18px 16px;border-radius:18px}
 body.moments-page .moments-listing .profile-hero{border-radius:20px}
+}
+/* ===== 一瞬页头重设计：紧凑资料卡 + 独立统计小卡，克制留白 ===== */
+body.moments-page .moments-listing .profile-hero{border-radius:22px;margin-bottom:26px}
+.moments-listing .profile-banner{height:72px}
+.moments-listing .profile-banner::after{background:linear-gradient(180deg,rgb(var(--shadow-rgb)/.16),transparent 70%)}
+.moments-listing .profile-banner-tag{left:24px;top:22px;padding:5px 11px;font-size:10px;letter-spacing:.16em;background:rgb(var(--shadow-rgb)/.22)}
+.moments-listing .profile-ident{align-items:center;gap:16px;margin:0;padding:24px 26px 0}
+.moments-listing .profile-avatar{width:64px;height:64px;flex-basis:64px;border-width:3px;font-size:24px;box-shadow:0 6px 16px rgb(var(--shadow-rgb)/.10)}
+.moments-listing .profile-name-wrap{padding-bottom:0;gap:12px}
+.moments-listing .profile-name{font-size:22px;font-weight:750;letter-spacing:-.01em}
+.moments-listing .profile-level{padding:3px 8px;font-size:9px;font-weight:650;letter-spacing:.12em}
+.moments-listing .profile-actions{padding-bottom:0;gap:10px}
+.moments-listing .profile-action{min-height:34px;padding:7px 14px;font-size:12px;font-weight:550}
+.moments-listing .profile-intro{margin:16px 26px 0;max-width:58em;font-size:13.5px;line-height:1.85}
+.moments-listing .moments-stats{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:24px 26px 26px;padding:0;border-top:0}
+.moments-listing .moments-stats .mstat:nth-child(n){align-items:flex-start;padding:14px 14px 13px;border:1px solid rgb(255 255 255/.5);border-radius:14px;background:rgb(255 255 255/.34);box-shadow:0 1px 2px rgb(var(--shadow-rgb)/.03)}
+html[data-theme=dark] .moments-listing .moments-stats .mstat:nth-child(n){border-color:rgb(255 255 255/.07);background:rgb(255 255 255/.035)}
+.moments-listing .mstat-ico{margin-bottom:10px;opacity:.65}
+.moments-listing .mstat-ico svg{width:14px;height:14px}
+.moments-listing .mstat b{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.15;text-align:left;font-variant-numeric:tabular-nums}
+.moments-listing .mstat-k{margin-top:5px;font-size:10.5px;letter-spacing:.04em;color:var(--muted);opacity:.85}
+.moments-listing .mstat-time b{font-size:16px}
+@media(max-width:1180px){
+.moments-listing .moments-stats{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:12px}
+}
+@media(max-width:650px){
+.moments-listing .profile-banner{height:60px}
+.moments-listing .profile-banner-tag{left:18px;top:18px}
+.moments-listing .profile-ident{gap:12px;margin:0;padding:20px 18px 0}
+.moments-listing .profile-avatar{width:56px;height:56px;flex-basis:56px;font-size:21px}
+.moments-listing .profile-name{font-size:19px}
+.moments-listing .profile-actions{width:100%;margin-left:0;padding-bottom:0}
+.moments-listing .profile-action{min-height:38px;padding:8px 14px;font-size:12.5px}
+.moments-listing .profile-intro{margin:14px 18px 0;font-size:13px}
+.moments-listing .moments-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 18px 20px;padding:0}
+.moments-listing .moments-stats .mstat:nth-child(n){padding:12px 11px;border-radius:12px}
+.moments-listing .mstat b{font-size:19px}
+.moments-listing .mstat-k{font-size:10px}
+.moments-listing .mstat-time b{font-size:14px}
 }
 /* ===== Tooltip 组件 ===== */
 .tt{position:fixed;z-index:10000;max-width:260px;padding:6px 10px;border-radius:8px;background:var(--card);color:var(--ink);font-size:12px;line-height:1.4;pointer-events:none;opacity:0;transform:translate(-50%,-6px) scale(.96);transition:opacity .15s var(--ease-out),transform .15s var(--ease-out);box-shadow:var(--sh-md),var(--ring);white-space:nowrap}

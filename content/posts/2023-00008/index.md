@@ -13,4 +13,4 @@ tags:
 published_at: 2023-08-07T09:00:00Z
 ---
 
-&lt;iframe src="//[player.bilibili.com/player.html?bvid=BV1ySnF6hEEs&amp;page=1](http://player.bilibili.com/player.html?bvid=BV1ySnF6hEEs&page=1)" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"&gt; &lt;/iframe&gt;
+https://www.bilibili.com/video/BV1ySnF6hEEs/?p=1

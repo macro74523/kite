@@ -15,4 +15,4 @@ title: 滨海华赋30S短视频推广
 updated_at: 2026-11-08T12:51:30Z
 ---
 
-&lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=116277565721181&bvid=BV1EcQdBDEoj&cid=36910140011&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=116277565721181&bvid=BV1EcQdBDEoj&cid=36910140011&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
+https://www.bilibili.com/video/BV1EcQdBDEoj/?p=1

@@ -15,6 +15,6 @@ title: 烟草局活动
 updated_at: 2026-11-08T13:10:50Z
 ---
 
-&lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=116581535319346&bvid=BV1rn5k6fEmH&cid=38366350010&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=116581535319346&bvid=BV1rn5k6fEmH&cid=38366350010&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
+https://www.bilibili.com/video/BV1rn5k6fEmH/?p=1
 
 **原视频没保存好，清晰度有点很模糊**

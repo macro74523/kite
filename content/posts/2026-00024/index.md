@@ -13,4 +13,4 @@ published_at: 2026-11-06T12:30:52Z
 cover: https://jpg.macro.wang/20261106205544893.jpg
 ---
 
-&lt;iframe src="//[player.bilibili.com/player.html?isOutside=true&amp;aid=117569444906718&amp;bvid=BV1CX4z6WEmk&amp;cid=43383326844&amp;p=1](http://player.bilibili.com/player.html?isOutside=true&aid=117569444906718&bvid=BV1CX4z6WEmk&cid=43383326844&p=1)" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"&gt;&lt;/iframe&gt;
+https://www.bilibili.com/video/BV1CX4z6WEmk/?p=1

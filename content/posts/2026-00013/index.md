@@ -15,4 +15,4 @@ title: '传承600多年历史的年例习俗—走将军 '
 updated_at: 2026-10-29T13:52:04Z
 ---
 
-&lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=1051156521&bvid=BV1SH4y1777F&cid=1451711209&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=1051156521&bvid=BV1SH4y1777F&cid=1451711209&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
+https://www.bilibili.com/video/BV1SH4y1777F/?p=1

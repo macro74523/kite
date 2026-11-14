@@ -13,4 +13,4 @@ tags:
 cover: https://jpg.macro.wang/20261106205656136.jpg
 ---
 
-&lt;iframe src="//[player.bilibili.com/player.html?isOutside=true&amp;aid=117569461749554&amp;bvid=BV1wo4z6QEjc&amp;cid=43383393343&amp;p=1](http://player.bilibili.com/player.html?isOutside=true&aid=117569461749554&bvid=BV1wo4z6QEjc&cid=43383393343&p=1)" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"&gt;&lt;/iframe&gt;
+https://www.bilibili.com/video/BV1wo4z6QEjc/?p=1

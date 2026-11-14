@@ -15,4 +15,4 @@ title: 西葛沙滩
 updated_at: 2026-10-29T13:52:04Z
 ---
 
-&lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=658881477&bvid=BV1vh4y1y7qd&cid=1210862238&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=658881477&bvid=BV1vh4y1y7qd&cid=1210862238&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
+https://www.bilibili.com/video/BV1vh4y1y7qd/?p=1

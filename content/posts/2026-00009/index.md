@@ -15,4 +15,4 @@ title: 匹克球开业转转赛
 updated_at: 2026-11-08T12:51:00Z
 ---
 
-&lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=116526757709646&bvid=BV1EqR4B5E83&cid=38130814025&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=116526757709646&bvid=BV1EqR4B5E83&cid=38130814025&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
+https://www.bilibili.com/video/BV1EqR4B5E83/?p=1

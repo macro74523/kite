@@ -485,7 +485,7 @@
     button.textContent = expand;
     button.setAttribute('aria-controls', fold.id);
     button.setAttribute('aria-expanded', 'false');
-    fold.classList.add('is-collapsed');
+    const content = fold.querySelector('.moment-content');
     const syncLinks = collapsed => fold.querySelectorAll('a').forEach(link => {
       if (collapsed) {
         link.dataset.momentTabindex = link.getAttribute('tabindex') ?? '';
@@ -496,10 +496,30 @@
         delete link.dataset.momentTabindex;
       }
     });
-    syncLinks(true);
+    // 按行高折叠：内容放得下就不显示「展开全文」；需要折叠时精确保留几行，
+    // 折叠高度同步给右侧拍立得，卡片不会留空。
+    const evaluate = () => {
+      if (!content) return;
+      const expanded = button.getAttribute('aria-expanded') === 'true';
+      const line = parseFloat(getComputedStyle(content).lineHeight) || 26;
+      const rows = window.matchMedia('(max-width: 650px)').matches ? 4 : 5;
+      const collapsed = Math.round(line * rows);
+      fold.style.setProperty('--moment-collapsed-h', `${collapsed}px`);
+      const need = Number(fold.dataset.words || 0) > 200 || content.scrollHeight > collapsed + Math.round(line * 0.6);
+      button.hidden = !need;
+      if (!need) {
+        fold.classList.remove('is-collapsed');
+        syncLinks(false);
+      } else if (!expanded) {
+        fold.classList.add('is-collapsed');
+        syncLinks(true);
+      }
+    };
+    evaluate();
+    window.addEventListener('load', evaluate);
+    window.addEventListener('resize', evaluate);
     button.addEventListener('click', async () => {
       const opening = button.getAttribute('aria-expanded') !== 'true';
-      const content = fold.querySelector('.moment-content');
       if (opening && content && !fold.dataset.loaded) {
         fold.dataset.loaded = '1';
         button.textContent = loading;

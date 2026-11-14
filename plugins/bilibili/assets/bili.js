@@ -1,15 +1,13 @@
-// 把正文里被转义的 B 站 iframe 嵌入代码替换成极简播放器
-// 使用 B 站移动版嵌入页（html5mobileplayer）并按参数关掉标题、UP 主头像昵称、
-// 关注按钮、弹幕、播放量等信息，只保留封面、播放按钮与播放/进度/音量/全屏控件。
-// 播放器按视频真实比例自适应（通过 B 站 API JSONP 获取分辨率，带本地缓存）
+// 把正文里被转义的 B 站 iframe 嵌入代码替换成站点统一包装的播放器。
+// 统一使用 B 站移动版嵌入页（html5mobileplayer），通过 hideCoverInfo 等参数
+// 隐藏原生头像、昵称、关注、标题与弹幕按钮，呈现站点重做的简洁外观；
+// 真实比例由服务端在生成时从 B 站接口写入，不再依赖浏览器 JSONP。
 // enhance(root) 既能跑在真实 DOM（会真正创建 iframe 并加载），也能跑在
 // DOMParser 生成的虚拟文档（只做占位替换，避免把带 src 但永远不触发 load 的
 // iframe 泄漏到真实 DOM，导致 opacity:0 的黑块）。
 (function () {
-  var urlRe = /(?:https?:)?\/\/player\.bilibili\.com\/player\.html\?[^"<\s]+/i;
+  var urlRe = /(?:https?:)?\/\/(?:player\.bilibili\.com\/(?:player|html5mobileplayer)|www\.bilibili\.com\/blackboard\/html5mobileplayer)\.html\?[^"<\s]+/i;
   var bvidRe = /[?&]bvid=([A-Za-z0-9]+)/i;
-  var CACHE_KEY = 'bili-video-dims';
-  var MOBILE_PLAYER = 'https://www.bilibili.com/blackboard/html5mobileplayer.html';
 
   // 强制把 B 站播放器 URL 升级到 https。
   // https 主站嵌入 http iframe 会被浏览器当成 Mixed Content 直接拦截
@@ -19,81 +17,33 @@
     return u.replace(/^(?:https?:)?\/\//i, 'https://');
   }
 
-  // 把 PC 版嵌入地址换成移动版极简嵌入页。
-  // 移动版默认只有封面 + 播放按钮 + 进度/时间/音量/全屏，没有 UP 主信息、
-  // 关注、进入哔哩哔哩、观看更高清、弹幕等入口；再用参数把封面统计和
-  // 弹幕输入框一并关掉。
+  // 统一成移动版嵌入地址，并固定站点需要的参数。
+  // 只有移动版支持 hideCoverInfo/hideDanmakuButton，才能隐藏 B 站原生 UI。
+  // 正确地址是 www.bilibili.com/blackboard/...，player.bilibili.com 同名页已 404。
   function toCleanPlayerUrl(u) {
     try {
       var src = new URL(u);
       if (!/^(?:player|www)\.bilibili\.com$/i.test(src.hostname)) return u;
-      if (/html5mobileplayer/i.test(src.pathname)) return src.href;
-      var out = new URL(MOBILE_PLAYER);
+      var out = new URL('https://www.bilibili.com/blackboard/html5mobileplayer.html');
       ['aid', 'bvid', 'cid', 'seasonId', 'episodeId', 'epid', 't', 'quality'].forEach(function (k) {
         if (src.searchParams.has(k)) out.searchParams.set(k, src.searchParams.get(k));
       });
       var p = src.searchParams.get('p') || src.searchParams.get('page');
       if (p) out.searchParams.set('p', p);
 
-      // 注意：移动版对 autoplay / noFullScreenButton 只判断参数是否存在，
-      // 即使传 0 也会被当成开启，所以这两个参数一律不传。
-      out.searchParams.set('danmaku', '0');           // 关闭弹幕与弹幕开关
-      out.searchParams.set('hideDanmakuButton', '1'); // 隐藏弹幕输入/发送入口
-      out.searchParams.set('hideCoverInfo', '1');     // 隐藏播放量、弹幕数、发布日期
-      out.searchParams.set('posterFirst', '1');       // 先出封面，避免黑屏
-      out.searchParams.set('high_quality', '1');      // 已登录用户自动用高清档
+      out.searchParams.set('autoplay', '0');
+      out.searchParams.set('high_quality', '1');
+      out.searchParams.set('danmaku', '0');
+      out.searchParams.set('hideCoverInfo', '1');
+      out.searchParams.set('hideDanmakuButton', '1');
+      out.searchParams.set('posterFirst', '1');
       return out.toString();
     } catch (e) { return u; }
-  }
-
-  function readCache() {
-    try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch (e) { return {}; }
-  }
-  function writeCache(c) {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify(c)); } catch (e) {}
-  }
-
-  function applyDims(box, d) {
-    if (!d || !d.w || !d.h) return;
-    var w = d.w, h = d.h;
-    if (d.r === 90 || d.r === 270) { var t = w; w = h; h = t; }
-    var ratio = w / h;
-    if (ratio < 0.5 || ratio > 2.6) return;
-    box.style.paddingTop = '0';
-    box.style.aspectRatio = w + ' / ' + h;
-    if (h > w) {
-      box.style.maxWidth = 'calc(78vh * ' + (w / h).toFixed(4) + ')';
-      box.style.marginLeft = 'auto';
-      box.style.marginRight = 'auto';
-    }
   }
 
   function once(fn) {
     var done = false;
     return function (v) { if (!done) { done = true; fn(v); } };
-  }
-
-  function loadDims(bvid, cb) {
-    var cache = readCache();
-    if (cache[bvid]) { cb(cache[bvid]); return; }
-    var fin = once(cb);
-    var fn = '__biliDim' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    var s = document.createElement('script');
-    window[fn] = function (res) {
-      var d = null;
-      if (res && res.data && res.data.dimension && res.data.dimension.width) {
-        d = { w: res.data.dimension.width, h: res.data.dimension.height, r: res.data.dimension.rotate || 0 };
-        cache[bvid] = d;
-        writeCache(cache);
-      }
-      fin(d);
-      delete window[fn];
-      s.remove();
-    };
-    s.src = 'https://api.bilibili.com/x/web-interface/view?bvid=' + bvid + '&jsonp=jsonp&callback=' + fn;
-    s.onerror = function () { fin(null); delete window[fn]; s.remove(); };
-    document.head.appendChild(s);
-    setTimeout(function () { fin(null); }, 6000);
   }
 
   // 判断 root 是否来自 DOMParser 虚拟文档（没有 defaultView，也就没有 window）
@@ -179,10 +129,6 @@
 
     createFrame(url, box);
     el.parentNode.replaceChild(box, el);
-
-    // 按视频真实分辨率调整播放器比例
-    var bv = (url.match(bvidRe) || [])[1];
-    if (bv) loadDims(bv, function (d) { applyDims(box, d); });
   }
 
   // enhance(root)：可复用入口，root 为限定范围（默认全文档）；
@@ -203,8 +149,6 @@
         var url = box.dataset.biliUrl;
         box.removeAttribute('data-bili-url');
         createFrame(url, box);
-        var bv = (url.match(bvidRe) || [])[1];
-        if (bv) loadDims(bv, function (d) { applyDims(box, d); });
       });
     }
   }
@@ -215,6 +159,7 @@
     document.querySelectorAll('.bili-player iframe').forEach(function (frame) {
       var box = frame.parentElement;
       if (!box || !box.classList.contains('bili-player')) return;
+      if (!box.querySelector('.bili-logo')) addLogo(box);
       var clean = toCleanPlayerUrl(upgradeHttps(frame.src));
       if (clean !== frame.src) frame.src = clean;
       if (frame.complete) { box.classList.add('is-ready'); return; }

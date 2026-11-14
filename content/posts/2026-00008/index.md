@@ -15,4 +15,4 @@ title: 东江八点23跨年
 updated_at: 2026-10-29T13:52:04Z
 ---
 
-&lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=835508991&bvid=BV1ig4y167iQ&cid=1387028729&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=835508991&bvid=BV1ig4y167iQ&cid=1387028729&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
+https://www.bilibili.com/video/BV1ig4y167iQ/?p=1

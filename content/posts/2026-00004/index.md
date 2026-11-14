@@ -15,4 +15,4 @@ title: 广东人的早餐：泡沫箱肠粉
 updated_at: 2026-10-29T13:52:04Z
 ---
 
-&lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=407149708&bvid=BV1QG41117Uu&cid=1301228541&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=407149708&bvid=BV1QG41117Uu&cid=1301228541&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
+https://www.bilibili.com/video/BV1QG41117Uu/?p=1

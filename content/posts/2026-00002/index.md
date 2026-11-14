@@ -15,4 +15,4 @@ title: 你还记得放学最爱去的小吃店么？
 updated_at: 2026-10-29T13:52:04Z
 ---
 
-&lt;iframe src="[https://player.bilibili.com/player.html?isOutside=true&aid=574464406&bvid=BV1oz4y1p7Ye&cid=1225769666&p=1](https://player.bilibili.com/player.html?isOutside=true&aid=574464406&bvid=BV1oz4y1p7Ye&cid=1225769666&p=1)" allowfullscreen="true"&gt;&lt;/iframe&gt;
+https://www.bilibili.com/video/BV1oz4y1p7Ye/?p=1

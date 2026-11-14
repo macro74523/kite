@@ -1,7 +1,7 @@
 .bili-player {
   position: relative;
   width: 100%;
-  padding-top: 56.25%;
+  aspect-ratio: 16 / 9;
   margin: 1.5em 0;
   border-radius: 12px;
   overflow: hidden;
