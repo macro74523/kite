@@ -1,7 +1,7 @@
 // 把正文里被转义的 B 站 iframe 嵌入代码替换成站点统一包装的播放器。
 // 统一使用 B 站移动版嵌入页（html5mobileplayer），通过 hideCoverInfo 等参数
 // 隐藏原生头像、昵称、关注、标题与弹幕按钮，呈现站点重做的简洁外观；
-// 真实比例由服务端在生成时从 B 站接口写入，不再依赖浏览器 JSONP。
+// 横竖屏比例由文章封面的真实尺寸决定，见 applyCoverRatio。
 // enhance(root) 既能跑在真实 DOM（会真正创建 iframe 并加载），也能跑在
 // DOMParser 生成的虚拟文档（只做占位替换，避免把带 src 但永远不触发 load 的
 // iframe 泄漏到真实 DOM，导致 opacity:0 的黑块）。
@@ -153,9 +153,35 @@
     }
   }
 
+  // 文章封面和视频同比例——作者习惯拿视频截图当封面，所以量出封面的宽高，
+  // 就知道视频是横屏还是竖屏，不会把竖屏视频塞进 16:9 的框里。
+  // 封面地址在文章 frontmatter 里，是静态数据，不需要请求 Bilibili 接口，
+  // 构建时也就不再依赖 wasm 沙箱的联网白名单。
+  function applyRatio(box, width, height) {
+    if (!width || !height) return;
+    box.style.aspectRatio = width + ' / ' + height;
+    if (height > width) {
+      box.style.maxWidth = 'calc(82vh * ' + (width / height).toFixed(4) + ')';
+      box.style.marginLeft = 'auto';
+      box.style.marginRight = 'auto';
+    }
+  }
+
+  function applyCoverRatio(box) {
+    if (box.hasAttribute('data-ratio')) return;
+    var host = box.closest('[data-cover]');
+    var source = host && host.getAttribute('data-cover');
+    if (!source) return;
+    box.setAttribute('data-ratio', '');
+    var probe = new Image();
+    probe.onload = function () { applyRatio(box, probe.naturalWidth, probe.naturalHeight); };
+    probe.src = source;
+  }
+
   // 对构建阶段已生成的 .bili-player 也加上 ready 状态控制
   // 同时把服务端可能硬编码的 http://player.bilibili.com src 升级到 https
   document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.bili-player').forEach(applyCoverRatio);
     document.querySelectorAll('.bili-player iframe').forEach(function (frame) {
       var box = frame.parentElement;
       if (!box || !box.classList.contains('bili-player')) return;
@@ -174,5 +200,10 @@
   });
 
   window.biliEnhance = enhance;
+  // 列表页「展开全文」把详情页正文注入卡片后，再按封面校正一次比例：
+  // 那段 HTML 是详情页构建产物，本身带着 16:9 的兜底值。
+  window.biliRatio = function (root) {
+    (root || document).querySelectorAll('.bili-player').forEach(applyCoverRatio);
+  };
   enhance(document);
 })();

@@ -534,6 +534,10 @@
           content.innerHTML = zh ? '<p class="quiet">内容暂时加载不出来</p>' : '<p class="quiet">Could not load.</p>';
         }
       }
+      if (opening) {
+        window.biliEnhance && window.biliEnhance(fold);
+        window.biliRatio && window.biliRatio(fold);
+      }
       fold.classList.toggle('is-collapsed', !opening);
       syncLinks(!opening);
       button.setAttribute('aria-expanded', String(opening));
@@ -1704,6 +1708,11 @@
         // DOMParser 里的 enhance 只留了带 data-bili-url 的占位盒子，
         // 真实 DOM 里再跑一次，补上 iframe + load 监听，opacity 才会在 load 后解锁。
         if (window.biliEnhance) window.biliEnhance(sContent);
+        // 抽屉里的播放器同样按封面定横竖屏：封面写在文章页 <article> 上，
+        // 这里把它挪到抽屉正文，biliRatio 才能量到。
+        const cover = doc.querySelector('.article')?.dataset.cover;
+        if (cover) sContent.dataset.cover = cover; else delete sContent.dataset.cover;
+        if (window.biliRatio) window.biliRatio(sContent);
         const disc = doc.querySelector('aside.disclaimer');
         if (disc) {
           sDisc.innerHTML = disc.innerHTML;

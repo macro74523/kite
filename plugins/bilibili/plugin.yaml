@@ -3,7 +3,6 @@ name: Bilibili Video
 version: 1.0.0
 apiVersion: kite/plugin/v1
 description: Turn standalone Bilibili video links into responsive embedded players, including in the studio preview.
-hosts: [api.bilibili.com]
 hooks: [transform_html]
 license: MIT
 homepage: https://www.bite.plus/

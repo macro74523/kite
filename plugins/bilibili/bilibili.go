@@ -91,14 +91,10 @@ func player(v video) string {
 		ratioID = v.id
 	}
 
-	width, height := ratioFor(v.id)
+	// 16:9 只是兜底。竖屏自适应由 bili.js 按文章封面的真实尺寸改写，
+	// 封面地址在文章 frontmatter 里，插件因此不需要请求 Bilibili 接口，
+	// 构建时也就不依赖 wasm 沙箱的网络白名单。
 	style := "aspect-ratio: 16 / 9;"
-	if width > 0 && height > 0 {
-		style = fmt.Sprintf("aspect-ratio: %d / %d;", width, height)
-		if height > width {
-			style += fmt.Sprintf(" max-width: calc(82vh * %.4f); margin-left: auto; margin-right: auto;", float64(width)/float64(height))
-		}
-	}
 
 	// 移动版嵌入页才能隐藏 B 站原生封面信息（头像、昵称、关注、标题）和弹幕
 	// 按钮，呈现站点重做的简洁播放器外观。注意正确地址是 www.bilibili.com
@@ -109,8 +105,7 @@ func player(v video) string {
 		src += "&p=" + v.page
 	}
 	// is-ready makes the server-rendered preview visible without waiting for
-	// bili.js. The ratio comes from Bilibili at render time so vertical videos
-	// use their own shape instead of a 16:9 box.
+	// bili.js; the ratio is refined there from the article cover.
 	return fmt.Sprintf(`<div class="bili-player is-ready" data-bvid="%s" data-p="%s" style="%s"><iframe src="%s" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms" scrolling="no" frameborder="no" referrerpolicy="no-referrer-when-downgrade"></iframe>%s</div>`,
 		html.EscapeString(ratioID), html.EscapeString(v.page), html.EscapeString(style), html.EscapeString(src), logoSVG)
 }
